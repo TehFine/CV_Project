@@ -7,6 +7,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from || '/'
+  const hint = location.state?.hint // 'employer' nếu đến từ nút Đăng tuyển
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
@@ -47,12 +48,13 @@ export default function LoginPage() {
             <span style={{ fontWeight: 800, fontSize: 22, color: 'white', letterSpacing: '-0.5px' }}>Nex<span style={{ color: '#A78BFA' }}>CV</span></span>
           </Link>
           <h2 style={{ fontSize: 36, fontWeight: 800, color: 'white', lineHeight: 1.2, marginBottom: 16 }}>
-            Chào mừng<br />trở lại! 👋
+            {hint === 'employer' ? 'Đăng nhập để\nđăng tuyển dụng 🏢' : 'Chào mừng\ntrở lại! 👋'}
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.7, marginBottom: 40 }}>
-            Đăng nhập để tiếp tục hành trình sự nghiệp của bạn. AI của chúng tôi luôn sẵn sàng giúp bạn hoàn thiện CV.
+            {hint === 'employer'
+              ? 'Đăng nhập với tài khoản nhà tuyển dụng để đăng tin và quản lý ứng viên.'
+              : 'Đăng nhập để tiếp tục hành trình sự nghiệp của bạn. AI của chúng tôi luôn sẵn sàng giúp bạn hoàn thiện CV.'}
           </p>
-          {/* Features */}
           {['Chấm điểm CV bằng AI trong 30 giây', 'Tiếp cận 12,000+ việc làm mới nhất', 'Nhận gợi ý cải thiện CV chuyên sâu'].map(feat => (
             <div key={feat} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: 'rgba(52,211,153,0.2)', border: '1px solid rgba(52,211,153,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -68,7 +70,6 @@ export default function LoginPage() {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', minWidth: 0 }}>
         <div style={{ width: '100%', maxWidth: 420 }} className="animate-fade-in">
           <div style={{ marginBottom: 32 }}>
-            {/* Mobile logo */}
             <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', marginBottom: 24 }} className="hide-desktop">
               <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ color: 'white', fontWeight: 900, fontSize: 14 }}>N</span>
@@ -77,21 +78,41 @@ export default function LoginPage() {
             </Link>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>Đăng nhập</h1>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-              Chưa có tài khoản? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>Đăng ký ngay</Link>
+              Chưa có tài khoản?{' '}
+              <Link
+                to="/register"
+                state={{ role: hint === 'employer' ? 'recruiter' : 'seeker' }}
+                style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}
+              >
+                {hint === 'employer' ? 'Đăng ký nhà tuyển dụng' : 'Đăng ký ngay'}
+              </Link>
             </p>
           </div>
+
+          {/* Hint banner khi đến từ Đăng tuyển */}
+          {hint === 'employer' && (
+            <div style={{ backgroundColor: 'rgba(124,58,237,0.08)', border: '1.5px solid rgba(124,58,237,0.25)', borderRadius: 10, padding: '12px 14px', marginBottom: 20 }}>
+              <p style={{ fontSize: 13, color: '#7C3AED', fontWeight: 600, margin: 0 }}>
+                🏢 Bạn cần đăng nhập để sử dụng tính năng đăng tuyển
+              </p>
+              <p style={{ fontSize: 12, color: '#94A3B8', margin: '4px 0 0' }}>
+                Chưa có tài khoản? <Link to="/register" state={{ role: 'recruiter' }} style={{ color: '#7C3AED', fontWeight: 600, textDecoration: 'none' }}>Đăng ký với tư cách nhà tuyển dụng</Link>
+              </p>
+            </div>
+          )}
 
           {/* Demo hint */}
-          <div onClick={fillDemo} style={{ backgroundColor: 'var(--ai-light)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 20, cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#EDE9FE'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--ai-light)'}
-          >
-            <p style={{ fontSize: 12, color: 'var(--ai)', fontWeight: 500, margin: 0 }}>
-              💡 Demo: click để điền tài khoản test — <code style={{ backgroundColor: 'rgba(124,58,237,0.1)', padding: '1px 5px', borderRadius: 4 }}>demo@nexcv.vn / demo123</code>
-            </p>
-          </div>
+          {hint !== 'employer' && (
+            <div onClick={fillDemo} style={{ backgroundColor: 'var(--ai-light)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 20, cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#EDE9FE'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--ai-light)'}
+            >
+              <p style={{ fontSize: 12, color: 'var(--ai)', fontWeight: 500, margin: 0 }}>
+                💡 Demo: click để điền tài khoản test — <code style={{ backgroundColor: 'rgba(124,58,237,0.1)', padding: '1px 5px', borderRadius: 4 }}>demo@nexcv.vn / demo123</code>
+              </p>
+            </div>
+          )}
 
-          {/* Error */}
           {error && (
             <div style={{ backgroundColor: 'var(--danger-light)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
               <p style={{ fontSize: 13, color: 'var(--danger)', margin: 0 }}>⚠️ {error}</p>
@@ -99,7 +120,6 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Email */}
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>Email</label>
               <input
@@ -109,7 +129,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password */}
             <div style={{ marginBottom: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Mật khẩu</label>
@@ -127,8 +146,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button
-              type="submit" disabled={loading}
+            <button type="submit" disabled={loading}
               style={{ width: '100%', padding: '12px', borderRadius: 10, fontSize: 15, fontWeight: 700, backgroundColor: loading ? '#93C5FD' : 'var(--primary)', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
               {loading ? (

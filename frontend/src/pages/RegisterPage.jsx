@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function PasswordStrength({ password }) {
@@ -22,11 +22,39 @@ function PasswordStrength({ password }) {
   )
 }
 
+// ✅ FIXED: moved outside RegisterPage so it's not recreated on every render
+function InputField({ name, label, type = 'text', placeholder, form, errors, showPass, setShowPass, handleChange }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>{label}</label>
+      <div style={{ position: 'relative' }}>
+        <input
+          type={name === 'password' || name === 'confirmPassword' ? (showPass ? 'text' : 'password') : type}
+          name={name} value={form[name]} onChange={handleChange}
+          placeholder={placeholder}
+          autoComplete={name === 'password' ? 'new-password' : name === 'email' ? 'email' : undefined}
+          style={{ width: '100%', padding: `10px ${(name === 'password' || name === 'confirmPassword') ? '44px' : '14px'} 10px 14px`, border: `1.5px solid ${errors[name] ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 10, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-primary)', backgroundColor: 'white', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
+        />
+        {(name === 'password' || name === 'confirmPassword') && (
+          <button type="button" onClick={() => setShowPass(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}>
+            {showPass ? '🙈' : '👁️'}
+          </button>
+        )}
+      </div>
+      {name === 'password' && <PasswordStrength password={form.password} />}
+      {errors[name] && <p style={{ fontSize: 12, color: 'var(--danger)', margin: '4px 0 0' }}>⚠️ {errors[name]}</p>}
+    </div>
+  )
+}
+
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const defaultRole = location.state?.role || 'seeker'
 
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
+  const [role, setRole] = useState(defaultRole)
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', companyName: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
@@ -44,6 +72,7 @@ export default function RegisterPage() {
     if (form.phone && !form.phone.match(/^(0[3-9]\d{8})$/)) errs.phone = 'Số điện thoại không hợp lệ'
     if (form.password.length < 6) errs.password = 'Mật khẩu ít nhất 6 ký tự'
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Mật khẩu xác nhận không khớp'
+    if (role === 'recruiter' && !form.companyName.trim()) errs.companyName = 'Vui lòng nhập tên công ty'
     if (!agreed) errs.agreed = 'Vui lòng đồng ý điều khoản'
     return errs
   }
@@ -54,8 +83,8 @@ export default function RegisterPage() {
     if (Object.keys(errs).length) { setErrors(errs); return }
     setLoading(true)
     try {
-      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password })
-      navigate('/')
+      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role, companyName: form.companyName })
+      navigate(role === 'recruiter' ? '/employer/dashboard' : '/')
     } catch (err) {
       setErrors({ submit: err?.message || 'Đăng ký thất bại. Vui lòng thử lại.' })
     } finally {
@@ -63,27 +92,8 @@ export default function RegisterPage() {
     }
   }
 
-  const Field = ({ name, label, type = 'text', placeholder, extra }) => (
-    <div style={{ marginBottom: 16 }}>
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>{label}</label>
-      <div style={{ position: 'relative' }}>
-        <input
-          type={name === 'password' || name === 'confirmPassword' ? (showPass ? 'text' : 'password') : type}
-          name={name} value={form[name]} onChange={handleChange}
-          placeholder={placeholder} autoComplete={name === 'password' ? 'new-password' : name === 'email' ? 'email' : undefined}
-          style={{ width: '100%', padding: `10px ${(name === 'password' || name === 'confirmPassword') ? '44px' : '14px'} 10px 14px`, border: `1.5px solid ${errors[name] ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 10, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-primary)', backgroundColor: 'white', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-        />
-        {(name === 'password' || name === 'confirmPassword') && (
-          <button type="button" onClick={() => setShowPass(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}>
-            {showPass ? '🙈' : '👁️'}
-          </button>
-        )}
-      </div>
-      {name === 'password' && <PasswordStrength password={form.password} />}
-      {errors[name] && <p style={{ fontSize: 12, color: 'var(--danger)', margin: '4px 0 0' }}>⚠️ {errors[name]}</p>}
-      {extra}
-    </div>
-  )
+  // shared props passed down to InputField
+  const inputProps = { form, errors, showPass, setShowPass, handleChange }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-base)' }}>
@@ -97,15 +107,23 @@ export default function RegisterPage() {
           <span style={{ fontWeight: 800, fontSize: 22, color: 'white', letterSpacing: '-0.5px' }}>Nex<span style={{ color: '#A78BFA' }}>CV</span></span>
         </Link>
         <div style={{ position: 'relative' }}>
-          <h2 style={{ fontSize: 36, fontWeight: 800, color: 'white', lineHeight: 1.2, marginBottom: 16 }}>Tạo tài khoản<br />hoàn toàn miễn phí ✨</h2>
+          <h2 style={{ fontSize: 36, fontWeight: 800, color: 'white', lineHeight: 1.2, marginBottom: 16 }}>
+            {role === 'recruiter' ? 'Tìm ứng viên\nchất lượng cao ✨' : 'Tạo tài khoản\nhoàn toàn miễn phí ✨'}
+          </h2>
           <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.7, marginBottom: 32 }}>
-            Tham gia cùng 50,000+ ứng viên đang sử dụng NexCV để tối ưu hóa CV và tìm kiếm cơ hội việc làm tốt hơn.
+            {role === 'recruiter'
+              ? 'Đăng tin tuyển dụng và để AI giúp bạn tìm ứng viên phù hợp nhất từ hàng nghìn hồ sơ.'
+              : 'Tham gia cùng 50,000+ ứng viên đang sử dụng NexCV để tối ưu hóa CV và tìm kiếm cơ hội việc làm tốt hơn.'}
           </p>
-          {[
+          {(role === 'recruiter' ? [
+            { emoji: '📋', title: 'Đăng tin tuyển dụng', desc: 'Dễ dàng tạo và quản lý tin tuyển dụng' },
+            { emoji: '🤖', title: 'AI chấm điểm CV tự động', desc: 'Lọc ứng viên chất lượng nhanh chóng' },
+            { emoji: '📊', title: 'Dashboard thống kê', desc: 'Theo dõi hiệu quả tuyển dụng' },
+          ] : [
             { emoji: '✨', title: 'AI Chấm điểm CV', desc: 'Nhận phân tích chi tiết trong 30 giây' },
             { emoji: '🎯', title: 'Gợi ý việc làm phù hợp', desc: 'Dựa trên kỹ năng và kinh nghiệm của bạn' },
             { emoji: '📊', title: 'Theo dõi ứng tuyển', desc: 'Quản lý mọi đơn ứng tuyển ở một nơi' },
-          ].map(feat => (
+          ]).map(feat => (
             <div key={feat.title} style={{ display: 'flex', gap: 14, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '14px 16px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <span style={{ fontSize: 22, flexShrink: 0 }}>{feat.emoji}</span>
               <div>
@@ -127,11 +145,30 @@ export default function RegisterPage() {
             <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--primary)' }}>Nex<span style={{ color: '#7C3AED' }}>CV</span></span>
           </Link>
 
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 24 }}>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>Đăng ký tài khoản</h1>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
               Đã có tài khoản? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>Đăng nhập</Link>
             </p>
+          </div>
+
+          {/* Role selector */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+            {[
+              { key: 'seeker', icon: '🧑‍💼', label: 'Ứng viên', desc: 'Tìm việc làm' },
+              { key: 'recruiter', icon: '🏢', label: 'Nhà tuyển dụng', desc: 'Đăng tin tuyển' },
+            ].map(r => (
+              <button key={r.key} onClick={() => setRole(r.key)} style={{
+                padding: '14px 12px', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+                border: `2px solid ${role === r.key ? (r.key === 'recruiter' ? '#7C3AED' : 'var(--primary)') : 'var(--border)'}`,
+                backgroundColor: role === r.key ? (r.key === 'recruiter' ? 'rgba(124,58,237,0.06)' : 'var(--primary-light)') : 'white',
+                transition: 'all 0.2s', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 24, marginBottom: 4 }}>{r.icon}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: role === r.key ? (r.key === 'recruiter' ? '#7C3AED' : 'var(--primary)') : 'var(--text-primary)' }}>{r.label}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{r.desc}</div>
+              </button>
+            ))}
           </div>
 
           {errors.submit && (
@@ -141,13 +178,25 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit}>
-            <Field name="name" label="Họ và tên *" placeholder="Nguyễn Văn An" />
-            <Field name="email" label="Email *" type="email" placeholder="your@email.com" />
-            <Field name="phone" label="Số điện thoại" placeholder="0901 234 567" />
-            <Field name="password" label="Mật khẩu *" placeholder="Tối thiểu 6 ký tự" />
-            <Field name="confirmPassword" label="Xác nhận mật khẩu *" placeholder="Nhập lại mật khẩu" />
+            <InputField name="name" label="Họ và tên *" placeholder="Nguyễn Văn An" {...inputProps} />
+            <InputField name="email" label="Email *" type="email" placeholder="your@email.com" {...inputProps} />
+            <InputField name="phone" label="Số điện thoại" placeholder="0901 234 567" {...inputProps} />
 
-            {/* Terms */}
+            {role === 'recruiter' && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>Tên công ty *</label>
+                <input
+                  name="companyName" value={form.companyName} onChange={handleChange}
+                  placeholder="VD: Công ty TNHH NexCV Vietnam"
+                  style={{ width: '100%', padding: '10px 14px', border: `1.5px solid ${errors.companyName ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 10, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-primary)', backgroundColor: 'white', boxSizing: 'border-box' }}
+                />
+                {errors.companyName && <p style={{ fontSize: 12, color: 'var(--danger)', margin: '4px 0 0' }}>⚠️ {errors.companyName}</p>}
+              </div>
+            )}
+
+            <InputField name="password" label="Mật khẩu *" placeholder="Tối thiểu 6 ký tự" {...inputProps} />
+            <InputField name="confirmPassword" label="Xác nhận mật khẩu *" placeholder="Nhập lại mật khẩu" {...inputProps} />
+
             <div style={{ marginBottom: 20 }}>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: 'var(--primary)', flexShrink: 0 }} />
@@ -158,13 +207,12 @@ export default function RegisterPage() {
               {errors.agreed && <p style={{ fontSize: 12, color: 'var(--danger)', margin: '4px 0 0 26px' }}>⚠️ {errors.agreed}</p>}
             </div>
 
-            <button
-              type="submit" disabled={loading}
-              style={{ width: '100%', padding: '12px', borderRadius: 10, fontSize: 15, fontWeight: 700, backgroundColor: loading ? '#93C5FD' : 'var(--primary)', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            <button type="submit" disabled={loading}
+              style={{ width: '100%', padding: '12px', borderRadius: 10, fontSize: 15, fontWeight: 700, backgroundColor: loading ? '#93C5FD' : (role === 'recruiter' ? '#7C3AED' : 'var(--primary)'), color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             >
               {loading ? (
                 <><svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Đang tạo tài khoản...</>
-              ) : '🚀 Tạo tài khoản miễn phí'}
+              ) : role === 'recruiter' ? '🏢 Đăng ký nhà tuyển dụng' : '🚀 Tạo tài khoản miễn phí'}
             </button>
           </form>
         </div>
