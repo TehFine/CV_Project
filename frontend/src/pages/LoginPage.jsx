@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { Eye, EyeOff, Sparkles, Loader2 } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -13,146 +18,119 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
 
-  const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
-    if (error) setError('')
-  }
+  const set = k => e => { setForm(p => ({ ...p, [k]: e.target.value })); setError('') }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault()
     if (!form.email || !form.password) { setError('Vui lòng điền đầy đủ thông tin'); return }
     setLoading(true)
     try {
-      await login(form.email, form.password)
-      navigate(from, { replace: true })
+      const res = await login(form.email, form.password)
+      navigate(res.user.role === 'employer' ? '/employer/dashboard' : from, { replace: true })
     } catch (err) {
-      setError(err?.message || 'Đăng nhập thất bại. Vui lòng thử lại.')
-    } finally {
-      setLoading(false)
-    }
+      setError(err?.message || 'Đăng nhập thất bại')
+    } finally { setLoading(false) }
   }
 
-  const fillDemo = () => setForm({ email: 'demo@nexcv.vn', password: 'demo123' })
+  const DEMO_ACCOUNTS = [
+    { label: 'Demo ứng viên', email: 'demo@nexcv.vn', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+    { label: 'Demo nhà tuyển dụng', email: 'employer@nexcv.vn', color: 'bg-violet-50 text-violet-700 border-violet-200' },
+  ]
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-base)' }}>
+    <div className="min-h-screen flex">
       {/* Left panel */}
-      <div style={{ flex: 1, background: 'linear-gradient(160deg, #0F172A 0%, #1549B8 100%)', display: 'none', position: 'relative', overflow: 'hidden', flexDirection: 'column', justifyContent: 'center', padding: 60 }} className="show-desktop">
-        <div style={{ position: 'absolute', top: -80, right: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(124,58,237,0.25)' }} />
-        <div style={{ position: 'relative' }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', marginBottom: 48 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: 16 }}>N</span>
-            </div>
-            <span style={{ fontWeight: 800, fontSize: 22, color: 'white', letterSpacing: '-0.5px' }}>Nex<span style={{ color: '#A78BFA' }}>CV</span></span>
-          </Link>
-          <h2 style={{ fontSize: 36, fontWeight: 800, color: 'white', lineHeight: 1.2, marginBottom: 16 }}>
-            Chào mừng<br />trở lại! 👋
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.7, marginBottom: 40 }}>
-            Đăng nhập để tiếp tục hành trình sự nghiệp của bạn. AI của chúng tôi luôn sẵn sàng giúp bạn hoàn thiện CV.
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-slate-900 via-blue-950 to-primary flex-col justify-center p-14 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl" />
+        <Link to="/" className="flex items-center gap-2 mb-14 relative">
+          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
+            <span className="text-primary font-black text-base">N</span>
+          </div>
+          <span className="text-white font-black text-2xl tracking-tight">Nex<span className="text-violet-400">CV</span></span>
+        </Link>
+        <div className="relative">
+          <h2 className="text-4xl font-black text-white mb-4 leading-tight">Chào mừng<br />trở lại! 👋</h2>
+          <p className="text-slate-300 text-base leading-relaxed mb-10">
+            Đăng nhập để tiếp tục hành trình sự nghiệp. AI của chúng tôi luôn sẵn sàng giúp bạn hoàn thiện CV.
           </p>
-          {/* Features */}
-          {['Chấm điểm CV bằng AI trong 30 giây', 'Tiếp cận 12,000+ việc làm mới nhất', 'Nhận gợi ý cải thiện CV chuyên sâu'].map(feat => (
-            <div key={feat} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: 'rgba(52,211,153,0.2)', border: '1px solid rgba(52,211,153,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <span style={{ fontSize: 10, color: '#34D399' }}>✓</span>
+          {['Chấm điểm CV bằng AI trong 30 giây', 'Tiếp cận 12,000+ việc làm mới nhất', 'Nhận gợi ý cải thiện CV chuyên sâu'].map(f => (
+            <div key={f} className="flex items-center gap-3 mb-3">
+              <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+                <span className="text-emerald-400 text-[10px] font-bold">✓</span>
               </div>
-              <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)' }}>{feat}</span>
+              <span className="text-slate-300 text-sm">{f}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Right panel */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', minWidth: 0 }}>
-        <div style={{ width: '100%', maxWidth: 420 }} className="animate-fade-in">
-          <div style={{ marginBottom: 32 }}>
-            {/* Mobile logo */}
-            <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', marginBottom: 24 }} className="hide-desktop">
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: 'white', fontWeight: 900, fontSize: 14 }}>N</span>
-              </div>
-              <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--primary)', letterSpacing: '-0.5px' }}>Nex<span style={{ color: '#7C3AED' }}>CV</span></span>
-            </Link>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>Đăng nhập</h1>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-              Chưa có tài khoản? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>Đăng ký ngay</Link>
+      <div className="flex-1 flex items-center justify-center p-8 bg-muted/30">
+        <div className="w-full max-w-md">
+          <Link to="/" className="lg:hidden flex items-center gap-2 mb-8">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-white font-black text-sm">N</span>
+            </div>
+            <span className="font-black text-xl text-primary tracking-tight">Nex<span className="text-violet-500">CV</span></span>
+          </Link>
+
+          <div className="mb-8">
+            <h1 className="text-3xl font-black text-foreground mb-2">Đăng nhập</h1>
+            <p className="text-muted-foreground text-sm">
+              Chưa có tài khoản?{' '}
+              <Link to="/register" className="text-primary font-semibold hover:underline">Đăng ký ngay</Link>
             </p>
           </div>
 
-          {/* Demo hint */}
-          <div onClick={fillDemo} style={{ backgroundColor: 'var(--ai-light)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 20, cursor: 'pointer', transition: 'all 0.2s' }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#EDE9FE'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--ai-light)'}
-          >
-            <p style={{ fontSize: 12, color: 'var(--ai)', fontWeight: 500, margin: 0 }}>
-              💡 Demo: click để điền tài khoản test — <code style={{ backgroundColor: 'rgba(124,58,237,0.1)', padding: '1px 5px', borderRadius: 4 }}>demo@nexcv.vn / demo123</code>
-            </p>
+          {/* Demo shortcuts */}
+          <div className="grid grid-cols-2 gap-2 mb-5">
+            {DEMO_ACCOUNTS.map(acc => (
+              <button key={acc.email} onClick={() => setForm({ email: acc.email, password: 'demo123' })}
+                className={`text-xs px-3 py-2 rounded-lg border font-medium transition-colors hover:opacity-80 ${acc.color}`}>
+                💡 {acc.label}
+              </button>
+            ))}
           </div>
 
-          {/* Error */}
           {error && (
-            <div style={{ backgroundColor: 'var(--danger-light)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
-              <p style={{ fontSize: 13, color: 'var(--danger)', margin: 0 }}>⚠️ {error}</p>
+            <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+              ⚠️ {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            {/* Email */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>Email</label>
-              <input
-                type="email" name="email" value={form.email} onChange={handleChange}
-                placeholder="your@email.com" autoComplete="email"
-                style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-primary)', backgroundColor: 'white', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-              />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="your@email.com" autoComplete="email"
+                value={form.email} onChange={set('email')} />
             </div>
-
-            {/* Password */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Mật khẩu</label>
-                <a href="#" style={{ fontSize: 12, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>Quên mật khẩu?</a>
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="password">Mật khẩu</Label>
+                <a href="#" className="text-xs text-primary hover:underline font-medium">Quên mật khẩu?</a>
               </div>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type={showPass ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange}
-                  placeholder="Nhập mật khẩu" autoComplete="current-password"
-                  style={{ width: '100%', padding: '10px 44px 10px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-primary)', backgroundColor: 'white', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-                />
-                <button type="button" onClick={() => setShowPass(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}>
-                  {showPass ? '🙈' : '👁️'}
+              <div className="relative">
+                <Input id="password" type={showPass ? 'text' : 'password'} placeholder="Nhập mật khẩu"
+                  autoComplete="current-password" value={form.password} onChange={set('password')} className="pr-10" />
+                <button type="button" onClick={() => setShowPass(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
-
-            <button
-              type="submit" disabled={loading}
-              style={{ width: '100%', padding: '12px', borderRadius: 10, fontSize: 15, fontWeight: 700, backgroundColor: loading ? '#93C5FD' : 'var(--primary)', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            >
-              {loading ? (
-                <><svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Đang đăng nhập...</>
-              ) : 'Đăng nhập'}
-            </button>
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+            </Button>
           </form>
 
-          <div style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: 'var(--text-muted)' }}>
+          <p className="text-center text-xs text-muted-foreground mt-6">
             Bằng cách đăng nhập, bạn đồng ý với{' '}
-            <a href="#" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Điều khoản dịch vụ</a>
-            {' '}và{' '}
-            <a href="#" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Chính sách bảo mật</a>
-          </div>
+            <a href="#" className="text-primary hover:underline">Điều khoản</a> và{' '}
+            <a href="#" className="text-primary hover:underline">Chính sách bảo mật</a>
+          </p>
         </div>
       </div>
-
-      <style>{`
-        @media (min-width: 768px) {
-          .show-desktop { display: flex !important; }
-          .hide-desktop { display: none !important; }
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   )
 }

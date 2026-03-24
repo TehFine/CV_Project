@@ -1,116 +1,118 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { jobService, JOB_CATEGORIES } from '../services/jobService'
+import { Search, MapPin, Filter, X, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { jobService, JOB_CATEGORIES } from '@/services/jobService'
+import { cn } from '@/lib/utils'
 
 const LEVELS = ['Intern', 'Junior', 'Middle', 'Senior', 'Lead/Manager']
 const JOB_TYPES = ['Toàn thời gian', 'Bán thời gian', 'Remote', 'Freelance']
-const LOCATIONS = ['TP. Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ', 'Khác']
+const LOCATIONS = ['TP. Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Cần Thơ']
 
 function JobCard({ job }) {
   const navigate = useNavigate()
   const daysAgo = Math.floor((Date.now() - new Date(job.postedAt)) / 86400000)
-  const initials = job.company.slice(0, 2).toUpperCase()
-
   return (
-    <div
-      onClick={() => navigate(`/jobs/${job.id}`)}
-      className="card-hover"
-      style={{ backgroundColor: 'white', border: `1.5px solid ${job.featured ? 'rgba(21,73,184,0.2)' : 'var(--border)'}`, borderRadius: 14, padding: 20, cursor: 'pointer', display: 'flex', gap: 16, alignItems: 'flex-start', position: 'relative' }}
-    >
-      {job.featured && (
-        <div style={{ position: 'absolute', top: 14, right: 14, backgroundColor: 'var(--primary-light)', color: 'var(--primary)', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 20 }}>Nổi bật</div>
-      )}
-      <div style={{ width: 50, height: 50, borderRadius: 12, backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: 'var(--primary)', flexShrink: 0 }}>
-        {initials}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <h3 style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 3 }}>{job.title}</h3>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 10 }}>{job.company}</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-          {[{ icon: '📍', text: job.location }, { icon: '💰', text: job.salary }, { icon: '⏱️', text: job.type }, { icon: '📊', text: job.level }].map(i => (
-            <span key={i.text} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-secondary)', backgroundColor: 'var(--bg-subtle)', padding: '3px 9px', borderRadius: 6 }}>
-              {i.icon} {i.text}
-            </span>
-          ))}
+    <Card className="cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-primary/30 transition-all duration-200"
+      onClick={() => navigate(`/jobs/${job.id}`)}>
+      <CardContent className="p-5">
+        <div className="flex gap-3 mb-3">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center font-black text-sm text-primary flex-shrink-0">
+            {job.company.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-0.5">
+              <h3 className="font-bold text-sm text-foreground truncate">{job.title}</h3>
+              {job.featured && <Badge variant="new" className="flex-shrink-0 text-[10px]">Nổi bật</Badge>}
+            </div>
+            <p className="text-xs text-muted-foreground">{job.company}</p>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {job.tags.map(t => (
-            <span key={t} style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, backgroundColor: 'var(--primary-light)', color: 'var(--primary)', border: '1px solid rgba(21,73,184,0.15)' }}>{t}</span>
-          ))}
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          <Badge variant="outline" className="text-[11px] font-normal gap-1"><MapPin className="h-2.5 w-2.5" />{job.location}</Badge>
+          <Badge variant="outline" className="text-[11px] font-normal">💰 {job.salary}</Badge>
+          <Badge variant="outline" className="text-[11px] font-normal">{job.level}</Badge>
         </div>
-      </div>
-      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 8 }}>
-          {daysAgo === 0 ? 'Hôm nay' : `${daysAgo} ngày trước`}
-        </span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--success)' }}>{job.salary}</span>
-      </div>
-    </div>
+        <div className="flex flex-wrap gap-1 mb-3">
+          {job.tags.map(t => <Badge key={t} variant="secondary" className="text-[11px]">{t}</Badge>)}
+        </div>
+        <Separator className="mb-2.5" />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>{daysAgo === 0 ? 'Hôm nay' : `${daysAgo} ngày trước`}</span>
+          <span className="font-semibold text-emerald-600">{job.salary}</span>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
-function FilterSidebar({ filters, setFilters }) {
-  const toggle = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: prev[key] === value ? '' : value,
-    }))
-  }
+function Sidebar({ filters, onChange }) {
+  const hasFilters = ['category', 'level', 'type', 'location'].some(k => filters[k])
+  const toggle = (key, val) => onChange({ ...filters, [key]: filters[key] === val ? '' : val })
 
-  const FilterGroup = ({ title, items, filterKey }) => (
-    <div style={{ marginBottom: 24 }}>
-      <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{title}</h4>
-      {items.map(item => {
-        const val = typeof item === 'string' ? item : item.name
-        const active = filters[filterKey] === val
-        return (
-          <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', cursor: 'pointer' }}>
-            <input type="radio" name={filterKey} checked={active} onChange={() => toggle(filterKey, val)} style={{ accentColor: 'var(--primary)', width: 15, height: 15 }} />
-            <span style={{ fontSize: 13, color: active ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: active ? 600 : 400, transition: 'color 0.15s' }}>
-              {val}
-            </span>
-            {typeof item !== 'string' && item.count && (
-              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)', backgroundColor: 'var(--bg-subtle)', padding: '1px 6px', borderRadius: 10 }}>{item.count}</span>
-            )}
-          </label>
-        )
-      })}
+  const Group = ({ title, items, fkey }) => (
+    <div className="mb-5">
+      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">{title}</p>
+      <div className="space-y-0.5">
+        {items.map(item => {
+          const val = typeof item === 'string' ? item : item.name
+          const active = filters[fkey] === val
+          return (
+            <label key={val} className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-muted cursor-pointer transition-colors">
+              <input type="radio" name={fkey} checked={active} onChange={() => toggle(fkey, val)}
+                className="accent-primary w-3.5 h-3.5" />
+              <span className={cn('text-sm transition-colors flex-1', active ? 'text-primary font-semibold' : 'text-muted-foreground')}>
+                {val}
+              </span>
+              {typeof item !== 'string' && item.count && (
+                <span className="text-[11px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">{item.count}</span>
+              )}
+            </label>
+          )
+        })}
+      </div>
     </div>
   )
 
-  const hasFilters = Object.values(filters).some(v => v && v !== filters.keyword)
-
   return (
-    <aside style={{ width: 260, flexShrink: 0 }}>
-      <div style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: 20, position: 'sticky', top: 80 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>🔍 Lọc kết quả</h3>
-          {hasFilters && (
-            <button onClick={() => setFilters(prev => ({ ...prev, category: '', level: '', type: '', location: '' }))} style={{ fontSize: 12, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
-              Xóa lọc
-            </button>
-          )}
-        </div>
-        <FilterGroup title="Địa điểm" items={LOCATIONS} filterKey="location" />
-        <FilterGroup title="Ngành nghề" items={JOB_CATEGORIES.slice(0, 5)} filterKey="category" />
-        <FilterGroup title="Cấp bậc" items={LEVELS} filterKey="level" />
-        <FilterGroup title="Hình thức" items={JOB_TYPES} filterKey="type" />
-      </div>
+    <aside className="hidden lg:block w-56 flex-shrink-0">
+      <Card>
+        <CardContent className="p-5">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2 font-bold text-sm"><Filter className="h-4 w-4" />Bộ lọc</div>
+            {hasFilters && (
+              <button onClick={() => onChange({ ...filters, category: '', level: '', type: '', location: '' })}
+                className="text-xs text-destructive hover:underline flex items-center gap-1">
+                <X className="h-3 w-3" />Xóa lọc
+              </button>
+            )}
+          </div>
+          <Separator className="mb-4" />
+          <Group title="Địa điểm" items={LOCATIONS} fkey="location" />
+          <Group title="Ngành nghề" items={JOB_CATEGORIES.slice(0, 5)} fkey="category" />
+          <Group title="Cấp bậc" items={LEVELS} fkey="level" />
+          <Group title="Hình thức" items={JOB_TYPES} fkey="type" />
+        </CardContent>
+      </Card>
     </aside>
   )
 }
 
 export default function JobsPage() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const [jobs, setJobs] = useState([])
-  const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
   const [searchInput, setSearchInput] = useState(searchParams.get('keyword') || '')
   const [filters, setFilters] = useState({
     keyword: searchParams.get('keyword') || '',
     category: searchParams.get('category') || '',
-    level: '',
-    type: '',
+    level: '', type: '',
     location: searchParams.get('location') || '',
   })
 
@@ -118,109 +120,88 @@ export default function JobsPage() {
     setLoading(true)
     try {
       const res = await jobService.getJobs(filters)
-      setJobs(res.data)
-      setTotal(res.total)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+      setJobs(res.data); setTotal(res.total)
+    } finally { setLoading(false) }
   }, [filters])
 
   useEffect(() => { fetchJobs() }, [fetchJobs])
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    setFilters(prev => ({ ...prev, keyword: searchInput }))
-  }
+  const handleSearch = e => { e.preventDefault(); setFilters(p => ({ ...p, keyword: searchInput })) }
 
   return (
-    <div className="section-sm" style={{ backgroundColor: 'var(--bg-base)' }}>
-      <div className="container-app">
-        {/* Search bar */}
-        <div style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: 20, marginBottom: 24, boxShadow: 'var(--shadow-sm)' }}>
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: 10 }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', border: '1.5px solid var(--border)', borderRadius: 10 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-                placeholder="Tìm kiếm theo tên công việc, kỹ năng, công ty..."
-                style={{ border: 'none', outline: 'none', flex: 1, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-primary)' }}
-              />
-              {searchInput && (
-                <button type="button" onClick={() => { setSearchInput(''); setFilters(p => ({ ...p, keyword: '' })) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}>×</button>
-              )}
+    <div className="min-h-screen bg-muted/30">
+      {/* Search bar */}
+      <div className="transparent ? 'bg-transparent' : 'bg-background/96 backdrop-blur-md border-b shadow-sm' border-b sticky top-16 z-10">
+        <div className="max-w-[1200px] mx-auto px-6 py-4">
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input value={searchInput} onChange={e => setSearchInput(e.target.value)}
+                placeholder="Tìm kiếm theo tên công việc, kỹ năng, công ty..." className="pl-9" />
             </div>
-            <button type="submit" className="btn-primary" style={{ padding: '10px 24px', border: 'none', cursor: 'pointer', fontSize: 14, borderRadius: 10, whiteSpace: 'nowrap' }}>
-              Tìm kiếm
-            </button>
+            <Button type="submit">Tìm kiếm</Button>
           </form>
         </div>
+      </div>
 
-        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-          <FilterSidebar filters={filters} setFilters={setFilters} />
+      <div className="max-w-[1200px] mx-auto px-6 py-6">
+        <div className="flex gap-5 items-start">
+          <Sidebar filters={filters} onChange={setFilters} />
 
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <div>
-                <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>
-                  {loading ? 'Đang tải...' : `${total} việc làm`}
-                </span>
-                {filters.keyword && <span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 8 }}>cho "{filters.keyword}"</span>}
-              </div>
-              <select style={{ fontSize: 13, border: '1.5px solid var(--border)', borderRadius: 8, padding: '6px 10px', color: 'var(--text-secondary)', cursor: 'pointer', fontFamily: 'inherit' }}>
-                <option>Mới nhất</option>
-                <option>Lương cao nhất</option>
-                <option>Phù hợp nhất</option>
-              </select>
+          <div className="flex-1 min-w-0">
+            {/* Results header */}
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                {loading ? 'Đang tải...' : <><span className="font-bold text-foreground">{total}</span> việc làm {filters.keyword && `cho "${filters.keyword}"`}</>}
+              </p>
+              <Select defaultValue="newest">
+                <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Mới nhất</SelectItem>
+                  <SelectItem value="salary">Lương cao nhất</SelectItem>
+                  <SelectItem value="relevant">Phù hợp nhất</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Jobs list */}
+            {/* Jobs grid */}
             {loading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="shimmer" style={{ height: 160, borderRadius: 14 }} />
-                ))}
+              <div className="grid md:grid-cols-2 gap-4">
+                {[1,2,3,4].map(i => <div key={i} className="h-48 rounded-xl shimmer-bg" />)}
               </div>
             ) : jobs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px', backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)' }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-                <h3 style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>Không tìm thấy kết quả</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Thử thay đổi từ khóa hoặc bỏ bớt bộ lọc</p>
-                <button onClick={() => setFilters({ keyword: '', category: '', level: '', type: '', location: '' })} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 8, backgroundColor: 'var(--primary-light)', color: 'var(--primary)', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13, fontFamily: 'inherit' }}>
-                  Xóa tất cả bộ lọc
-                </button>
-              </div>
+              <Card><CardContent className="py-16 text-center">
+                <p className="text-4xl mb-3">🔍</p>
+                <p className="font-semibold text-foreground mb-1">Không tìm thấy kết quả</p>
+                <p className="text-sm text-muted-foreground mb-4">Thử thay đổi từ khóa hoặc bỏ bớt bộ lọc</p>
+                <Button variant="outline" size="sm" onClick={() => setFilters({ keyword: '', category: '', level: '', type: '', location: '' })}>
+                  <X className="h-3.5 w-3.5 mr-1" />Xóa tất cả bộ lọc
+                </Button>
+              </CardContent></Card>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {jobs.map((job, i) => <JobCard key={job.id} job={job} />)}
+              <div className="grid md:grid-cols-2 gap-4">
+                {jobs.map(job => <JobCard key={job.id} job={job} />)}
               </div>
             )}
 
-            {/* AI promo card */}
+            {/* AI Banner */}
             {!loading && jobs.length > 0 && (
-              <div style={{ marginTop: 24, background: 'linear-gradient(135deg, #1E1B4B, #4C1D95)', borderRadius: 14, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-                <div>
-                  <p style={{ color: '#A78BFA', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>✨ AI CV SCORING</p>
-                  <p style={{ color: 'white', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Cải thiện CV để tăng cơ hội được tuyển lên 3x</p>
-                  <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13 }}>Nhận phân tích chi tiết và gợi ý cụ thể từ AI</p>
-                </div>
-                <Link to="/cv-upload" style={{ padding: '10px 20px', backgroundColor: '#7C3AED', color: 'white', borderRadius: 10, textDecoration: 'none', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0, transition: 'all 0.2s' }}>
-                  Thử ngay — Miễn phí
-                </Link>
-              </div>
+              <Card className="mt-5 bg-gradient-to-r from-indigo-950 to-violet-900 border-0 text-white overflow-hidden">
+                <CardContent className="p-5 flex items-center justify-between gap-4 flex-wrap">
+                  <div>
+                    <p className="text-violet-300 text-xs font-bold mb-1">✨ AI CV SCORING</p>
+                    <p className="font-bold text-base">Tăng cơ hội được tuyển lên 3x với CV tối ưu</p>
+                    <p className="text-slate-300 text-xs mt-0.5">Nhận phân tích chi tiết từ AI — Miễn phí</p>
+                  </div>
+                  <Button variant="ai" size="sm" asChild>
+                    <Link to="/cv-upload"><Sparkles className="h-3.5 w-3.5" />Thử ngay</Link>
+                  </Button>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          aside { display: none; }
-        }
-      `}</style>
     </div>
   )
 }

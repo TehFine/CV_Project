@@ -1,239 +1,203 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { Menu, ChevronDown, LogOut, User, Bookmark, LayoutDashboard, Briefcase, Users, PlusCircle, Sparkles } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
-const NAV_LINKS = [
+const CANDIDATE_NAV = [
   { href: '/jobs', label: 'Việc làm' },
-  { href: '/cv-upload', label: 'Chấm điểm CV' },
+  { href: '/cv-upload', label: 'Chấm điểm CV', badge: 'AI' },
+]
+const EMPLOYER_NAV = [
+  { href: '/employer/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/employer/jobs', label: 'Quản lý tin', icon: Briefcase },
+  { href: '/employer/candidates', label: 'Ứng viên', icon: Users },
+  { href: '/employer/post-job', label: 'Đăng tuyển', icon: PlusCircle, highlight: true },
 ]
 
-function AvatarFallback({ name, size = 36 }) {
-  const initials = name
-    ?.split(' ')
-    .slice(-2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase() || 'U'
-
-  return (
-    <div
-      style={{ width: size, height: size, backgroundColor: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.38, fontWeight: 700, color: 'white', flexShrink: 0 }}
-    >
-      {initials}
-    </div>
-  )
-}
+const initials = name => name?.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase() || 'U'
 
 export default function Header() {
-  const { user, logout, isAuthenticated } = useAuth()
+  const { user, logout, isAuthenticated, isEmployer } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const isHome = location.pathname === '/'
+  const isActive = href => location.pathname === href || (href !== '/' && location.pathname.startsWith(href))
+  const transparent = isHome && !scrolled
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handler, { passive: true })
-    return () => window.removeEventListener('scroll', handler)
+    const h = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', h, { passive: true })
+    return () => window.removeEventListener('scroll', h)
   }, [])
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const close = (e) => {
-      if (!e.target.closest('#user-dropdown')) setDropdownOpen(false)
-    }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [])
-
-  const handleLogout = () => {
-    logout()
-    setDropdownOpen(false)
-    navigate('/')
-  }
-
-  const isActive = (href) => location.pathname === href || location.pathname.startsWith(href + '/')
-
-  const headerBg = scrolled || !isHome
-    ? 'rgba(255,255,255,0.97)'
-    : 'transparent'
-
-  const headerStyle = {
-    position: 'fixed',
-    top: 0, left: 0, right: 0,
-    zIndex: 50,
-    backgroundColor: headerBg,
-    boxShadow: scrolled ? 'var(--shadow-sm)' : 'none',
-    backdropFilter: scrolled || !isHome ? 'blur(12px)' : 'none',
-    transition: 'all 0.25s ease',
-    borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
-  }
-
-  const logoColor = !scrolled && isHome ? 'white' : 'var(--primary)'
-  const linkColor = !scrolled && isHome ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)'
-  const linkActiveColor = !scrolled && isHome ? 'white' : 'var(--primary)'
+  const handleLogout = () => { logout(); navigate('/') }
+  const navLinks = isEmployer ? EMPLOYER_NAV : CANDIDATE_NAV
 
   return (
     <>
-      <header style={headerStyle}>
-        <div className="container-app" style={{ display: 'flex', alignItems: 'center', height: 64, gap: 32 }}>
+      <header className={cn(
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        transparent ? 'bg-transparent' : 'bg-background/ backdrop-blur-lg border-b shadow-sm'
+      )}>
+        <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center gap-6">
           {/* Logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'white', fontWeight: 900, fontSize: 14 }}>N</span>
+          <Link to={isEmployer ? '/employer/dashboard' : '/'} className="flex items-center gap-2 flex-shrink-0 group">
+            <div className="w-8 h-8 bg-[#1549B8] rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+              <span className="text-white font-black text-sm">N</span>
             </div>
-            <span style={{ fontWeight: 800, fontSize: 20, color: logoColor, transition: 'color 0.25s', letterSpacing: '-0.5px' }}>
-              Nex<span style={{ color: '#7C3AED' }}>CV</span>
+            <span className={cn('font-black text-xl tracking-tight', transparent ? 'text-white' : 'text-foreground')}>
+              Nex<span className="text-violet-500">CV</span>
             </span>
+            {isEmployer && <Badge variant="secondary" className="ml-1 text-[10px] px-1.5">NTD</Badge>}
           </Link>
 
-          {/* Desktop Nav */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: 4, flex: 1 }} className="hidden-mobile">
-            {NAV_LINKS.map((l) => (
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-0.5 flex-1">
+            {navLinks.map(link => (
               <Link
-                key={l.href}
-                to={l.href}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 8,
-                  fontSize: 14,
-                  fontWeight: isActive(l.href) ? 600 : 500,
-                  color: isActive(l.href) ? linkActiveColor : linkColor,
-                  textDecoration: 'none',
-                  transition: 'all 0.2s',
-                  backgroundColor: isActive(l.href) ? (scrolled || !isHome ? 'var(--primary-light)' : 'rgba(255,255,255,0.15)') : 'transparent',
-                }}
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
+                  link.highlight
+                    ? 'bg-primary text-white hover:bg-primary/90 shadow-sm ml-1'
+                    : isActive(link.href)
+                      ? transparent ? 'bg-white/15 text-white' : 'bg-primary/10 text-primary font-semibold'
+                      : transparent ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
               >
-                {l.label}
+                {link.icon && <link.icon className="h-3.5 w-3.5" />}
+                {link.label}
+                {link.badge && <Badge variant="ai" className="text-[10px] px-1.5 py-0 h-4">{link.badge}</Badge>}
               </Link>
             ))}
           </nav>
 
-          {/* Right actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 'auto' }} className="hidden-mobile">
+          {/* Right side */}
+          <div className="hidden md:flex items-center gap-2 ml-auto">
             {isAuthenticated ? (
-              <div id="user-dropdown" style={{ position: 'relative' }}>
-                <button
-                  onClick={() => setDropdownOpen((v) => !v)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 8px', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', transition: 'background 0.2s' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = scrolled || !isHome ? 'var(--bg-subtle)' : 'rgba(255,255,255,0.15)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <AvatarFallback name={user?.name} />
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: scrolled || !isHome ? 'var(--text-primary)' : 'white', lineHeight: 1.2 }}>{user?.name?.split(' ').slice(-1)[0]}</div>
-                    <div style={{ fontSize: 11, color: scrolled || !isHome ? 'var(--text-muted)' : 'rgba(255,255,255,0.7)' }}>Ứng viên</div>
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={scrolled || !isHome ? '#94A3B8' : 'rgba(255,255,255,0.7)'} strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
-                </button>
-
-                {dropdownOpen && (
-                  <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 200, backgroundColor: 'white', borderRadius: 12, boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)', overflow: 'hidden', animation: 'fadeInUp 0.15s ease' }}>
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{user?.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{user?.email}</div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className={cn('gap-2 px-2 h-10', transparent && 'text-white hover:bg-white/10 hover:text-white')}>
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-xs">{initials(user?.name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="text-left hidden lg:block">
+                      <div className="text-xs font-semibold leading-none">{user?.name?.split(' ').slice(-1)[0]}</div>
+                      <div className={cn('text-[10px] leading-none mt-0.5', transparent ? 'text-white/60' : 'text-muted-foreground')}>
+                        {isEmployer ? (user?.companyName || 'Nhà tuyển dụng') : 'Ứng viên'}
+                      </div>
                     </div>
-                    {[
-                      { href: '/profile', icon: '👤', label: 'Hồ sơ của tôi' },
-                      { href: '/cv-upload', icon: '📄', label: 'Chấm điểm CV' },
-                      { href: '/profile?tab=saved', icon: '🔖', label: 'Việc làm đã lưu' },
-                    ].map((item) => (
-                      <Link
-                        key={item.href}
-                        to={item.href}
-                        onClick={() => setDropdownOpen(false)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', fontSize: 13, color: 'var(--text-secondary)', textDecoration: 'none', transition: 'background 0.15s' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-subtle)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                      >
-                        <span>{item.icon}</span> {item.label}
-                      </Link>
-                    ))}
-                    <div style={{ borderTop: '1px solid var(--border)' }}>
-                      <button
-                        onClick={handleLogout}
-                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', fontSize: 13, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--danger-light)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                      >
-                        <span>🚪</span> Đăng xuất
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+                    <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="font-semibold text-sm">{user?.name}</div>
+                    <div className="text-xs text-muted-foreground font-normal mt-0.5">{user?.email}</div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {isEmployer ? (
+                    <>
+                      <DropdownMenuItem asChild><Link to="/employer/dashboard" className="cursor-pointer gap-2"><LayoutDashboard className="h-4 w-4" />Dashboard</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/employer/post-job" className="cursor-pointer gap-2"><PlusCircle className="h-4 w-4" />Đăng tin tuyển dụng</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/employer/candidates" className="cursor-pointer gap-2"><Users className="h-4 w-4" />Quản lý ứng viên</Link></DropdownMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem asChild><Link to="/profile" className="cursor-pointer gap-2"><User className="h-4 w-4" />Hồ sơ của tôi</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/cv-upload" className="cursor-pointer gap-2"><Sparkles className="h-4 w-4" />Chấm điểm CV</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link to="/profile?tab=saved" className="cursor-pointer gap-2"><Bookmark className="h-4 w-4" />Việc đã lưu</Link></DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer gap-2">
+                    <LogOut className="h-4 w-4" />Đăng xuất
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  style={{ padding: '7px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500, color: scrolled || !isHome ? 'var(--text-primary)' : 'white', textDecoration: 'none', border: '1.5px solid', borderColor: scrolled || !isHome ? 'var(--border)' : 'rgba(255,255,255,0.5)', transition: 'all 0.2s' }}
-                >
-                  Đăng nhập
-                </Link>
-                <Link
-                  to="/register"
-                  style={{ padding: '7px 16px', borderRadius: 8, fontSize: 14, fontWeight: 600, backgroundColor: 'var(--primary)', color: 'white', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(21,73,184,0.3)' }}
-                >
-                  Đăng ký
-                </Link>
+                <Button variant={transparent ? 'outline' : 'ghost'} size="sm" asChild className={cn(transparent && 'border-white/40 text-white hover:bg-white/10 hover:text-white')}>
+                  <Link to="/login">Đăng nhập</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/register">Đăng ký</Link>
+                </Button>
+                <Button variant="employer" size="sm" asChild>
+                  <Link to="/register?role=employer">Nhà tuyển dụng</Link>
+                </Button>
               </>
             )}
           </div>
 
           {/* Mobile hamburger */}
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            style={{ display: 'none', marginLeft: 'auto', border: 'none', background: 'transparent', cursor: 'pointer', padding: 4 }}
-            className="show-mobile"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={scrolled || !isHome ? 'var(--text-primary)' : 'white'} strokeWidth="2">
-              {menuOpen ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></>}
-            </svg>
-          </button>
-        </div>
-
-        {/* Mobile menu */}
-        {menuOpen && (
-          <div style={{ backgroundColor: 'white', borderTop: '1px solid var(--border)', padding: '16px 24px 24px', animation: 'fadeIn 0.2s ease' }}>
-            {NAV_LINKS.map((l) => (
-              <Link
-                key={l.href}
-                to={l.href}
-                onClick={() => setMenuOpen(false)}
-                style={{ display: 'block', padding: '12px 0', fontSize: 15, fontWeight: 500, color: isActive(l.href) ? 'var(--primary)' : 'var(--text-secondary)', textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
-              >
-                {l.label}
-              </Link>
-            ))}
-            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-              {isAuthenticated ? (
-                <>
-                  <Link to="/profile" onClick={() => setMenuOpen(false)} style={{ flex: 1, padding: '10px', textAlign: 'center', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', textDecoration: 'none' }}>Hồ sơ</Link>
-                  <button onClick={handleLogout} style={{ flex: 1, padding: '10px', backgroundColor: 'var(--danger-light)', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--danger)', cursor: 'pointer' }}>Đăng xuất</button>
-                </>
-              ) : (
-                <>
-                  <Link to="/login" onClick={() => setMenuOpen(false)} style={{ flex: 1, padding: '10px', textAlign: 'center', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', textDecoration: 'none' }}>Đăng nhập</Link>
-                  <Link to="/register" onClick={() => setMenuOpen(false)} style={{ flex: 1, padding: '10px', textAlign: 'center', backgroundColor: 'var(--primary)', borderRadius: 8, fontSize: 14, fontWeight: 600, color: 'white', textDecoration: 'none' }}>Đăng ký</Link>
-                </>
-              )}
-            </div>
+          <div className="md:hidden ml-auto">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className={cn(transparent && 'text-white hover:bg-white/10')}>
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 p-0 flex flex-col">
+                <div className="p-5 border-b">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+                      <span className="text-white font-black text-xs">N</span>
+                    </div>
+                    <span className="font-black text-lg">Nex<span className="text-violet-500">CV</span></span>
+                  </div>
+                  {isAuthenticated && (
+                    <div className="flex items-center gap-2.5 mt-4 p-2.5 bg-muted rounded-lg">
+                      <Avatar className="h-9 w-9"><AvatarFallback className="text-xs">{initials(user?.name)}</AvatarFallback></Avatar>
+                      <div>
+                        <div className="text-sm font-semibold">{user?.name}</div>
+                        <div className="text-xs text-muted-foreground">{isEmployer ? 'Nhà tuyển dụng' : 'Ứng viên'}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                  {navLinks.map(link => (
+                    <SheetClose asChild key={link.href}>
+                      <Link to={link.href} className={cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                        link.highlight ? 'bg-primary text-white' : isActive(link.href) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      )}>
+                        {link.icon && <link.icon className="h-4 w-4" />}
+                        {link.label}
+                        {link.badge && <Badge variant="ai" className="text-[10px] px-1.5 h-4 ml-auto">{link.badge}</Badge>}
+                      </Link>
+                    </SheetClose>
+                  ))}
+                </nav>
+                <div className="p-4 border-t space-y-2">
+                  {isAuthenticated ? (
+                    <Button variant="destructive" className="w-full gap-2" onClick={handleLogout}>
+                      <LogOut className="h-4 w-4" />Đăng xuất
+                    </Button>
+                  ) : (
+                    <>
+                      <SheetClose asChild><Button variant="outline" className="w-full" asChild><Link to="/login">Đăng nhập</Link></Button></SheetClose>
+                      <SheetClose asChild><Button className="w-full" asChild><Link to="/register">Đăng ký ứng viên</Link></Button></SheetClose>
+                      <SheetClose asChild><Button variant="employer" className="w-full" asChild><Link to="/register?role=employer">Nhà tuyển dụng</Link></Button></SheetClose>
+                    </>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-        )}
+        </div>
       </header>
-
-      {/* Spacer for fixed header */}
-      {!isHome && <div style={{ height: 64 }} />}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .hidden-mobile { display: none !important; }
-          .show-mobile { display: block !important; }
-        }
-      `}</style>
+      {!isHome && <div className="h-16" />}
     </>
   )
 }

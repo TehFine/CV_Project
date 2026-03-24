@@ -1,23 +1,24 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Eye, EyeOff, Loader2, User, Building2, Check } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
-function PasswordStrength({ password }) {
+function StrengthBar({ password }) {
+  if (!password) return null
   const checks = [password.length >= 8, /[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password)]
   const score = checks.filter(Boolean).length
-  const colors = ['#EF4444', '#F97316', '#EAB308', '#22C55E']
+  const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-emerald-400']
   const labels = ['Rất yếu', 'Yếu', 'Trung bình', 'Mạnh']
-  if (!password) return null
   return (
-    <div style={{ marginTop: 6 }}>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
-        {[1,2,3,4].map(i => (
-          <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i <= score ? colors[score - 1] : 'var(--border)', transition: 'background 0.3s' }} />
-        ))}
+    <div className="mt-2">
+      <div className="flex gap-1 mb-1">
+        {[1,2,3,4].map(i => <div key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i <= score ? colors[score-1] : 'bg-border')} />)}
       </div>
-      <p style={{ fontSize: 11, color: score <= 1 ? '#EF4444' : score <= 2 ? '#F97316' : score <= 3 ? '#EAB308' : '#22C55E', margin: 0 }}>
-        Độ mạnh: {labels[score - 1] || ''}
-      </p>
+      <p className={cn('text-xs', colors[score-1]?.replace('bg-','text-'))}>{labels[score-1] || ''}</p>
     </div>
   )
 }
@@ -25,155 +26,185 @@ function PasswordStrength({ password }) {
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
+  const [role, setRole] = useState(searchParams.get('role') === 'employer' ? 'employer' : 'candidate')
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', companyName: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
-  const [showPass, setShowPass] = useState(false)
   const [agreed, setAgreed] = useState(false)
 
-  const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
-    if (errors[e.target.name]) setErrors(prev => ({ ...prev, [e.target.name]: '' }))
-  }
+  const set = k => e => { setForm(p => ({ ...p, [k]: e.target.value })); setErrors(p => ({ ...p, [k]: '' })) }
+  const [showPass, setShowPass] = useState(false)
 
   const validate = () => {
-    const errs = {}
-    if (!form.name.trim()) errs.name = 'Vui lòng nhập họ tên'
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) errs.email = 'Email không hợp lệ'
-    if (form.phone && !form.phone.match(/^(0[3-9]\d{8})$/)) errs.phone = 'Số điện thoại không hợp lệ'
-    if (form.password.length < 6) errs.password = 'Mật khẩu ít nhất 6 ký tự'
-    if (form.password !== form.confirmPassword) errs.confirmPassword = 'Mật khẩu xác nhận không khớp'
-    if (!agreed) errs.agreed = 'Vui lòng đồng ý điều khoản'
-    return errs
+    const e = {}
+    if (!form.name.trim()) e.name = 'Vui lòng nhập họ tên'
+    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = 'Email không hợp lệ'
+    if (form.phone && !form.phone.match(/^0[3-9]\d{8}$/)) e.phone = 'Số điện thoại không hợp lệ'
+    if (form.password.length < 6) e.password = 'Mật khẩu ít nhất 6 ký tự'
+    if (form.password !== form.confirmPassword) e.confirmPassword = 'Mật khẩu không khớp'
+    if (role === 'employer' && !form.companyName.trim()) e.companyName = 'Vui lòng nhập tên công ty'
+    if (!agreed) e.agreed = 'Vui lòng đồng ý điều khoản'
+    return e
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length) { setErrors(errs); return }
     setLoading(true)
     try {
-      await register({ name: form.name, email: form.email, phone: form.phone, password: form.password })
-      navigate('/')
+      await register({ ...form, role })
+      navigate(role === 'employer' ? '/employer/dashboard' : '/')
     } catch (err) {
-      setErrors({ submit: err?.message || 'Đăng ký thất bại. Vui lòng thử lại.' })
-    } finally {
-      setLoading(false)
-    }
+      setErrors({ submit: err?.message || 'Đăng ký thất bại' })
+    } finally { setLoading(false) }
   }
 
-  const Field = ({ name, label, type = 'text', placeholder, extra }) => (
-    <div style={{ marginBottom: 16 }}>
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>{label}</label>
-      <div style={{ position: 'relative' }}>
-        <input
-          type={name === 'password' || name === 'confirmPassword' ? (showPass ? 'text' : 'password') : type}
-          name={name} value={form[name]} onChange={handleChange}
-          placeholder={placeholder} autoComplete={name === 'password' ? 'new-password' : name === 'email' ? 'email' : undefined}
-          style={{ width: '100%', padding: `10px ${(name === 'password' || name === 'confirmPassword') ? '44px' : '14px'} 10px 14px`, border: `1.5px solid ${errors[name] ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 10, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-primary)', backgroundColor: 'white', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
-        />
-        {(name === 'password' || name === 'confirmPassword') && (
-          <button type="button" onClick={() => setShowPass(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}>
-            {showPass ? '🙈' : '👁️'}
-          </button>
-        )}
-      </div>
-      {name === 'password' && <PasswordStrength password={form.password} />}
-      {errors[name] && <p style={{ fontSize: 12, color: 'var(--danger)', margin: '4px 0 0' }}>⚠️ {errors[name]}</p>}
-      {extra}
-    </div>
-  )
+  const ROLE_OPTIONS = [
+    { value: 'candidate', label: 'Ứng viên', desc: 'Tìm việc & chấm điểm CV', icon: User, color: 'border-primary bg-primary/5' },
+    { value: 'employer', label: 'Nhà tuyển dụng', desc: 'Đăng tuyển & tìm hồ sơ', icon: Building2, color: 'border-violet-500 bg-violet-50' },
+  ]
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-base)' }}>
-      {/* Left panel */}
-      <div style={{ flex: 1, background: 'linear-gradient(160deg, #1E1B4B 0%, #4C1D95 100%)', display: 'none', flexDirection: 'column', justifyContent: 'center', padding: 60, position: 'relative', overflow: 'hidden' }} className="show-desktop">
-        <div style={{ position: 'absolute', bottom: -80, left: -80, width: 300, height: 300, borderRadius: '50%', background: 'rgba(21,73,184,0.3)' }} />
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', marginBottom: 48 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: 16 }}>N</span>
+    <div className="min-h-screen flex">
+      {/* Left */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-900 flex-col justify-center p-14 relative overflow-hidden">
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+        <Link to="/" className="flex items-center gap-2 mb-14 relative">
+          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
+            <span className="text-primary font-black text-base">N</span>
           </div>
-          <span style={{ fontWeight: 800, fontSize: 22, color: 'white', letterSpacing: '-0.5px' }}>Nex<span style={{ color: '#A78BFA' }}>CV</span></span>
+          <span className="text-white font-black text-2xl tracking-tight">Nex<span className="text-violet-400">CV</span></span>
         </Link>
-        <div style={{ position: 'relative' }}>
-          <h2 style={{ fontSize: 36, fontWeight: 800, color: 'white', lineHeight: 1.2, marginBottom: 16 }}>Tạo tài khoản<br />hoàn toàn miễn phí ✨</h2>
-          <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.7, marginBottom: 32 }}>
-            Tham gia cùng 50,000+ ứng viên đang sử dụng NexCV để tối ưu hóa CV và tìm kiếm cơ hội việc làm tốt hơn.
+        <div className="relative">
+          <h2 className="text-4xl font-black text-white mb-4 leading-tight">Tạo tài khoản<br />hoàn toàn miễn phí ✨</h2>
+          <p className="text-slate-300 leading-relaxed mb-8">
+            Tham gia 50,000+ người dùng đang dùng NexCV để tối ưu CV và kết nối nhân tài.
           </p>
           {[
-            { emoji: '✨', title: 'AI Chấm điểm CV', desc: 'Nhận phân tích chi tiết trong 30 giây' },
-            { emoji: '🎯', title: 'Gợi ý việc làm phù hợp', desc: 'Dựa trên kỹ năng và kinh nghiệm của bạn' },
-            { emoji: '📊', title: 'Theo dõi ứng tuyển', desc: 'Quản lý mọi đơn ứng tuyển ở một nơi' },
-          ].map(feat => (
-            <div key={feat.title} style={{ display: 'flex', gap: 14, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '14px 16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <span style={{ fontSize: 22, flexShrink: 0 }}>{feat.emoji}</span>
+            { icon: '✨', title: 'AI Chấm điểm CV', desc: 'Phân tích chi tiết trong 30 giây' },
+            { icon: '🎯', title: 'Gợi ý việc làm phù hợp', desc: 'Dựa trên kỹ năng và kinh nghiệm' },
+            { icon: '🏢', title: 'Kết nối nhà tuyển dụng', desc: 'Hàng nghìn công ty hàng đầu VN' },
+          ].map(f => (
+            <div key={f.title} className="flex gap-3 p-3.5 bg-white/5 rounded-xl border border-white/10 mb-3">
+              <span className="text-xl flex-shrink-0">{f.icon}</span>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, color: 'white', marginBottom: 2 }}>{feat.title}</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{feat.desc}</div>
+                <div className="text-white font-semibold text-sm">{f.title}</div>
+                <div className="text-slate-400 text-xs mt-0.5">{f.desc}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right panel */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', overflowY: 'auto' }}>
-        <div style={{ width: '100%', maxWidth: 440 }} className="animate-fade-in">
-          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', marginBottom: 24 }} className="hide-desktop">
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'white', fontWeight: 900, fontSize: 13 }}>N</span>
+      {/* Right */}
+      <div className="flex-1 flex items-start justify-center p-8 bg-muted/30 overflow-y-auto">
+        <div className="w-full max-w-md py-4">
+          <Link to="/" className="lg:hidden flex items-center gap-2 mb-8">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-white font-black text-sm">N</span>
             </div>
-            <span style={{ fontWeight: 800, fontSize: 18, color: 'var(--primary)' }}>Nex<span style={{ color: '#7C3AED' }}>CV</span></span>
+            <span className="font-black text-xl text-primary">Nex<span className="text-violet-500">CV</span></span>
           </Link>
 
-          <div style={{ marginBottom: 28 }}>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>Đăng ký tài khoản</h1>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-              Đã có tài khoản? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>Đăng nhập</Link>
+          <div className="mb-6">
+            <h1 className="text-3xl font-black text-foreground mb-2">Đăng ký tài khoản</h1>
+            <p className="text-muted-foreground text-sm">
+              Đã có tài khoản? <Link to="/login" className="text-primary font-semibold hover:underline">Đăng nhập</Link>
             </p>
           </div>
 
+          {/* Role selector */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {ROLE_OPTIONS.map(opt => (
+              <button key={opt.value} onClick={() => setRole(opt.value)}
+                className={cn(
+                  'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center',
+                  role === opt.value ? opt.color + ' shadow-sm' : 'border-border bg-background hover:border-muted-foreground/30'
+                )}>
+                {role === opt.value && (
+                  <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3 text-white" />
+                  </div>
+                )}
+                <opt.icon className={cn('h-6 w-6', role === opt.value ? 'text-primary' : 'text-muted-foreground')} />
+                <div>
+                  <div className={cn('font-bold text-sm', role === opt.value ? 'text-foreground' : 'text-muted-foreground')}>{opt.label}</div>
+                  <div className="text-xs text-muted-foreground">{opt.desc}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+
           {errors.submit && (
-            <div style={{ backgroundColor: 'var(--danger-light)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
-              <p style={{ fontSize: 13, color: 'var(--danger)', margin: 0 }}>⚠️ {errors.submit}</p>
+            <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
+              ⚠️ {errors.submit}
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <Field name="name" label="Họ và tên *" placeholder="Nguyễn Văn An" />
-            <Field name="email" label="Email *" type="email" placeholder="your@email.com" />
-            <Field name="phone" label="Số điện thoại" placeholder="0901 234 567" />
-            <Field name="password" label="Mật khẩu *" placeholder="Tối thiểu 6 ký tự" />
-            <Field name="confirmPassword" label="Xác nhận mật khẩu *" placeholder="Nhập lại mật khẩu" />
-
-            {/* Terms */}
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-                <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: 'var(--primary)', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  Tôi đồng ý với <a href="#" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>Điều khoản dịch vụ</a> và <a href="#" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>Chính sách bảo mật</a> của NexCV
-                </span>
-              </label>
-              {errors.agreed && <p style={{ fontSize: 12, color: 'var(--danger)', margin: '4px 0 0 26px' }}>⚠️ {errors.agreed}</p>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Họ và tên *</Label>
+              <Input placeholder="Nguyễn Văn An" value={form.name} onChange={set('name')} className={errors.name ? 'border-destructive' : ''} />
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+            </div>
+            {role === 'employer' && (
+              <div className="space-y-1.5">
+                <Label>Tên công ty *</Label>
+                <Input placeholder="VNG Corporation" value={form.companyName} onChange={set('companyName')} className={errors.companyName ? 'border-destructive' : ''} />
+                {errors.companyName && <p className="text-xs text-destructive">{errors.companyName}</p>}
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label>Email *</Label>
+              <Input type="email" placeholder="your@email.com" value={form.email} onChange={set('email')} className={errors.email ? 'border-destructive' : ''} />
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Số điện thoại</Label>
+              <Input placeholder="0901 234 567" value={form.phone} onChange={set('phone')} className={errors.phone ? 'border-destructive' : ''} />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Mật khẩu *</Label>
+              <div className="relative">
+                <Input type={showPass ? 'text' : 'password'} placeholder="Tối thiểu 6 ký tự" value={form.password}
+                  onChange={set('password')} className={cn('pr-10', errors.password ? 'border-destructive' : '')} />
+                <button type="button" onClick={() => setShowPass(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <StrengthBar password={form.password} />
+              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Xác nhận mật khẩu *</Label>
+              <Input type={showPass ? 'text' : 'password'} placeholder="Nhập lại mật khẩu" value={form.confirmPassword}
+                onChange={set('confirmPassword')} className={errors.confirmPassword ? 'border-destructive' : ''} />
+              {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
             </div>
 
-            <button
-              type="submit" disabled={loading}
-              style={{ width: '100%', padding: '12px', borderRadius: 10, fontSize: 15, fontWeight: 700, backgroundColor: loading ? '#93C5FD' : 'var(--primary)', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            >
-              {loading ? (
-                <><svg style={{ animation: 'spin 1s linear infinite' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Đang tạo tài khoản...</>
-              ) : '🚀 Tạo tài khoản miễn phí'}
-            </button>
+            <div>
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-primary flex-shrink-0" />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  Tôi đồng ý với <a href="#" className="text-primary font-medium hover:underline">Điều khoản dịch vụ</a> và <a href="#" className="text-primary font-medium hover:underline">Chính sách bảo mật</a>
+                </span>
+              </label>
+              {errors.agreed && <p className="text-xs text-destructive mt-1">{errors.agreed}</p>}
+            </div>
+
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading ? 'Đang tạo tài khoản...' : '🚀 Tạo tài khoản miễn phí'}
+            </Button>
           </form>
         </div>
       </div>
-
-      <style>{`
-        @media (min-width: 768px) { .show-desktop { display: flex !important; } .hide-desktop { display: none !important; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   )
 }

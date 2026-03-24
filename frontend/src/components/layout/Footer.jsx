@@ -1,90 +1,102 @@
 import { Link } from 'react-router-dom'
+import { Separator } from '@/components/ui/separator'
+
+const FOOTER_LINKS = {
+  candidate: [
+    { to: '/jobs', label: 'Tìm việc làm' },
+    { to: '/cv-upload', label: 'Chấm điểm CV bằng AI' },
+    { to: '/register', label: 'Tạo tài khoản' },
+    { to: '/profile', label: 'Hồ sơ cá nhân' },
+  ],
+  employer: [
+    { to: '/register?role=employer', label: 'Đăng ký nhà tuyển dụng' },
+    { to: '/employer/post-job', label: 'Đăng tin tuyển dụng' },
+    { to: '/employer/candidates', label: 'Tìm kiếm ứng viên' },
+    { to: '/employer/dashboard', label: 'Quản lý tuyển dụng' },
+  ],
+}
 
 export default function Footer() {
   return (
-    <footer style={{ backgroundColor: '#0F172A', color: 'rgba(255,255,255,0.7)', marginTop: 'auto' }}>
-      <div className="container-app" style={{ paddingTop: 48, paddingBottom: 48 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 40, marginBottom: 40 }}>
+    <footer className="bg-slate-900 text-slate-400">
+      <div className="max-w-[1200px] mx-auto px-6 pt-12 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           {/* Brand */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: 'white', fontWeight: 900, fontSize: 12 }}>N</span>
+          <div className="md:col-span-1">
+            <Link to="/" className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-black text-xs">N</span>
               </div>
-              <span style={{ fontWeight: 800, fontSize: 18, color: 'white', letterSpacing: '-0.5px' }}>
-                Nex<span style={{ color: '#A78BFA' }}>CV</span>
+              <span className="font-black text-lg text-white tracking-tight">
+                Nex<span className="text-violet-400">CV</span>
               </span>
-            </div>
-            <p style={{ fontSize: 13, lineHeight: 1.7, maxWidth: 220 }}>
+            </Link>
+            <p className="text-sm leading-relaxed text-slate-500 mb-4">
               Nền tảng tuyển dụng thông minh với AI, giúp ứng viên tối ưu CV và nhà tuyển dụng tìm kiếm nhân tài phù hợp.
             </p>
-            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-              {['facebook', 'linkedin', 'youtube'].map(s => (
-                <a key={s} href="#" style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'background 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
-                >
-                  <span style={{ fontSize: 14 }}>{s === 'facebook' ? 'f' : s === 'linkedin' ? 'in' : '▶'}</span>
+            <div className="flex gap-2">
+              {['FB', 'in', '▶'].map((s, i) => (
+                <a key={i} href="#" className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-400 hover:text-white transition-colors">
+                  {s}
                 </a>
               ))}
             </div>
           </div>
 
-          {/* For candidates */}
+          {/* Candidate links */}
           <div>
-            <h4 style={{ color: 'white', fontWeight: 600, fontSize: 14, marginBottom: 14 }}>Ứng viên</h4>
-            {[
-              { to: '/jobs', label: 'Tìm việc làm' },
-              { to: '/cv-upload', label: 'Chấm điểm CV bằng AI' },
-              { to: '/register', label: 'Tạo tài khoản' },
-              { to: '/profile', label: 'Hồ sơ cá nhân' },
-            ].map(l => (
-              <Link key={l.to} to={l.to} style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.6)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'white'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-              >{l.label}</Link>
-            ))}
+            <h4 className="text-sm font-semibold text-white mb-4">Ứng viên</h4>
+            <ul className="space-y-2.5">
+              {FOOTER_LINKS.candidate.map(l => (
+                <li key={l.to}>
+                  <Link to={l.to} className="text-sm text-slate-500 hover:text-white transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* For employers */}
+          {/* Employer links */}
           <div>
-            <h4 style={{ color: 'white', fontWeight: 600, fontSize: 14, marginBottom: 14 }}>Nhà tuyển dụng</h4>
-            {['Đăng tin tuyển dụng', 'Tìm kiếm ứng viên', 'Giải pháp tuyển dụng', 'Báo giá dịch vụ'].map(l => (
-              <a key={l} href="#" style={{ display: 'block', fontSize: 13, color: 'rgba(255,255,255,0.6)', textDecoration: 'none', marginBottom: 8, transition: 'color 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'white'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-              >{l}</a>
-            ))}
+            <h4 className="text-sm font-semibold text-white mb-4">Nhà tuyển dụng</h4>
+            <ul className="space-y-2.5">
+              {FOOTER_LINKS.employer.map(l => (
+                <li key={l.to}>
+                  <Link to={l.to} className="text-sm text-slate-500 hover:text-white transition-colors">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 style={{ color: 'white', fontWeight: 600, fontSize: 14, marginBottom: 14 }}>Liên hệ</h4>
-            {[
-              { icon: '📍', text: '123 Nguyễn Văn Linh, Q7, TP.HCM' },
-              { icon: '📞', text: '0901 234 567' },
-              { icon: '✉️', text: 'support@nexcv.vn' },
-              { icon: '🕐', text: 'T2 - T6: 8:00 - 18:00' },
-            ].map(item => (
-              <div key={item.text} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-                <span style={{ flexShrink: 0, marginTop: 1 }}>{item.icon}</span>
-                <span>{item.text}</span>
-              </div>
-            ))}
+            <h4 className="text-sm font-semibold text-white mb-4">Liên hệ</h4>
+            <ul className="space-y-2.5">
+              {[
+                { icon: '📍', text: '123 Nguyễn Văn Linh, Q7, TP.HCM' },
+                { icon: '📞', text: '0901 234 567' },
+                { icon: '✉️', text: 'support@nexcv.vn' },
+                { icon: '🕐', text: 'T2 - T6: 8:00 - 18:00' },
+              ].map(item => (
+                <li key={item.text} className="flex items-start gap-2 text-sm text-slate-500">
+                  <span className="mt-0.5 flex-shrink-0">{item.icon}</span>
+                  <span>{item.text}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
-            © 2025 NexCV. Bảo lưu mọi quyền.
-          </p>
-          <div style={{ display: 'flex', gap: 20 }}>
-            {['Điều khoản', 'Chính sách bảo mật', 'Cookie'].map(l => (
-              <a key={l} href="#" style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
-              >{l}</a>
+        <Separator className="bg-slate-800 mb-6" />
+
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+          <p className="text-xs text-slate-600">© 2025 NexCV. Bảo lưu mọi quyền.</p>
+          <div className="flex gap-5">
+            {['Điều khoản', 'Bảo mật', 'Cookie'].map(l => (
+              <a key={l} href="#" className="text-xs text-slate-600 hover:text-slate-400 transition-colors">{l}</a>
             ))}
           </div>
         </div>

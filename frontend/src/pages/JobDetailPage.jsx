@@ -1,7 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { jobService, MOCK_JOBS } from '../services/jobService'
-import { useAuth } from '../context/AuthContext'
+import { MapPin, DollarSign, Clock, BarChart2, Bookmark, Share2, CheckCircle2, Sparkles, ChevronRight, Eye, Users2 } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { jobService, MOCK_JOBS } from '@/services/jobService'
 
 export default function JobDetailPage() {
   const { id } = useParams()
@@ -12,264 +20,210 @@ export default function JobDetailPage() {
   const [saved, setSaved] = useState(false)
   const [applying, setApplying] = useState(false)
   const [applied, setApplied] = useState(false)
-  const [showApplyModal, setShowApplyModal] = useState(false)
+  const [showApply, setShowApply] = useState(false)
+  const [coverLetter, setCoverLetter] = useState('')
 
   useEffect(() => {
-    const fetch = async () => {
-      setLoading(true)
-      try {
-        const data = await jobService.getJob(id)
-        setJob(data)
-      } catch {
-        navigate('/jobs')
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetch()
+    jobService.getJob(id).then(setJob).catch(() => navigate('/jobs')).finally(() => setLoading(false))
   }, [id])
 
   const handleApply = async () => {
     if (!isAuthenticated) { navigate('/login', { state: { from: `/jobs/${id}` } }); return }
     setApplying(true)
     try {
-      await jobService.applyJob(id)
-      setApplied(true)
-      setShowApplyModal(false)
-    } catch (err) {
-      alert(err?.message || 'Ứng tuyển thất bại')
-    } finally {
-      setApplying(false)
-    }
-  }
-
-  const handleSave = async () => {
-    if (!isAuthenticated) { navigate('/login'); return }
-    setSaved(v => !v)
-    await jobService.toggleSaveJob(id).catch(() => setSaved(v => !v))
+      await jobService.applyJob(id, { coverLetter })
+      setApplied(true); setShowApply(false)
+    } catch (err) { alert(err?.message) }
+    finally { setApplying(false) }
   }
 
   if (loading) return (
-    <div className="section container-app">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
-        <div>
-          <div className="shimmer" style={{ height: 180, borderRadius: 14, marginBottom: 16 }} />
-          <div className="shimmer" style={{ height: 400, borderRadius: 14 }} />
-        </div>
-        <div className="shimmer" style={{ height: 350, borderRadius: 14 }} />
-      </div>
+    <div className="max-w-[1200px] mx-auto px-6 py-8 grid lg:grid-cols-[1fr_300px] gap-6">
+      {[1,2].map(i => <div key={i} className="h-64 rounded-xl shimmer-bg" />)}
     </div>
   )
-
   if (!job) return null
 
   const daysAgo = Math.floor((Date.now() - new Date(job.postedAt)) / 86400000)
-  const initials = job.company.slice(0, 2).toUpperCase()
-  const relatedJobs = MOCK_JOBS.filter(j => j.id !== job.id && j.category === job.category).slice(0, 3)
+  const related = MOCK_JOBS.filter(j => j.id !== job.id && j.category === job.category).slice(0, 3)
 
   return (
     <>
-      <div style={{ backgroundColor: 'var(--bg-base)', paddingBottom: 80 }}>
-        {/* Breadcrumb */}
-        <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--border)', padding: '10px 0' }}>
-          <div className="container-app" style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
-            <Link to="/" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Trang chủ</Link>
-            <span>›</span>
-            <Link to="/jobs" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Việc làm</Link>
-            <span>›</span>
-            <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{job.title}</span>
-          </div>
+      {/* Breadcrumb */}
+      <div className="bg-background border-b">
+        <div className="max-w-[1200px] mx-auto px-6 py-2.5 flex gap-1.5 items-center text-xs text-muted-foreground">
+          <Link to="/" className="hover:text-foreground">Trang chủ</Link>
+          <ChevronRight className="h-3 w-3" />
+          <Link to="/jobs" className="hover:text-foreground">Việc làm</Link>
+          <ChevronRight className="h-3 w-3" />
+          <span className="text-foreground font-medium truncate">{job.title}</span>
         </div>
+      </div>
 
-        <div className="container-app" style={{ paddingTop: 24 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
-            {/* Main content */}
-            <div>
-              {/* Job header */}
-              <div style={{ backgroundColor: 'white', borderRadius: 16, border: '1.5px solid var(--border)', padding: 28, marginBottom: 16 }} className="animate-fade-in">
-                <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', marginBottom: 20 }}>
-                  <div style={{ width: 72, height: 72, borderRadius: 16, backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 20, color: 'var(--primary)', flexShrink: 0 }}>
-                    {initials}
+      <div className="min-h-screen bg-muted/30 pb-16">
+        <div className="max-w-[1200px] mx-auto px-6 pt-6 grid lg:grid-cols-[1fr_300px] gap-5">
+          {/* Main */}
+          <div className="space-y-4">
+            {/* Header card */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex gap-4 mb-5">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center font-black text-xl text-primary flex-shrink-0">
+                    {job.company.slice(0,2).toUpperCase()}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6, lineHeight: 1.2 }}>{job.title}</h1>
-                    <p style={{ fontSize: 15, color: 'var(--primary)', fontWeight: 600, marginBottom: 12 }}>{job.company}</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {[{ icon: '📍', text: job.location }, { icon: '💰', text: job.salary }, { icon: '📊', text: job.level }, { icon: '⏱️', text: job.type }].map(i => (
-                        <span key={i.text} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--text-secondary)', backgroundColor: 'var(--bg-subtle)', padding: '5px 12px', borderRadius: 8 }}>
-                          <span>{i.icon}</span> {i.text}
-                        </span>
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl font-black text-foreground mb-1">{job.title}</h1>
+                    <p className="text-primary font-semibold text-sm mb-3">{job.company}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { icon: MapPin, text: job.location },
+                        { icon: DollarSign, text: job.salary },
+                        { icon: BarChart2, text: job.level },
+                        { icon: Clock, text: job.type },
+                      ].map(({ icon: Icon, text }) => (
+                        <Badge key={text} variant="outline" className="gap-1 font-normal text-xs">
+                          <Icon className="h-3 w-3" />{text}
+                        </Badge>
                       ))}
                     </div>
                   </div>
                 </div>
-
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid var(--border)', alignItems: 'center' }}>
-                  {job.tags.map(t => <span key={t} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, backgroundColor: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 500 }}>{t}</span>)}
-                  <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-muted)' }}>
-                    Đăng {daysAgo === 0 ? 'hôm nay' : `${daysAgo} ngày trước`} · {job.views} lượt xem · {job.applied} ứng tuyển
-                  </span>
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {job.tags.map(t => <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>)}
                 </div>
-
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-                  {applied ? (
-                    <div style={{ flex: 1, padding: '12px', backgroundColor: 'var(--success-light)', border: '1.5px solid rgba(5,150,105,0.3)', borderRadius: 10, textAlign: 'center', fontWeight: 700, color: 'var(--success)', fontSize: 14 }}>
-                      ✅ Đã ứng tuyển thành công
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => isAuthenticated ? setShowApplyModal(true) : navigate('/login', { state: { from: `/jobs/${id}` } })}
-                      className="btn-primary"
-                      style={{ flex: 1, padding: '12px', border: 'none', cursor: 'pointer', fontSize: 14, borderRadius: 10, fontFamily: 'inherit', fontWeight: 700 }}
-                    >
-                      {isAuthenticated ? '🚀 Ứng tuyển ngay' : '🔒 Đăng nhập để ứng tuyển'}
-                    </button>
-                  )}
-                  <button
-                    onClick={handleSave}
-                    style={{ padding: '12px 16px', borderRadius: 10, border: `1.5px solid ${saved ? 'var(--warning)' : 'var(--border)'}`, backgroundColor: saved ? 'var(--warning-light)' : 'white', cursor: 'pointer', fontSize: 16, transition: 'all 0.2s' }}
-                    title={saved ? 'Bỏ lưu' : 'Lưu công việc'}
-                  >
-                    {saved ? '🔖' : '📌'}
-                  </button>
-                  <button style={{ padding: '12px 16px', borderRadius: 10, border: '1.5px solid var(--border)', backgroundColor: 'white', cursor: 'pointer', fontSize: 16 }} title="Chia sẻ">
-                    🔗
-                  </button>
+                <Separator className="mb-4" />
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{job.views} lượt xem</span>
+                    <span className="flex items-center gap-1"><Users2 className="h-3.5 w-3.5" />{job.applied} ứng tuyển</span>
+                    <span>{daysAgo === 0 ? 'Đăng hôm nay' : `${daysAgo} ngày trước`}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    {applied ? (
+                      <Badge variant="success" className="gap-1.5 px-3 py-1.5 text-xs">
+                        <CheckCircle2 className="h-3.5 w-3.5" />Đã ứng tuyển
+                      </Badge>
+                    ) : (
+                      <Button onClick={() => isAuthenticated ? setShowApply(true) : navigate('/login', { state: { from: `/jobs/${id}` } })} className="gap-2">
+                        🚀 {isAuthenticated ? 'Ứng tuyển ngay' : 'Đăng nhập để ứng tuyển'}
+                      </Button>
+                    )}
+                    <Button variant="outline" size="icon" onClick={() => setSaved(v => !v)}
+                      className={saved ? 'border-amber-300 bg-amber-50 text-amber-600' : ''}>
+                      <Bookmark className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
+                    </Button>
+                    <Button variant="outline" size="icon"><Share2 className="h-4 w-4" /></Button>
+                  </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Job description */}
-              <div style={{ backgroundColor: 'white', borderRadius: 16, border: '1.5px solid var(--border)', padding: 28, marginBottom: 16 }} className="animate-fade-in delay-100">
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  📋 Mô tả công việc
-                </h2>
-                <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
-                  {job.description}
-                </div>
-
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: '24px 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  ✅ Yêu cầu công việc
-                </h2>
-                <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0 }}>
-                  {job.requirements.map((req, i) => (
-                    <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 10, fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                      <span style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: 'var(--primary-light)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--primary)', flexShrink: 0, marginTop: 2 }}>✓</span>
-                      {req}
-                    </li>
-                  ))}
-                </ul>
-
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', margin: '24px 0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  🎁 Phúc lợi
-                </h2>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                  {job.benefits.map((b, i) => (
-                    <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '7px 14px', borderRadius: 8, backgroundColor: 'var(--success-light)', color: 'var(--success)', border: '1px solid rgba(5,150,105,0.15)', fontWeight: 500 }}>
-                      ✨ {b}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Deadline */}
-              <div style={{ backgroundColor: 'var(--warning-light)', border: '1px solid rgba(217,119,6,0.2)', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 18 }}>⏰</span>
+            {/* Description */}
+            <Card>
+              <CardContent className="p-6 space-y-6">
                 <div>
-                  <span style={{ fontWeight: 600, fontSize: 13, color: '#92400E' }}>Hạn nộp hồ sơ:</span>
-                  <span style={{ fontSize: 13, color: '#92400E', marginLeft: 6 }}>{new Date(job.deadline).toLocaleDateString('vi-VN')}</span>
+                  <h2 className="font-bold text-foreground mb-3 flex items-center gap-2">📋 Mô tả công việc</h2>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{job.description}</p>
                 </div>
-              </div>
-            </div>
+                <Separator />
+                <div>
+                  <h2 className="font-bold text-foreground mb-3">✅ Yêu cầu công việc</h2>
+                  <ul className="space-y-2.5">
+                    {job.requirements.map((req, i) => (
+                      <li key={i} className="flex gap-3 text-sm text-muted-foreground">
+                        <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                        {req}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <Separator />
+                <div>
+                  <h2 className="font-bold text-foreground mb-3">🎁 Phúc lợi</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {job.benefits.map((b, i) => (
+                      <Badge key={i} variant="success" className="gap-1">✨ {b}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Sidebar */}
-            <div>
-              {/* Apply box */}
-              <div style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: 20, marginBottom: 16, position: 'sticky', top: 80 }}>
-                <h3 style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', marginBottom: 16 }}>Tổng quan công việc</h3>
+            {/* Deadline */}
+            <div className="flex items-center gap-2.5 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm">
+              <span className="text-xl">⏰</span>
+              <span className="text-amber-800">
+                <strong>Hạn nộp hồ sơ:</strong> {new Date(job.deadline).toLocaleDateString('vi-VN')}
+              </span>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-4">
+            <Card className="sticky top-20">
+              <CardContent className="p-5">
+                <h3 className="font-bold text-sm mb-4">Tổng quan công việc</h3>
                 {[
-                  { label: 'Cấp bậc', value: job.level },
-                  { label: 'Ngành nghề', value: job.category },
-                  { label: 'Hình thức', value: job.type },
-                  { label: 'Lương', value: job.salary },
-                  { label: 'Địa điểm', value: job.location },
-                  { label: 'Hạn nộp', value: new Date(job.deadline).toLocaleDateString('vi-VN') },
-                ].map(item => (
-                  <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                    <span style={{ color: 'var(--text-muted)' }}>{item.label}</span>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', textAlign: 'right', maxWidth: '60%' }}>{item.value}</span>
+                  ['Cấp bậc', job.level], ['Ngành nghề', job.category],
+                  ['Hình thức', job.type], ['Lương', job.salary],
+                  ['Địa điểm', job.location],
+                  ['Hạn nộp', new Date(job.deadline).toLocaleDateString('vi-VN')],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between py-2 border-b text-xs last:border-0">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="font-semibold text-right max-w-[55%]">{value}</span>
                   </div>
                 ))}
-
-                <Link
-                  to="/cv-upload"
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, padding: '10px 14px', borderRadius: 10, backgroundColor: 'var(--ai-light)', border: '1px solid rgba(124,58,237,0.2)', textDecoration: 'none', transition: 'all 0.2s' }}
-                >
-                  <span style={{ fontSize: 18 }}>✨</span>
+                <Link to="/cv-upload" className="flex items-center gap-2.5 mt-4 p-3 bg-violet-50 border border-violet-200 rounded-xl hover:bg-violet-100 transition-colors no-underline">
+                  <Sparkles className="h-4 w-4 text-violet-600 flex-shrink-0" />
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--ai)' }}>Kiểm tra CV phù hợp?</div>
-                    <div style={{ fontSize: 11, color: 'rgba(124,58,237,0.7)' }}>Chấm điểm CV bằng AI ngay</div>
+                    <p className="text-xs font-bold text-violet-700">Kiểm tra CV phù hợp?</p>
+                    <p className="text-[11px] text-violet-500">Chấm điểm AI ngay</p>
                   </div>
                 </Link>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Related jobs */}
-              {relatedJobs.length > 0 && (
-                <div style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: 20 }}>
-                  <h3 style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 14 }}>Việc làm tương tự</h3>
-                  {relatedJobs.map(rj => (
-                    <Link key={rj.id} to={`/jobs/${rj.id}`} style={{ display: 'block', padding: '10px 0', borderBottom: '1px solid var(--border)', textDecoration: 'none', transition: 'all 0.15s' }}>
-                      <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', marginBottom: 2 }}>{rj.title}</div>
-                      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{rj.company} · {rj.salary}</div>
+            {related.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Việc làm tương tự</CardTitle></CardHeader>
+                <CardContent className="p-5 pt-0">
+                  {related.map(rj => (
+                    <Link key={rj.id} to={`/jobs/${rj.id}`} className="block py-3 border-b last:border-0 hover:text-primary transition-colors no-underline">
+                      <p className="font-semibold text-sm text-foreground hover:text-primary">{rj.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{rj.company} · {rj.salary}</p>
                     </Link>
                   ))}
-                </div>
-              )}
-            </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Apply modal */}
-      {showApplyModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 20 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: 20, padding: 32, width: '100%', maxWidth: 440, animation: 'fadeInUp 0.2s ease' }}>
-            <h3 style={{ fontWeight: 800, fontSize: 20, color: 'var(--text-primary)', marginBottom: 8 }}>Ứng tuyển vào</h3>
-            <p style={{ fontSize: 15, color: 'var(--primary)', fontWeight: 600, marginBottom: 4 }}>{job.title}</p>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>{job.company}</p>
-
-            <div style={{ backgroundColor: 'var(--ai-light)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 20 }}>
-              <p style={{ fontSize: 13, color: 'var(--ai)', fontWeight: 500, margin: 0 }}>
-                💡 Tip: <Link to="/cv-upload" style={{ color: 'var(--ai)', fontWeight: 700 }}>Chấm điểm CV</Link> trước để tăng tỷ lệ đậu
-              </p>
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: 6 }}>Thư giới thiệu (tuỳ chọn)</label>
-              <textarea
-                rows={4}
-                placeholder="Viết vài câu giới thiệu bản thân và lý do bạn phù hợp với vị trí này..."
-                style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 13, fontFamily: 'inherit', color: 'var(--text-primary)', resize: 'vertical', boxSizing: 'border-box' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setShowApplyModal(false)} style={{ flex: 1, padding: '11px', borderRadius: 10, border: '1.5px solid var(--border)', backgroundColor: 'white', cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', fontWeight: 600 }}>
-                Hủy
-              </button>
-              <button onClick={handleApply} disabled={applying} className="btn-primary" style={{ flex: 2, padding: '11px', border: 'none', cursor: applying ? 'not-allowed' : 'pointer', fontSize: 14, borderRadius: 10, fontFamily: 'inherit', fontWeight: 700, opacity: applying ? 0.7 : 1 }}>
-                {applying ? '⏳ Đang xử lý...' : '🚀 Xác nhận ứng tuyển'}
-              </button>
-            </div>
+      {/* Apply Dialog */}
+      <Dialog open={showApply} onOpenChange={setShowApply}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ứng tuyển vào</DialogTitle>
+            <p className="text-sm text-primary font-semibold">{job.title}</p>
+            <p className="text-xs text-muted-foreground">{job.company}</p>
+          </DialogHeader>
+          <div className="p-3 bg-violet-50 border border-violet-200 rounded-xl text-xs text-violet-700">
+            💡 <Link to="/cv-upload" className="font-bold text-violet-700 hover:underline">Chấm điểm CV</Link> trước để tăng tỷ lệ đậu
           </div>
-        </div>
-      )}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .container-app > div > div { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+          <div className="space-y-1.5">
+            <Label>Thư giới thiệu (tuỳ chọn)</Label>
+            <Textarea rows={4} placeholder="Viết vài câu giới thiệu bản thân và lý do bạn phù hợp..." value={coverLetter} onChange={e => setCoverLetter(e.target.value)} />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowApply(false)}>Hủy</Button>
+            <Button onClick={handleApply} disabled={applying} className="gap-2">
+              {applying ? '⏳ Đang xử lý...' : '🚀 Xác nhận ứng tuyển'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
