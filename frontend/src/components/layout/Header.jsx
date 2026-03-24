@@ -82,9 +82,7 @@ export default function Header() {
         <div className="container-app" style={{ display: 'flex', alignItems: 'center', height: 64, gap: 32 }}>
           {/* Logo */}
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'white', fontWeight: 900, fontSize: 14 }}>N</span>
-            </div>
+            <img src="/nexcv.svg" alt="NexCV" style={{ width: 40, height: 40, borderRadius: 8 }} />
             <span style={{ fontWeight: 800, fontSize: 20, color: logoColor, transition: 'color 0.25s', letterSpacing: '-0.5px' }}>
               Nex<span style={{ color: '#7C3AED' }}>CV</span>
             </span>
