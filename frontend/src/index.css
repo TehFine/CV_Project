@@ -1,266 +1,112 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
-@custom-variant dark (&:is(.dark *));
 
+/* ── Tailwind v4: theme tokens dùng @theme ─────────────────────
+   Các class như bg-primary, text-foreground, border-border, v.v.
+   đều được generate từ đây.
+──────────────────────────────────────────────────────────────── */
+@theme {
+  /* Font */
+  --font-sans: "Be Vietnam Pro", sans-serif;
 
+  /* Colors — shadcn naming convention */
+  --color-background:           hsl(0 0% 100%);
+  --color-foreground:           hsl(222 47% 11%);
+  --color-card:                 hsl(0 0% 100%);
+  --color-card-foreground:      hsl(222 47% 11%);
+  --color-popover:              hsl(0 0% 100%);
+  --color-popover-foreground:   hsl(222 47% 11%);
+  --color-primary:              hsl(219 79% 40%);
+  --color-primary-foreground:   hsl(0 0% 100%);
+  --color-secondary:            hsl(219 50% 94%);
+  --color-secondary-foreground: hsl(219 79% 30%);
+  --color-muted:                hsl(210 40% 96%);
+  --color-muted-foreground:     hsl(215 20% 45%);
+  --color-accent:               hsl(263 70% 50%);
+  --color-accent-foreground:    hsl(0 0% 100%);
+  --color-destructive:          hsl(0 84% 60%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border:               hsl(214 32% 91%);
+  --color-input:                hsl(214 32% 91%);
+  --color-ring:                 hsl(219 79% 40%);
 
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+}
 
-
-
-
-
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* ── CSS custom properties (dùng trong inline styles) ──────── */
 :root {
-  /* Brand Colors */
-  --primary: #1549B8;
-  --primary-hover: #1240A0;
-  --primary-light: #EEF2FF;
-  --primary-foreground: #ffffff;
-
-  /* AI / Purple Accent */
-  --ai: #7C3AED;
-  --ai-light: #F5F3FF;
-  --ai-hover: #6D28D9;
-
-  /* Success / Score */
-  --success: #059669;
-  --success-light: #ECFDF5;
-  --warning: #D97706;
-  --warning-light: #FFFBEB;
-  --danger: #DC2626;
-  --danger-light: #FEF2F2;
-
-  /* Neutral */
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
-  --border: #E2E8F0;
-  --border-hover: #CBD5E1;
-
-  /* Backgrounds */
-  --bg-base: #F8FAFC;
-  --bg-card: #FFFFFF;
-  --bg-subtle: #F1F5F9;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 40px rgba(0,0,0,0.1), 0 4px 16px rgba(0,0,0,0.06);
-
-
-  --background: 210 40% 98%; /* bg-base */
-  --foreground: 222 47% 11%; /* text-primary */
-
-  --primary: 221 78% 40%;
-  --primary-foreground: 0 0% 100%;
-
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
-
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-
-  --accent: 262 83% 58%; /* ai color */
-  --accent-foreground: 0 0% 100%;
-
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 100%;
-
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 221 78% 40%;
-
-  --radius: 0.75rem;
+  --brand-primary:       #1549B8;
+  --brand-primary-hover: #1240A0;
+  --brand-primary-light: #EEF2FF;
+  --brand-ai:            #7C3AED;
+  --brand-ai-light:      #F5F3FF;
+  --brand-success:       #059669;
+  --brand-success-light: #ECFDF5;
+  --brand-warning:       #D97706;
+  --brand-warning-light: #FFFBEB;
+  --brand-danger:        #DC2626;
 }
 
-* {
-  box-sizing: border-box;
-}
+/* ── Base reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  color: var(--text-primary);
-  background-color: var(--bg-base);
+  background-color: #F8FAFC;
+  color: #0F172A;
+  font-family: "Be Vietnam Pro", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-subtle); }
-::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
 
-/* Animations */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ── Layout helpers ──────────────────────────────────────────── */
+.section    { padding-top: 5rem;   padding-bottom: 5rem;   }
+.section-sm { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+.container-app {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(30px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes pulse-ring {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(21, 73, 184, 0.4); }
-  70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(21, 73, 184, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(21, 73, 184, 0); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes scoreCount {
-  from { transform: scale(0.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.animate-fade-in-up { animation: fadeInUp 0.6s ease both; }
-.animate-fade-in { animation: fadeIn 0.4s ease both; }
-.animate-slide-right { animation: slideInRight 0.5s ease both; }
-.animate-score { animation: scoreCount 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
-
-/* Stagger delays */
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
-.delay-500 { animation-delay: 0.5s; }
-.delay-600 { animation-delay: 0.6s; }
-
-/* Custom Components */
-.btn-primary {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(21, 73, 184, 0.3);
-}
-
-.btn-ai {
-  background: linear-gradient(135deg, var(--ai), #9333EA);
-  color: white;
-  font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-.btn-ai:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
-}
-
-.card-hover {
-  transition: all 0.25s ease;
-}
-.card-hover:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--border-hover);
-}
-
-/* Gradient text */
+/* ── Gradient text ───────────────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, var(--primary), var(--ai));
+  background: linear-gradient(135deg, #1549B8, #7C3AED);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Score ring */
-.score-ring {
-  animation: pulse-ring 2s ease-in-out infinite;
+/* ── Animations ──────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
-/* Shimmer loading */
-.shimmer {
-  background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--border) 50%, var(--bg-subtle) 75%);
+.animate-fade-in-up { animation: fadeInUp 0.5s ease both; }
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+
+/* ── Shimmer skeleton ────────────────────────────────────────── */
+.shimmer-bg {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-}
-
-/* Tag/badge */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Upload zone */
-.upload-zone {
-  border: 2px dashed var(--border);
-  transition: all 0.2s ease;
-  border-radius: 16px;
-}
-.upload-zone:hover,
-.upload-zone.drag-over {
-  border-color: var(--primary);
-  background-color: var(--primary-light);
-}
-
-/* Progress bar */
-.progress-bar {
-  height: 8px;
-  border-radius: 99px;
-  background: var(--border);
-  overflow: hidden;
-}
-.progress-bar-fill {
-  height: 100%;
-  border-radius: 99px;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Input focus */
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px rgba(21, 73, 184, 0.1);
-}
-
-/* Link */
-a.link {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-}
-a.link:hover { text-decoration: underline; }
-
-/* Section */
-.section { padding: 72px 0; }
-.section-sm { padding: 48px 0; }
-
-/* Container */
-.container-app {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
+  border-radius: 0.75rem;
 }

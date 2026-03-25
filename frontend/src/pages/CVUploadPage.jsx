@@ -148,7 +148,7 @@ export default function CVUploadPage() {
       {/* Hero */}
       <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-900 pt-12 pb-10 mb-8">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
-          <Badge variant="ai" className="mb-4 gap-1.5"><Sparkles className="h-3.5 w-3.5" />AI-Powered Analysis</Badge>
+          <Badge variant="ai" className="mb-4 gap-1.5 text-white"><Sparkles className="h-3.5 w-3.5 " />AI-Powered Analysis</Badge>
           <h1 className="text-4xl font-black text-white mb-3">Chấm điểm CV bằng AI</h1>
           <p className="text-slate-300 max-w-md mx-auto">Upload CV và nhận phân tích chi tiết trong 30 giây — Hoàn toàn miễn phí</p>
           <div className="flex justify-center gap-8 mt-6">
