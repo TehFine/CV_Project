@@ -2,272 +2,219 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { MOCK_JOBS } from '../../services/jobService'
+import { Link, useSearchParams } from 'react-router-dom'
+import { useAuth } from '@/context/AuthContext'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import { Loader2, Plus, ExternalLink } from 'lucide-react'
+import { MOCK_JOBS } from '@/services/jobService'
 
-const MOCK_CV_HISTORY = [
-  { id: 1, fileName: 'CV_NguyenVanAn_2025.pdf', overall: 85, grade: 'A', gradeLabel: 'Xuất sắc', scoredAt: '2025-01-20T10:30:00Z', size: '245 KB' },
-  { id: 2, fileName: 'CV_Frontend_Updated.pdf', overall: 78, grade: 'B', gradeLabel: 'Tốt', scoredAt: '2025-01-15T14:20:00Z', size: '198 KB' },
+const MOCK_CVS = [
+  { id:1, fileName:'CV_NguyenVanAn_2025.pdf', overall:85, grade:'A', gradeLabel:'Xuất sắc', scoredAt:'2025-01-20T10:30:00Z' },
+  { id:2, fileName:'CV_Frontend_Updated.pdf', overall:78, grade:'B', gradeLabel:'Tốt', scoredAt:'2025-01-15T14:20:00Z' },
 ]
+const SAVED_IDS = [1, 3]
+const gradeVariant = { A:'success', B:'new', C:'warning', D:'destructive' }
 
-const SAVED_JOB_IDS = [1, 3]
+const initials = name => name?.split(' ').slice(-2).map(w=>w[0]).join('').toUpperCase()||'U'
 
-function GradeBadge({ grade }) {
-  const colors = { A: { bg: '#ECFDF5', color: '#059669', border: 'rgba(5,150,105,0.2)' }, B: { bg: '#EFF6FF', color: '#1D4ED8', border: 'rgba(29,78,216,0.2)' }, C: { bg: '#FFFBEB', color: '#D97706', border: 'rgba(217,119,6,0.2)' }, D: { bg: '#FEF2F2', color: '#DC2626', border: 'rgba(220,38,38,0.2)' } }
-  const s = colors[grade] || colors.C
-  return (
-    <span style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}`, fontWeight: 700 }}>
-      Loại {grade}
-    </span>
-  )
-}
-
-function AvatarFallback({ name, size = 80 }) {
-  const initials = name?.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase() || 'U'
-  return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--ai))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.35, fontWeight: 800, color: 'white', flexShrink: 0 }}>
-      {initials}
-    </div>
-  )
-}
-
-function ProfileInfo({ user, updateUser }) {
+function ProfileTab({ user, updateUser }) {
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', location: user?.location || '', title: user?.title || '', bio: user?.bio || '' })
+  const [form, setForm] = useState({ name: user?.name||'', phone: user?.phone||'', location: user?.location||'', title: user?.title||'', bio: user?.bio||'' })
   const [saving, setSaving] = useState(false)
+  const set = k => e => setForm(p => ({...p, [k]: e.target.value}))
 
   const handleSave = async () => {
     setSaving(true)
-    await new Promise(r => setTimeout(r, 800))
-    updateUser(form)
-    setEditing(false)
-    setSaving(false)
+    await new Promise(r => setTimeout(r, 700))
+    updateUser(form); setEditing(false); setSaving(false)
   }
 
   return (
-    <div className="animate-fade-in">
-      {/* Profile card */}
-      <div style={{ backgroundColor: 'white', borderRadius: 16, border: '1.5px solid var(--border)', padding: 28, marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', marginBottom: 24 }}>
-          <div style={{ position: 'relative' }}>
-            <AvatarFallback name={user?.name} />
-            <button style={{ position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: '50%', backgroundColor: 'var(--primary)', border: '2px solid white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>
-              ✏️
-            </button>
-          </div>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ fontWeight: 800, fontSize: 20, color: 'var(--text-primary)', marginBottom: 4 }}>{user?.name}</h2>
-            <p style={{ fontSize: 14, color: 'var(--primary)', fontWeight: 600, marginBottom: 4 }}>{user?.title || 'Chưa cập nhật chức danh'}</p>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>📍 {user?.location || 'Chưa cập nhật'} · 📧 {user?.email}</p>
-          </div>
-          <button
-            onClick={() => editing ? handleSave() : setEditing(true)}
-            disabled={saving}
-            style={{ padding: '8px 16px', borderRadius: 8, border: '1.5px solid', borderColor: editing ? 'var(--primary)' : 'var(--border)', backgroundColor: editing ? 'var(--primary)' : 'white', color: editing ? 'white' : 'var(--text-primary)', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.2s', flexShrink: 0 }}
-          >
-            {saving ? '⏳ Lưu...' : editing ? '💾 Lưu thay đổi' : '✏️ Chỉnh sửa'}
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24, padding: '16px', backgroundColor: 'var(--bg-subtle)', borderRadius: 12 }}>
-          {[
-            { icon: '📄', value: user?.cvCount || 2, label: 'CV đã chấm' },
-            { icon: '🔖', value: SAVED_JOB_IDS.length, label: 'Việc đã lưu' },
-            { icon: '📨', value: 3, label: 'Đơn ứng tuyển' },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 20, marginBottom: 2 }}>{s.icon}</div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: 'var(--text-primary)' }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{s.label}</div>
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex gap-4 items-start mb-6">
+            <div className="relative">
+              <Avatar className="h-20 w-20">
+                <AvatarFallback className="text-2xl font-black bg-gradient-to-br from-primary to-violet-600 text-white">{initials(user?.name)}</AvatarFallback>
+              </Avatar>
             </div>
-          ))}
-        </div>
-
-        {/* Form fields */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {[
-            { label: 'Họ và tên', key: 'name', type: 'text' },
-            { label: 'Số điện thoại', key: 'phone', type: 'tel' },
-            { label: 'Địa điểm', key: 'location', type: 'text' },
-            { label: 'Chức danh hiện tại', key: 'title', type: 'text' },
-          ].map(f => (
-            <div key={f.key}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{f.label}</label>
-              {editing ? (
-                <input
-                  value={form[f.key]}
-                  onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
-                  style={{ width: '100%', padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }}
-                />
-              ) : (
-                <p style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 500, margin: 0 }}>{user?.[f.key] || '—'}</p>
-              )}
+            <div className="flex-1">
+              <h2 className="text-xl font-black text-foreground">{user?.name}</h2>
+              <p className="text-primary font-semibold text-sm">{user?.title || 'Chưa cập nhật chức danh'}</p>
+              <p className="text-muted-foreground text-xs mt-1">📍 {user?.location || '—'} · 📧 {user?.email}</p>
             </div>
-          ))}
-        </div>
+            <Button variant={editing ? 'default' : 'outline'} size="sm"
+              onClick={editing ? handleSave : () => setEditing(true)} disabled={saving}>
+              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {saving ? 'Lưu...' : editing ? '💾 Lưu' : '✏️ Chỉnh sửa'}
+            </Button>
+          </div>
 
-        {/* Bio */}
-        <div style={{ marginTop: 16 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Giới thiệu bản thân</label>
-          {editing ? (
-            <textarea rows={3} value={form.bio} onChange={e => setForm(prev => ({ ...prev, bio: e.target.value }))}
-              style={{ width: '100%', padding: '8px 12px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }} />
-          ) : (
-            <p style={{ fontSize: 14, color: user?.bio ? 'var(--text-secondary)' : 'var(--text-muted)', lineHeight: 1.6, margin: 0, fontStyle: user?.bio ? 'normal' : 'italic' }}>
-              {user?.bio || 'Chưa có giới thiệu...'}
-            </p>
-          )}
-        </div>
-      </div>
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3 mb-6 p-4 bg-muted/50 rounded-xl">
+            {[['📄', MOCK_CVS.length, 'CV đã chấm'], ['🔖', SAVED_IDS.length, 'Việc đã lưu'], ['📨', 3, 'Đã ứng tuyển']].map(([icon, val, label]) => (
+              <div key={label} className="text-center">
+                <div className="text-lg mb-0.5">{icon}</div>
+                <div className="text-2xl font-black text-foreground">{val}</div>
+                <div className="text-xs text-muted-foreground">{label}</div>
+              </div>
+            ))}
+          </div>
 
-      {/* Skills */}
-      <div style={{ backgroundColor: 'white', borderRadius: 16, border: '1.5px solid var(--border)', padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)' }}>🛠️ Kỹ năng</h3>
-          <button style={{ fontSize: 13, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>+ Thêm</button>
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {(user?.skills || []).map(skill => (
-            <span key={skill} style={{ padding: '5px 14px', borderRadius: 20, backgroundColor: 'var(--primary-light)', color: 'var(--primary)', fontSize: 13, fontWeight: 600, border: '1px solid rgba(21,73,184,0.15)' }}>
-              {skill}
-            </span>
-          ))}
-          {(!user?.skills?.length) && <p style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>Chưa có kỹ năng nào...</p>}
-        </div>
-      </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {[['name','Họ và tên','text'],['phone','Số điện thoại','tel'],['location','Địa điểm','text'],['title','Chức danh','text']].map(([key,label,type]) => (
+              <div key={key} className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground uppercase tracking-wide">{label}</Label>
+                {editing ? <Input type={type} value={form[key]} onChange={set(key)} /> : <p className="text-sm font-medium">{user?.[key] || '—'}</p>}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 space-y-1.5">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wide">Giới thiệu bản thân</Label>
+            {editing
+              ? <Textarea rows={3} value={form.bio} onChange={set('bio')} placeholder="Viết vài dòng giới thiệu..." />
+              : <p className={`text-sm leading-relaxed ${user?.bio ? 'text-muted-foreground' : 'text-muted-foreground italic'}`}>{user?.bio || 'Chưa có giới thiệu...'}</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-5">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-bold text-sm">🛠️ Kỹ năng</h3>
+            <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs"><Plus className="h-3 w-3" />Thêm</Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(user?.skills||[]).map(s => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
+            {!user?.skills?.length && <p className="text-sm text-muted-foreground italic">Chưa có kỹ năng nào...</p>}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
 
-function CVHistory() {
+function CVTab() {
   return (
-    <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)' }}>Lịch sử chấm điểm CV</h3>
-        <Link to="/cv-upload" style={{ padding: '8px 16px', borderRadius: 8, backgroundColor: 'var(--primary)', color: 'white', textDecoration: 'none', fontSize: 13, fontWeight: 700 }}>
-          + Chấm CV mới
-        </Link>
+    <div className="space-y-3">
+      <div className="flex justify-between items-center">
+        <h3 className="font-bold text-foreground">Lịch sử chấm điểm CV</h3>
+        <Button size="sm" asChild><Link to="/cv-upload"><Plus className="h-3.5 w-3.5 mr-1" />Chấm CV mới</Link></Button>
       </div>
-      {MOCK_CV_HISTORY.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Chưa có CV nào được chấm điểm</p>
-          <Link to="/cv-upload" style={{ display: 'inline-block', marginTop: 12, padding: '8px 20px', backgroundColor: 'var(--primary)', color: 'white', borderRadius: 8, textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>Upload CV ngay</Link>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {MOCK_CV_HISTORY.map(cv => (
-            <div key={cv.id} style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: 20, display: 'flex', gap: 16, alignItems: 'center' }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>📄</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cv.fileName}</p>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <GradeBadge grade={cv.grade} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{cv.overall}/100</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{cv.gradeLabel}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>·</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(cv.scoredAt).toLocaleDateString('vi-VN')}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                <Link to="/cv-upload" style={{ padding: '7px 14px', borderRadius: 8, backgroundColor: 'var(--primary-light)', color: 'var(--primary)', textDecoration: 'none', fontSize: 12, fontWeight: 600 }}>Xem chi tiết</Link>
+      {MOCK_CVS.length === 0 ? (
+        <Card><CardContent className="py-12 text-center">
+          <p className="text-4xl mb-3">📄</p>
+          <p className="font-semibold mb-3">Chưa có CV nào</p>
+          <Button asChild size="sm"><Link to="/cv-upload">Upload CV ngay</Link></Button>
+        </CardContent></Card>
+      ) : MOCK_CVS.map(cv => (
+        <Card key={cv.id}>
+          <CardContent className="p-4 flex gap-3 items-center">
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">📄</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm truncate">{cv.fileName}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant={gradeVariant[cv.grade]} className="text-xs">Loại {cv.grade}</Badge>
+                <span className="text-sm font-bold">{cv.overall}/100</span>
+                <span className="text-xs text-muted-foreground">{cv.gradeLabel}</span>
+                <Separator orientation="vertical" className="h-3" />
+                <span className="text-xs text-muted-foreground">{new Date(cv.scoredAt).toLocaleDateString('vi-VN')}</span>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+            <Button variant="outline" size="sm" asChild><Link to="/cv-upload"><ExternalLink className="h-3.5 w-3.5 mr-1" />Xem</Link></Button>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }
 
-function SavedJobs() {
-  const savedJobs = MOCK_JOBS.filter(j => SAVED_JOB_IDS.includes(j.id))
+function SavedTab() {
+  const saved = MOCK_JOBS.filter(j => SAVED_IDS.includes(j.id))
   return (
-    <div className="animate-fade-in">
-      <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 16 }}>Việc làm đã lưu ({savedJobs.length})</h3>
-      {savedJobs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)' }}>
-          <p style={{ color: 'var(--text-muted)' }}>Chưa có việc làm nào được lưu</p>
-          <Link to="/jobs" style={{ display: 'inline-block', marginTop: 12, padding: '8px 20px', backgroundColor: 'var(--primary)', color: 'white', borderRadius: 8, textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>Tìm việc làm</Link>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {savedJobs.map(job => (
-            <div key={job.id} style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: 20, display: 'flex', gap: 14, alignItems: 'center' }}>
-              <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, color: 'var(--primary)', flexShrink: 0 }}>
-                {job.company.slice(0, 2).toUpperCase()}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>{job.title}</p>
-                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{job.company} · {job.location} · {job.salary}</p>
-              </div>
-              <Link to={`/jobs/${job.id}`} style={{ padding: '7px 14px', borderRadius: 8, backgroundColor: 'var(--primary)', color: 'white', textDecoration: 'none', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>
-                Xem →
-              </Link>
+    <div className="space-y-3">
+      <h3 className="font-bold text-foreground">Việc làm đã lưu ({saved.length})</h3>
+      {saved.length === 0 ? (
+        <Card><CardContent className="py-12 text-center">
+          <p className="font-semibold mb-3">Chưa có việc làm nào</p>
+          <Button asChild size="sm"><Link to="/jobs">Tìm việc làm</Link></Button>
+        </CardContent></Card>
+      ) : saved.map(job => (
+        <Card key={job.id} className="hover:-translate-y-0.5 hover:shadow-sm transition-all duration-200">
+          <CardContent className="p-4 flex gap-3 items-center">
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center font-black text-sm text-primary flex-shrink-0">
+              {job.company.slice(0,2).toUpperCase()}
             </div>
-          ))}
-        </div>
-      )}
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">{job.title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{job.company} · {job.location} · <span className="text-emerald-600 font-medium">{job.salary}</span></p>
+            </div>
+            <Button size="sm" asChild><Link to={`/jobs/${job.id}`}>Xem →</Link></Button>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }
 
 export default function ProfilePage() {
   const { user, isAuthenticated, updateUser } = useAuth()
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'info')
+  const defaultTab = searchParams.get('tab') || 'info'
 
-  if (!isAuthenticated) {
-    return (
-      <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
-        <h2 style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-primary)', marginBottom: 8 }}>Đăng nhập để xem hồ sơ</h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Bạn cần đăng nhập để truy cập trang này</p>
-        <Link to="/login" style={{ padding: '12px 28px', backgroundColor: 'var(--primary)', color: 'white', borderRadius: 10, textDecoration: 'none', fontWeight: 700 }}>Đăng nhập</Link>
-      </div>
-    )
-  }
-
-  const tabs = [
-    { key: 'info', label: '👤 Hồ sơ' },
-    { key: 'cvs', label: '📄 CV của tôi' },
-    { key: 'saved', label: '🔖 Đã lưu' },
-  ]
+  if (!isAuthenticated) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Card className="max-w-sm w-full mx-6">
+        <CardContent className="py-12 text-center">
+          <p className="text-4xl mb-4">🔒</p>
+          <h2 className="text-xl font-black mb-2">Đăng nhập để tiếp tục</h2>
+          <p className="text-muted-foreground text-sm mb-6">Bạn cần đăng nhập để xem hồ sơ</p>
+          <Button asChild className="w-full"><Link to="/login">Đăng nhập</Link></Button>
+        </CardContent>
+      </Card>
+    </div>
+  )
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-base)', minHeight: '100vh', paddingBottom: 80 }}>
+    <div className="min-h-screen bg-muted/30 pb-16">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #0F172A, #1549B8)', padding: '32px 0 60px' }}>
-        <div className="container-app">
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <AvatarFallback name={user?.name} />
-            <div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'white', marginBottom: 4 }}>{user?.name}</h1>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>{user?.email}</p>
-              {user?.title && <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>{user.title}</p>}
-            </div>
+      <div className="bg-gradient-to-br from-slate-900 to-primary pb-16 pt-8">
+        <div className="max-w-[1200px] mx-auto px-6 flex items-center gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarFallback className="text-xl font-black bg-gradient-to-br from-primary to-violet-600 text-white">{initials(user?.name)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-2xl font-black text-white">{user?.name}</h1>
+            <p className="text-blue-200 text-sm">{user?.email}</p>
           </div>
         </div>
       </div>
 
-      <div className="container-app" style={{ marginTop: -32 }}>
-        {/* Tabs */}
-        <div style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: '4px', display: 'inline-flex', gap: 2, marginBottom: 20, boxShadow: 'var(--shadow-md)' }}>
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              style={{ padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.2s', backgroundColor: activeTab === tab.key ? 'var(--primary)' : 'transparent', color: activeTab === tab.key ? 'white' : 'var(--text-secondary)' }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab content */}
-        {activeTab === 'info' && <ProfileInfo user={user} updateUser={updateUser} />}
-        {activeTab === 'cvs' && <CVHistory />}
-        {activeTab === 'saved' && <SavedJobs />}
+      <div className="max-w-[1200px] mx-auto px-6 -mt-10">
+        <Tabs defaultValue={defaultTab}>
+          <Card className="mb-5">
+            <CardContent className="p-2">
+              <TabsList className="w-full">
+                <TabsTrigger value="info" className="flex-1">👤 Hồ sơ</TabsTrigger>
+                <TabsTrigger value="cvs" className="flex-1">📄 CV của tôi</TabsTrigger>
+                <TabsTrigger value="saved" className="flex-1">🔖 Đã lưu</TabsTrigger>
+              </TabsList>
+            </CardContent>
+          </Card>
+          <TabsContent value="info"><ProfileTab user={user} updateUser={updateUser} /></TabsContent>
+          <TabsContent value="cvs"><CVTab /></TabsContent>
+          <TabsContent value="saved"><SavedTab /></TabsContent>
+        </Tabs>
       </div>
     </div>
   )

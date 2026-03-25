@@ -1,353 +1,271 @@
 import { useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { cvService } from '../../services/cvService'
+import { Upload, Sparkles, FileText, X, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { cvService } from '@/services/cvService'
+import { cn } from '@/lib/utils'
 
-// ─── Score Ring ────────────────────────────────────────────────────────────────
 function ScoreRing({ score, size = 120 }) {
-  const radius = (size - 16) / 2
-  const circumference = 2 * Math.PI * radius
-  const strokeDashoffset = circumference - (score / 100) * circumference
+  const r = (size - 14) / 2
+  const circ = 2 * Math.PI * r
+  const offset = circ - (score / 100) * circ
   const color = score >= 85 ? '#10B981' : score >= 70 ? '#3B82F6' : score >= 55 ? '#F59E0B' : '#EF4444'
-
   return (
-    <div style={{ position: 'relative', width: size, height: size }}>
+    <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="#E2E8F0" strokeWidth="8" />
-        <circle
-          cx={size/2} cy={size/2} r={radius} fill="none" stroke={color} strokeWidth="8"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)' }}
-        />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#E2E8F0" strokeWidth="7" />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="7"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)' }} />
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: size * 0.28, fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1 }}>{score}</span>
-        <span style={{ fontSize: size * 0.1, color: 'var(--text-muted)', fontWeight: 500 }}>/100</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-black text-foreground" style={{ fontSize: size * 0.27 }}>{score}</span>
+        <span className="text-muted-foreground" style={{ fontSize: size * 0.1 }}>/100</span>
       </div>
     </div>
   )
 }
 
-// ─── Score Result ─────────────────────────────────────────────────────────────
 function ScoreResult({ result, onReset }) {
-  const gradeColors = { A: '#10B981', B: '#3B82F6', C: '#F59E0B', D: '#EF4444' }
-  const color = gradeColors[result.grade] || '#3B82F6'
+  const gradeColor = { A: 'success', B: 'new', C: 'warning', D: 'destructive' }[result.grade] || 'secondary'
+  const catColor = pct => pct >= 80 ? '#10B981' : pct >= 65 ? '#3B82F6' : pct >= 50 ? '#F59E0B' : '#EF4444'
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: 760, margin: '0 auto' }}>
-      {/* Overall score card */}
-      <div style={{ background: 'linear-gradient(135deg, #0F172A, #1E3A6E)', borderRadius: 20, padding: 32, marginBottom: 20, color: 'white', display: 'flex', gap: 32, alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ textAlign: 'center' }}>
-          <ScoreRing score={result.overall} size={130} />
-          <div style={{ marginTop: 8 }}>
-            <span style={{ display: 'inline-block', backgroundColor: color, color: 'white', fontWeight: 800, fontSize: 13, padding: '3px 12px', borderRadius: 20 }}>
-              Loại {result.grade} — {result.gradeLabel}
-            </span>
+    <div className="max-w-2xl mx-auto space-y-4 animate-fade-in-up">
+      {/* Overall */}
+      <Card className="overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 p-7">
+          <div className="flex gap-6 items-center flex-wrap">
+            <div className="text-center">
+              <ScoreRing score={result.overall} size={120} />
+              <Badge variant={gradeColor} className="mt-2">Loại {result.grade} — {result.gradeLabel}</Badge>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-violet-300 text-xs font-bold uppercase tracking-wide mb-1">Kết quả phân tích AI</p>
+              <h2 className="text-white text-xl font-black mb-2 leading-snug">
+                {result.overall >= 85 ? '🎉 CV rất ấn tượng!' : result.overall >= 70 ? '👍 CV tốt, còn cải thiện được' : '💪 CV cần được cải thiện thêm'}
+              </h2>
+              <p className="text-slate-400 text-xs mb-3">{result.fileName}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {result.strengths.map(s => (
+                  <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">✓ {s}</span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase' }}>Kết quả phân tích AI</p>
-          <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, lineHeight: 1.2 }}>
-            {result.overall >= 85 ? '🎉 CV của bạn rất ấn tượng!' :
-             result.overall >= 70 ? '👍 CV khá tốt, còn cải thiện được' :
-             result.overall >= 55 ? '💪 CV cần được cải thiện thêm' :
-             '⚠️ CV cần cải thiện đáng kể'}
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, lineHeight: 1.6, marginBottom: 16 }}>
-            File: <strong style={{ color: 'white' }}>{result.fileName}</strong>
-          </p>
-
-          {/* Quick strengths */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {result.strengths.map(s => (
-              <span key={s} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 20, backgroundColor: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.3)', color: '#6EE7B7' }}>
-                ✓ {s}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+      </Card>
 
       {/* Category breakdown */}
-      <div style={{ backgroundColor: 'white', borderRadius: 16, border: '1.5px solid var(--border)', padding: 24, marginBottom: 16 }}>
-        <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 20 }}>📊 Chi tiết theo tiêu chí</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {result.categories.map(cat => {
-            const catColor = cat.score >= 80 ? '#10B981' : cat.score >= 65 ? '#3B82F6' : cat.score >= 50 ? '#F59E0B' : '#EF4444'
-            return (
-              <div key={cat.key} className="animate-fade-in">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 18 }}>{cat.icon}</span>
-                    <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{cat.label}</span>
-                  </div>
-                  <span style={{ fontWeight: 800, fontSize: 16, color: catColor }}>{cat.score}/100</span>
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="font-bold text-foreground mb-5 flex items-center gap-2">📊 Chi tiết theo tiêu chí</h3>
+          <div className="space-y-5">
+            {result.categories.map(cat => (
+              <div key={cat.key}>
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="flex items-center gap-2 text-sm font-semibold"><span>{cat.icon}</span>{cat.label}</span>
+                  <span className="font-black text-base" style={{ color: catColor(cat.score) }}>{cat.score}/100</span>
                 </div>
-                <div className="progress-bar" style={{ marginBottom: 8 }}>
-                  <div className="progress-bar-fill" style={{ width: `${cat.score}%`, background: catColor }} />
+                <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${cat.score}%`, backgroundColor: catColor(cat.score) }} />
                 </div>
-                <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6, lineHeight: 1.5 }}>{cat.feedback}</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-2">{cat.feedback}</p>
+                <div className="flex flex-wrap gap-1.5">
                   {cat.suggestions.map(s => (
-                    <span key={s} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, backgroundColor: 'var(--ai-light)', color: 'var(--ai)', border: '1px solid rgba(124,58,237,0.15)', fontWeight: 500 }}>
-                      💡 {s}
-                    </span>
+                    <Badge key={s} variant="ai" className="text-[11px] font-normal">💡 {s}</Badge>
                   ))}
                 </div>
               </div>
-            )
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Improvements */}
-      <div style={{ backgroundColor: 'white', borderRadius: 16, border: '1.5px solid var(--border)', padding: 24, marginBottom: 20 }}>
-        <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-primary)', marginBottom: 16 }}>🚀 Các điểm cần cải thiện ngay</h3>
-        {result.improvements.map((imp, i) => (
-          <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 0', borderBottom: i < result.improvements.length - 1 ? '1px solid var(--border)' : 'none' }}>
-            <div style={{ width: 24, height: 24, borderRadius: '50%', backgroundColor: 'var(--warning-light)', border: '2px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#92400E', flexShrink: 0, fontWeight: 800, marginTop: 1 }}>
-              {i + 1}
-            </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>{imp}</p>
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="font-bold text-foreground mb-4">🚀 Cần cải thiện ngay</h3>
+          <div className="space-y-3">
+            {result.improvements.map((imp, i) => (
+              <div key={i} className="flex gap-3 items-start py-2.5 border-b last:border-0">
+                <div className="w-6 h-6 rounded-full bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-xs font-black text-amber-700 flex-shrink-0 mt-0.5">{i + 1}</div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{imp}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <button onClick={onReset} style={{ padding: '12px 24px', borderRadius: 10, border: '1.5px solid var(--border)', backgroundColor: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', flex: '0 0 auto', transition: 'all 0.2s' }}>
-          📤 Upload CV khác
-        </button>
-        <Link to="/jobs" className="btn-primary" style={{ padding: '12px 24px', borderRadius: 10, textDecoration: 'none', fontSize: 14, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer' }}>
-          💼 Tìm việc làm phù hợp
-        </Link>
+      <div className="flex gap-3 flex-wrap">
+        <Button variant="outline" onClick={onReset} className="gap-2"><Upload className="h-4 w-4" />Upload CV khác</Button>
+        <Button asChild className="gap-2"><Link to="/jobs">💼 Tìm việc phù hợp <ArrowRight className="h-4 w-4" /></Link></Button>
       </div>
     </div>
   )
 }
 
-// ─── Upload Zone ───────────────────────────────────────────────────────────────
-function UploadZone({ onFile }) {
-  const inputRef = useRef()
-  const [dragging, setDragging] = useState(false)
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault()
-    setDragging(false)
-    const file = e.dataTransfer.files[0]
-    if (file) onFile(file)
-  }, [onFile])
-
-  const handleDragOver = (e) => { e.preventDefault(); setDragging(true) }
-  const handleDragLeave = () => setDragging(false)
-
-  return (
-    <div
-      className={`upload-zone ${dragging ? 'drag-over' : ''}`}
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onClick={() => inputRef.current?.click()}
-      style={{ padding: '60px 40px', textAlign: 'center', cursor: 'pointer', backgroundColor: dragging ? 'var(--primary-light)' : 'white', transition: 'all 0.2s' }}
-    >
-      <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" onChange={e => e.target.files[0] && onFile(e.target.files[0])} style={{ display: 'none' }} />
-      <div style={{ fontSize: 56, marginBottom: 16, lineHeight: 1 }}>{dragging ? '📥' : '📄'}</div>
-      <h3 style={{ fontWeight: 700, fontSize: 18, color: 'var(--text-primary)', marginBottom: 8 }}>
-        {dragging ? 'Thả file vào đây!' : 'Kéo thả CV của bạn vào đây'}
-      </h3>
-      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
-        Hoặc nhấn để chọn file từ máy tính
-      </p>
-      <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-        {['PDF', 'DOC', 'DOCX'].map(fmt => (
-          <span key={fmt} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 6, backgroundColor: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)', fontWeight: 600 }}>
-            {fmt}
-          </span>
-        ))}
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 4 }}>• Tối đa 10MB</span>
-      </div>
-    </div>
-  )
-}
-
-// ─── Uploading State ───────────────────────────────────────────────────────────
-function UploadingState({ progress, fileName }) {
-  const steps = [
-    { label: 'Đang tải file lên...', threshold: 33 },
-    { label: 'AI đang phân tích nội dung...', threshold: 66 },
-    { label: 'Đang tính điểm và tạo gợi ý...', threshold: 100 },
-  ]
-  const currentStep = steps.findIndex(s => progress < s.threshold)
-  const activeLabel = steps[Math.max(0, currentStep === -1 ? steps.length - 1 : currentStep)].label
-
-  return (
-    <div style={{ textAlign: 'center', padding: '48px 24px', maxWidth: 440, margin: '0 auto' }}>
-      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--ai))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', animation: 'pulse-ring 2s infinite' }}>
-        <span style={{ fontSize: 32 }}>✨</span>
-      </div>
-      <h3 style={{ fontWeight: 700, fontSize: 18, color: 'var(--text-primary)', marginBottom: 6 }}>AI đang phân tích CV</h3>
-      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>{fileName}</p>
-      <div className="progress-bar" style={{ marginBottom: 8 }}>
-        <div className="progress-bar-fill" style={{ width: `${progress}%`, background: 'linear-gradient(90deg, var(--primary), var(--ai))' }} />
-      </div>
-      <p style={{ fontSize: 13, color: 'var(--ai)', fontWeight: 600 }}>{progress}% — {activeLabel}</p>
-      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>Thường mất khoảng 30 giây...</p>
-    </div>
-  )
-}
-
-// ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function CVUploadPage() {
   const [file, setFile] = useState(null)
-  const [targetPosition, setTargetPosition] = useState('')
+  const [targetPos, setTargetPos] = useState('')
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState('idle') // idle | uploading | result | error
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [dragging, setDragging] = useState(false)
+  const inputRef = useRef()
 
-  const handleFile = (f) => {
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(f.type) && !f.name.match(/\.(pdf|doc|docx)$/i)) {
-      setError('Chỉ hỗ trợ file PDF, DOC, DOCX'); return
-    }
-    if (f.size > maxSize) { setError('File không được vượt quá 10MB'); return }
-    setFile(f)
-    setError('')
-  }
+  const handleFile = useCallback(f => {
+    if (!f.name.match(/\.(pdf|doc|docx)$/i)) { setError('Chỉ hỗ trợ PDF, DOC, DOCX'); return }
+    if (f.size > 10 * 1024 * 1024) { setError('File không vượt quá 10MB'); return }
+    setFile(f); setError('')
+  }, [])
+
+  const handleDrop = useCallback(e => {
+    e.preventDefault(); setDragging(false)
+    const f = e.dataTransfer.files[0]
+    if (f) handleFile(f)
+  }, [handleFile])
 
   const handleSubmit = async () => {
     if (!file) return
-    setStatus('uploading')
-    setProgress(0)
+    setStatus('uploading'); setProgress(0)
     try {
-      const res = await cvService.scoreCV(file, { targetPosition }, (p) => setProgress(p))
-      setResult(res)
-      setStatus('result')
-    } catch (err) {
-      setError(err?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.')
-      setStatus('idle')
-    }
+      const res = await cvService.scoreCV(file, { targetPosition: targetPos }, setProgress)
+      setResult(res); setStatus('result')
+    } catch (err) { setError(err?.message || 'Lỗi phân tích'); setStatus('idle') }
   }
 
-  const handleReset = () => {
-    setFile(null)
-    setResult(null)
-    setStatus('idle')
-    setError('')
-    setProgress(0)
-    setTargetPosition('')
-  }
+  const reset = () => { setFile(null); setResult(null); setStatus('idle'); setError(''); setProgress(0) }
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-base)', minHeight: '100vh', paddingBottom: 80 }}>
+    <div className="min-h-screen bg-muted/30 pb-16">
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%)', padding: '48px 0 36px', marginBottom: 32 }}>
-        <div className="container-app" style={{ textAlign: 'center' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: 'rgba(124,58,237,0.25)', border: '1px solid rgba(124,58,237,0.4)', borderRadius: 20, padding: '5px 14px', marginBottom: 16 }}>
-            <span>✨</span>
-            <span style={{ fontSize: 13, color: '#C4B5FD', fontWeight: 500 }}>AI-Powered CV Analysis</span>
-          </div>
-          <h1 style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 900, color: 'white', marginBottom: 10, lineHeight: 1.2 }}>
-            Chấm điểm CV bằng AI
-          </h1>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.65)', maxWidth: 500, margin: '0 auto' }}>
-            Upload CV và nhận phân tích chi tiết trong 30 giây — hoàn toàn miễn phí
-          </p>
-
-          {/* Stats */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 24, flexWrap: 'wrap' }}>
-            {[{ val: '50K+', label: 'CV đã chấm' }, { val: '30s', label: 'Tốc độ phân tích' }, { val: '5', label: 'Tiêu chí đánh giá' }, { val: '100%', label: 'Miễn phí' }].map(s => (
-              <div key={s.val} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: 'white' }}>{s.val}</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{s.label}</div>
+      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-900 pt-12 pb-10 mb-8">
+        <div className="max-w-[1200px] mx-auto px-6 text-center">
+          <Badge variant="ai" className="mb-4 gap-1.5 text-white"><Sparkles className="h-3.5 w-3.5 " />AI-Powered Analysis</Badge>
+          <h1 className="text-4xl font-black text-white mb-3">Chấm điểm CV bằng AI</h1>
+          <p className="text-slate-300 max-w-md mx-auto">Upload CV và nhận phân tích chi tiết trong 30 giây — Hoàn toàn miễn phí</p>
+          <div className="flex justify-center gap-8 mt-6">
+            {[['50K+','CV đã chấm'],['30s','Tốc độ AI'],['5','Tiêu chí'],['100%','Miễn phí']].map(([v,l]) => (
+              <div key={l} className="text-center">
+                <div className="text-xl font-black text-white">{v}</div>
+                <div className="text-xs text-slate-400">{l}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="container-app">
+      <div className="max-w-[1200px] mx-auto px-6">
         {status === 'result' ? (
-          <ScoreResult result={result} onReset={handleReset} />
+          <ScoreResult result={result} onReset={reset} />
         ) : (
-          <div style={{ maxWidth: 640, margin: '0 auto' }}>
+          <div className="max-w-xl mx-auto space-y-4">
             {status === 'uploading' ? (
-              <div style={{ backgroundColor: 'white', borderRadius: 20, border: '1.5px solid var(--border)', overflow: 'hidden' }}>
-                <UploadingState progress={progress} fileName={file?.name} />
-              </div>
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center mx-auto mb-5 animate-pulse">
+                    <Sparkles className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg text-foreground mb-1">AI đang phân tích CV</h3>
+                  <p className="text-sm text-muted-foreground mb-6">{file?.name}</p>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden mb-2 max-w-xs mx-auto">
+                    <div className="h-full rounded-full bg-gradient-to-r from-primary to-violet-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+                  </div>
+                  <p className="text-sm font-semibold text-violet-600">{progress}%</p>
+                  <p className="text-xs text-muted-foreground mt-2">Thường mất khoảng 30 giây...</p>
+                </CardContent>
+              </Card>
             ) : (
-              <div className="animate-fade-in">
+              <>
                 {/* Upload zone */}
-                <div style={{ backgroundColor: 'white', borderRadius: 20, border: '1.5px solid var(--border)', overflow: 'hidden', marginBottom: 16 }}>
-                  <UploadZone onFile={handleFile} />
-                  {file && (
-                    <div style={{ padding: '0 24px 20px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', backgroundColor: 'var(--success-light)', border: '1px solid rgba(5,150,105,0.2)', borderRadius: 10 }}>
-                        <span style={{ fontSize: 20 }}>📄</span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
-                          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{(file.size / 1024).toFixed(1)} KB</div>
+                <Card>
+                  <CardContent className="p-2">
+                    <div
+                      className={cn('border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200',
+                        dragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/50')}
+                      onDrop={handleDrop}
+                      onDragOver={e => { e.preventDefault(); setDragging(true) }}
+                      onDragLeave={() => setDragging(false)}
+                      onClick={() => inputRef.current?.click()}
+                    >
+                      <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" onChange={e => e.target.files[0] && handleFile(e.target.files[0])} className="hidden" />
+                      {file ? (
+                        <div className="flex items-center justify-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg max-w-xs mx-auto">
+                          <FileText className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+                          <div className="text-left flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{file.name}</p>
+                            <p className="text-xs text-muted-foreground">{(file.size/1024).toFixed(1)} KB</p>
+                          </div>
+                          <button onClick={e => { e.stopPropagation(); setFile(null) }} className="text-muted-foreground hover:text-foreground">
+                            <X className="h-4 w-4" />
+                          </button>
                         </div>
-                        <button onClick={() => setFile(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 18, padding: 0, flexShrink: 0 }}>×</button>
-                      </div>
+                      ) : (
+                        <>
+                          <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
+                            {dragging ? '📥' : '📄'}
+                          </div>
+                          <p className="font-bold text-foreground mb-1">{dragging ? 'Thả file vào đây!' : 'Kéo thả CV vào đây'}</p>
+                          <p className="text-sm text-muted-foreground mb-3">Hoặc nhấn để chọn từ máy tính</p>
+                          <div className="flex justify-center gap-2">
+                            {['PDF','DOC','DOCX'].map(f => <Badge key={f} variant="outline" className="text-xs">{f}</Badge>)}
+                            <span className="text-xs text-muted-foreground self-center">· Tối đa 10MB</span>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </CardContent>
+                </Card>
 
-                {/* Target position input */}
-                <div style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: 20, marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
-                    🎯 Vị trí ứng tuyển <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(tuỳ chọn — giúp AI đánh giá chính xác hơn)</span>
-                  </label>
-                  <input
-                    value={targetPosition}
-                    onChange={e => setTargetPosition(e.target.value)}
-                    placeholder="VD: Frontend Developer, Product Manager, Data Analyst..."
-                    style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', color: 'var(--text-primary)', boxSizing: 'border-box' }}
-                  />
-                </div>
+                {/* Target position */}
+                <Card>
+                  <CardContent className="p-5">
+                    <Label className="mb-2 block">🎯 Vị trí ứng tuyển <span className="text-muted-foreground font-normal text-xs ml-1">(tuỳ chọn — AI sẽ đánh giá chính xác hơn)</span></Label>
+                    <Input value={targetPos} onChange={e => setTargetPos(e.target.value)} placeholder="VD: Frontend Developer, Product Manager..." />
+                  </CardContent>
+                </Card>
 
                 {error && (
-                  <div style={{ backgroundColor: 'var(--danger-light)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
-                    <p style={{ fontSize: 13, color: 'var(--danger)', margin: 0 }}>⚠️ {error}</p>
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
                   </div>
                 )}
 
-                <button
-                  onClick={handleSubmit}
-                  disabled={!file}
-                  className="btn-ai"
-                  style={{ width: '100%', padding: '14px', border: 'none', cursor: file ? 'pointer' : 'not-allowed', fontSize: 15, borderRadius: 12, fontFamily: 'inherit', fontWeight: 800, opacity: file ? 1 : 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                >
-                  ✨ Chấm điểm CV ngay — Miễn phí
-                </button>
+                <Button variant="ai" size="xl" className="w-full gap-2" onClick={handleSubmit} disabled={!file}>
+                  <Sparkles className="h-5 w-5" />Chấm điểm CV ngay — Miễn phí
+                </Button>
 
-                <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 12 }}>
-                  🔒 File của bạn được bảo mật và không được lưu trữ lâu dài
-                </p>
+                <p className="text-center text-xs text-muted-foreground">🔒 File được bảo mật và không lưu trữ lâu dài</p>
 
                 {/* What AI checks */}
-                <div style={{ backgroundColor: 'white', borderRadius: 14, border: '1.5px solid var(--border)', padding: 20, marginTop: 16 }}>
-                  <h4 style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 12 }}>AI sẽ đánh giá CV của bạn theo 5 tiêu chí:</h4>
-                  {[
-                    { icon: '🎯', title: 'Kỹ năng phù hợp', desc: 'So sánh kỹ năng với yêu cầu thị trường' },
-                    { icon: '💼', title: 'Kinh nghiệm làm việc', desc: 'Chất lượng và tính liên quan của kinh nghiệm' },
-                    { icon: '🎓', title: 'Học vấn & Chứng chỉ', desc: 'Bằng cấp và các chứng chỉ chuyên môn' },
-                    { icon: '📄', title: 'Định dạng & Trình bày', desc: 'Bố cục, dễ đọc, chuyên nghiệp' },
-                    { icon: '🔍', title: 'Từ khóa & ATS', desc: 'Tối ưu cho hệ thống lọc CV tự động' },
-                  ].map(item => (
-                    <div key={item.title} style={{ display: 'flex', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-                      <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{item.title}</div>
-                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{item.desc}</div>
+                <Card>
+                  <CardContent className="p-5">
+                    <h4 className="font-bold text-sm mb-3">AI đánh giá 5 tiêu chí:</h4>
+                    {[
+                      { icon: '🎯', title: 'Kỹ năng phù hợp', desc: 'So sánh với yêu cầu thị trường' },
+                      { icon: '💼', title: 'Kinh nghiệm', desc: 'Chất lượng và tính liên quan' },
+                      { icon: '🎓', title: 'Học vấn & Chứng chỉ', desc: 'Bằng cấp, chứng chỉ chuyên môn' },
+                      { icon: '📄', title: 'Định dạng & Trình bày', desc: 'Bố cục, dễ đọc, chuyên nghiệp' },
+                      { icon: '🔍', title: 'Từ khóa & ATS', desc: 'Tối ưu cho hệ thống lọc tự động' },
+                    ].map(item => (
+                      <div key={item.title} className="flex gap-3 py-2.5 border-b last:border-0 items-start">
+                        <span className="text-lg flex-shrink-0">{item.icon}</span>
+                        <div>
+                          <p className="text-sm font-semibold">{item.title}</p>
+                          <p className="text-xs text-muted-foreground">{item.desc}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </>
             )}
           </div>
         )}
