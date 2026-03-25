@@ -154,4 +154,25 @@ export const cvService = {
     }
     return api.delete(`/cv/scores/${id}`)
   },
+
+  /**
+   * Tạo CV bằng Reactive Resume
+   */
+  async saveResume(data) {
+    if (USE_MOCK) {
+      await delay(500)
+      return { id: data.id || Date.now(), ...data }
+    }
+    return data.id
+      ? api.put(`/resumes/${data.id}`, data)
+      : api.post('/resumes', data)
+  },
+
+  async getResume(id) {
+    if (USE_MOCK) {
+      await delay(400)
+      return { id, title: 'CV mẫu', content: {} }
+    }
+    return api.get(`/resumes/${id}`)
+  },
 }

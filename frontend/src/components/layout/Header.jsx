@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 const NAV_LINKS = [
   { href: '/jobs', label: 'Việc làm' },
   { href: '/cv-upload', label: 'Chấm điểm CV' },
+  { href: '/cv-builder', label: 'Tạo CV'},
 ]
 
 function AvatarFallback({ name, size = 36 }) {
