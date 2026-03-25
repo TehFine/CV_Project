@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { jobService, JOB_CATEGORIES } from '../services/jobService'
+import { jobService, JOB_CATEGORIES } from '../../services/jobService'
 
 const LEVELS = ['Intern', 'Junior', 'Middle', 'Senior', 'Lead/Manager']
 const JOB_TYPES = ['Toàn thời gian', 'Bán thời gian', 'Remote', 'Freelance']

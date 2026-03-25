@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { jobService, MOCK_JOBS } from '../services/jobService'
-import { useAuth } from '../context/AuthContext'
+import { jobService, MOCK_JOBS } from '../../services/jobService'
+import { useAuth } from '../../context/AuthContext'
 
 export default function JobDetailPage() {
   const { id } = useParams()

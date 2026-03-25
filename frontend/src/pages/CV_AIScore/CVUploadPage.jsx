@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { cvService } from '../services/cvService'
+import { cvService } from '../../services/cvService'
 
 // ─── Score Ring ────────────────────────────────────────────────────────────────
 function ScoreRing({ score, size = 120 }) {

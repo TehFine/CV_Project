@@ -16,12 +16,13 @@ import { AuthProvider } from './context/AuthContext'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import JobsPage from './pages/JobsPage'
-import JobDetailPage from './pages/JobDetailPage'
-import CVUploadPage from './pages/CVUploadPage'
-import ProfilePage from './pages/ProfilePage'
+import LoginPage from './pages/JobSeeker/LoginPage'
+import RegisterPage from './pages/JobSeeker/RegisterPage'
+import JobsPage from './pages/JobSeeker/JobsPage'
+import JobDetailPage from './pages/JobSeeker/JobDetailPage'
+import CVUploadPage from './pages/CV_AIScore/CVUploadPage'
+import ProfilePage from './pages/JobSeeker/ProfilePage'
+import CVBuilderPage from './pages/CVBuilder/CVBuilderPage'
 
 function App() {
   return (
@@ -38,6 +39,8 @@ function App() {
               <Route path="/jobs/:id" element={<JobDetailPage />} />
               <Route path="/cv-upload" element={<CVUploadPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/cv-builder" element={<CVBuilderPage />} />
+              <Route path="/cv-builder/:id" element={<CVBuilderPage />} />
             </Routes>
           </main>
           <Footer />

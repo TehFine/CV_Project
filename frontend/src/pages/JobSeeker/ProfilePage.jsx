@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { MOCK_JOBS } from '../services/jobService'
+import { useAuth } from '../../context/AuthContext'
+import { MOCK_JOBS } from '../../services/jobService'
 
 const MOCK_CV_HISTORY = [
   { id: 1, fileName: 'CV_NguyenVanAn_2025.pdf', overall: 85, grade: 'A', gradeLabel: 'Xuất sắc', scoredAt: '2025-01-20T10:30:00Z', size: '245 KB' },
