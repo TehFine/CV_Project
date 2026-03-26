@@ -1,38 +1,41 @@
-import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function EmployerLoginPage() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const from = location.state?.from || '/employer/dashboard'
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/employer/dashboard";
 
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [showPass, setShowPass] = useState(false)
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
 
   const handleChange = (e) => {
-    setForm(p => ({ ...p, [e.target.name]: e.target.value }))
-    if (error) setError('')
-  }
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+    if (error) setError("");
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!form.email || !form.password) { setError('Vui lòng điền đầy đủ thông tin'); return }
-    setLoading(true)
-    try {
-      await login(form.email, form.password)
-      navigate(from, { replace: true })
-    } catch (err) {
-      setError(err?.message || 'Đăng nhập thất bại. Vui lòng thử lại.')
-    } finally {
-      setLoading(false)
+    e.preventDefault();
+    if (!form.email || !form.password) {
+      setError("Vui lòng điền đầy đủ thông tin");
+      return;
     }
-  }
+    setLoading(true);
+    try {
+      await login(form.email, form.password);
+      navigate(from, { replace: true });
+    } catch (err) {
+      setError(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="employer-auth-page">
@@ -41,22 +44,41 @@ export default function EmployerLoginPage() {
         <div className="employer-auth-left-content">
           <Link to="/" className="employer-auth-logo">
             <div className="employer-auth-logo-icon">N</div>
-            <span>Nex<span style={{ color: '#A78BFA' }}>CV</span></span>
+            <span>
+              Nex<span style={{ color: "#A78BFA" }}>CV</span>
+            </span>
           </Link>
 
           <div style={{ marginBottom: 40 }}>
-            <h2 className="employer-auth-title">Chào mừng nhà<br />tuyển dụng trở lại 🏢</h2>
+            <h2 className="employer-auth-title">
+              Chào mừng nhà
+              <br />
+              tuyển dụng trở lại 🏢
+            </h2>
             <p className="employer-auth-subtitle">
-              Đăng nhập để quản lý tin tuyển dụng và tìm kiếm ứng viên phù hợp với AI.
+              Đăng nhập để quản lý tin tuyển dụng và tìm kiếm ứng viên phù hợp
+              với AI.
             </p>
           </div>
 
           <div className="employer-auth-features">
             {[
-              { icon: '📋', title: 'Quản lý tin tuyển dụng', desc: 'Đăng, chỉnh sửa và theo dõi hiệu quả' },
-              { icon: '🤖', title: 'AI chấm điểm CV tự động', desc: 'Lọc ứng viên chất lượng trong vài giây' },
-              { icon: '📊', title: 'Dashboard thống kê', desc: 'Theo dõi toàn bộ quá trình tuyển dụng' },
-            ].map(f => (
+              {
+                icon: "📋",
+                title: "Quản lý tin tuyển dụng",
+                desc: "Đăng, chỉnh sửa và theo dõi hiệu quả",
+              },
+              {
+                icon: "🤖",
+                title: "AI chấm điểm CV tự động",
+                desc: "Lọc ứng viên chất lượng trong vài giây",
+              },
+              {
+                icon: "📊",
+                title: "Dashboard thống kê",
+                desc: "Theo dõi toàn bộ quá trình tuyển dụng",
+              },
+            ].map((f) => (
               <div key={f.title} className="employer-auth-feature-item">
                 <span className="employer-auth-feature-icon">{f.icon}</span>
                 <div>
@@ -81,66 +103,169 @@ export default function EmployerLoginPage() {
           {/* Mobile logo */}
           <Link to="/" className="employer-auth-logo mobile-logo">
             <div className="employer-auth-logo-icon">N</div>
-            <span style={{ fontWeight: 800, fontSize: 20, color: '#7C3AED' }}>Nex<span style={{ color: '#1E40AF' }}>CV</span></span>
+            <span style={{ fontWeight: 800, fontSize: 20, color: "#7C3AED" }}>
+              Nex<span style={{ color: "#1E40AF" }}>CV</span>
+            </span>
           </Link>
 
           <div style={{ marginBottom: 28 }}>
             <div className="employer-auth-tag">🏢 Cổng nhà tuyển dụng</div>
             <h1 className="employer-auth-form-title">Đăng nhập</h1>
             <p className="employer-auth-form-sub">
-              Chưa có tài khoản?{' '}
+              Chưa có tài khoản?{" "}
               <Link to="/employer/register" className="employer-auth-form-link">
                 Đăng ký ngay — miễn phí
               </Link>
             </p>
           </div>
 
-          {error && (
-            <div className="employer-auth-error">⚠️ {error}</div>
-          )}
-
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {error && <div className="employer-auth-error">⚠️ {error}</div>}
+          {/* Demo account hint */}
+          <div
+            onClick={() =>
+              setForm({ email: "employer@nexcv.vn", password: "demo123" })
+            }
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(124,58,237,0.08), rgba(21,73,184,0.08))",
+              border: "1.5px dashed rgba(124,58,237,0.35)",
+              borderRadius: 10,
+              padding: "10px 14px",
+              marginBottom: 16,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background =
+                "linear-gradient(135deg, rgba(124,58,237,0.14), rgba(21,73,184,0.14))")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background =
+                "linear-gradient(135deg, rgba(124,58,237,0.08), rgba(21,73,184,0.08))")
+            }
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "#7C3AED",
+                  marginBottom: 2,
+                }}
+              >
+                🧪 Tài khoản demo
+              </div>
+              <div style={{ fontSize: 12, color: "#64748B" }}>
+                employer@nexcv.vn · demo123
+              </div>
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#7C3AED",
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Click để điền ↗
+            </div>
+          </div>
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: 16 }}
+          >
             <div>
               <label className="employer-auth-label">Email công ty</label>
               <Input
-                type="email" name="email" value={form.email}
-                onChange={handleChange} placeholder="hr@company.com"
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="hr@company.com"
                 className="employer-auth-input"
               />
             </div>
 
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <label className="employer-auth-label" style={{ marginBottom: 0 }}>Mật khẩu</label>
-                <a href="#" className="employer-auth-forgot">Quên mật khẩu?</a>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: 6,
+                }}
+              >
+                <label
+                  className="employer-auth-label"
+                  style={{ marginBottom: 0 }}
+                >
+                  Mật khẩu
+                </label>
+                <a href="#" className="employer-auth-forgot">
+                  Quên mật khẩu?
+                </a>
               </div>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: "relative" }}>
                 <Input
-                  type={showPass ? 'text' : 'password'} name="password" value={form.password}
-                  onChange={handleChange} placeholder="Nhập mật khẩu"
+                  type={showPass ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="Nhập mật khẩu"
                   className="employer-auth-input"
                   style={{ paddingRight: 44 }}
                 />
-                <button type="button" onClick={() => setShowPass(v => !v)} className="employer-auth-eye">
-                  {showPass ? '🙈' : '👁️'}
+                <button
+                  type="button"
+                  onClick={() => setShowPass((v) => !v)}
+                  className="employer-auth-eye"
+                >
+                  {showPass ? "🙈" : "👁️"}
                 </button>
               </div>
             </div>
 
             <Button
-              type="submit" disabled={loading}
+              type="submit"
+              disabled={loading}
               className="employer-auth-submit-btn"
-              style={{ background: loading ? '#A78BFA' : 'linear-gradient(135deg, #7C3AED, #5B21B6)', height: 44 }}
+              style={{
+                background: loading
+                  ? "#A78BFA"
+                  : "linear-gradient(135deg, #7C3AED, #5B21B6)",
+                height: 44,
+              }}
             >
               {loading ? (
-                <><svg style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>Đang đăng nhập...</>
-              ) : '🏢 Đăng nhập nhà tuyển dụng'}
+                <>
+                  <svg
+                    style={{
+                      animation: "spin 1s linear infinite",
+                      marginRight: 8,
+                    }}
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                  >
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" />
+                  </svg>
+                  Đang đăng nhập...
+                </>
+              ) : (
+                "🏢 Đăng nhập nhà tuyển dụng"
+              )}
             </Button>
           </form>
 
           <p className="employer-auth-terms">
-            Bằng cách đăng nhập, bạn đồng ý với{' '}
-            <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách bảo mật</a>
+            Bằng cách đăng nhập, bạn đồng ý với{" "}
+            <a href="#">Điều khoản dịch vụ</a> và{" "}
+            <a href="#">Chính sách bảo mật</a>
           </p>
         </div>
       </div>
@@ -246,5 +371,5 @@ export default function EmployerLoginPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
-  )
+  );
 }

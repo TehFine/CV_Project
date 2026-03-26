@@ -169,9 +169,23 @@ export default function App() {
             }
           />
 
-          {/* ── Nhà tuyển dụng — auth pages (không cần layout) ── */}
-          <Route path="/employer/login" element={<EmployerLoginPage />} />
-          <Route path="/employer/register" element={<EmployerRegisterPage />} />
+          {/* ── Nhà tuyển dụng — auth pages ── */}
+          <Route
+            path="/employer/login"
+            element={
+              <EmployerLayout>
+                <EmployerLoginPage />
+              </EmployerLayout>
+            }
+          />
+          <Route
+            path="/employer/register"
+            element={
+              <EmployerLayout>
+                <EmployerRegisterPage />
+              </EmployerLayout>
+            }
+          />
 
           {/* ── Nhà tuyển dụng — EmployerLayout (header riêng) ── */}
           <Route

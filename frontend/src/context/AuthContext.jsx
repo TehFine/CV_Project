@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
         logout,
         updateUser,
         isAuthenticated: !!user,
-        isEmployer: user?.role === "employer",
+        isEmployer: user?.role === "employer" || user?.role === "recruiter",
       }}
     >
       {children}
