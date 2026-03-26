@@ -25,7 +25,16 @@ const CANDIDATE_NAV = [
   { href: "/jobs", label: "Việc làm" },
   { href: "/cv-upload", label: "Chấm điểm CV", badge: "AI" },
 ];
-
+const EMPLOYER_NAV = [
+  { href: "/employer/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/employer/jobs", label: "Tin tuyển dụng", icon: Briefcase },
+  {
+    href: "/employer/jobs/new",
+    label: "Đăng tin",
+    icon: PlusCircle,
+    highlight: true,
+  },
+];
 const getInitials = (name) =>
   name
     ?.split(" ")

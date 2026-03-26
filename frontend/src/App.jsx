@@ -82,7 +82,16 @@ function SeekerLayout({ children }) {
     </div>
   );
 }
-
+function HomeRoute() {
+  const { isEmployer, loading } = useAuth();
+  if (loading) return <Spinner />;
+  if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
+  return (
+    <SeekerLayout>
+      <HomePage />
+    </SeekerLayout>
+  );
+}
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   return (
@@ -90,14 +99,7 @@ export default function App() {
       <Router>
         <Routes>
           {/* ── Ứng viên — SeekerLayout ── */}
-          <Route
-            path="/"
-            element={
-              <SeekerLayout>
-                <HomePage />
-              </SeekerLayout>
-            }
-          />
+          <Route path="/" element={<HomeRoute />} />
           <Route
             path="/login"
             element={
