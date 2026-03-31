@@ -161,9 +161,9 @@ export default function HomePage() {
       </section>
 
       {/* ─── AI Promo ────────────────────────────────────────────── */}
-      <section className="section-sm bg-white border-t border-[#F1F5F9]">
+      <section className="section-sm relative bg-white from-[#0F172A] via-[#1E3A6E] to-[#1549B8] overflow-hidden">
         <div className="container-app">
-          <div className="rounded-3xl bg-gradient-to-br from-[#1E1B4B] via-[#312E81] to-[#4C1D95] p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center relative overflow-hidden">
+          <div className="rounded-3xl bg-gradient-to-br from-[#0F172A] via-[#1E3A6E] to-[#1549B8] p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl pointer-events-none" />
             <div className="flex-1 relative">
               <div className="inline-flex items-center gap-1.5 bg-violet-500/20 border border-violet-400/30 rounded-full px-3 py-1 mb-4">
@@ -178,7 +178,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg"
-                  className="gap-2 bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:opacity-90 text-white font-bold shadow-lg">
+                  className="gap-2 bg-gradient-to-r from-[#1549B8] to-[#1240A0] hover:opacity-90 text-white font-bold shadow-lg">
                   <Link to="/cv-upload"><Sparkles className="h-4 w-4" />Chấm điểm CV — Miễn phí</Link>
                 </Button>
                 <Button variant="outline" size="lg" asChild
@@ -191,7 +191,7 @@ export default function HomePage() {
             {/* Score card preview */}
             <div className="w-full md:w-72 bg-white/8 backdrop-blur-sm border border-white/15 rounded-2xl p-6 flex-shrink-0">
               <div className="text-center mb-5">
-                <div className="w-20 h-20 mx-auto rounded-full border-4 border-violet-400 bg-violet-500/20 flex items-center justify-center mb-2">
+                <div className="w-20 h-20 mx-auto rounded-full border-4 border-blue-400 bg-blue-500/20 flex items-center justify-center mb-2">
                   <span className="text-3xl font-black text-white">82</span>
                 </div>
                 <p className="text-violet-300 text-sm font-semibold">Điểm CV của bạn</p>

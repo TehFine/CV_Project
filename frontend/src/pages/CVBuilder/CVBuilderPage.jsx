@@ -401,7 +401,7 @@ export default function CVBuilderPage() {
   return (
     <div className="min-h-screen bg-[#F1F5F9]">
       {/* Toolbar */}
-      <div className="bg-white border-b border-[#E2E8F0] shadow-sm sticky top-16 z-10">
+      <div className="bg-white border-b border-[#E2E8F0] shadow-sm sticky top-16 z-15">
         <div className="container-app h-12 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm text-[#0F172A]">✏️ Tạo CV</span>

@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useRef } from "react";
 
 const CANDIDATE_NAV = [
   { href: "/jobs",      label: "Việc làm" },
@@ -27,6 +28,7 @@ export default function Header() {
   const [scrolled,     setScrolled]     = useState(false);
   const [menuOpen,     setMenuOpen]     = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const headerRef = useRef(null);
 
   // ── Giữ nguyên 100% từ Header 2 ────────────────────────────────────────
   const isHome        = location.pathname === "/";
@@ -45,6 +47,28 @@ export default function Header() {
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
+
+  useEffect(() => {
+    if (!headerRef.current) return;
+
+    const updateHeight = () => {
+      const height = headerRef.current.offsetHeight;
+      document.documentElement.style.setProperty('--header-height', `${height}px`);
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(headerRef.current);
+
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, []);
+
 
   // ── Exact same color vars as Header 2 ──────────────────────────────────
   const headerBg       = scrolled || !isHome ? "rgba(255,255,255,0.97)" : "transparent";
@@ -68,6 +92,7 @@ export default function Header() {
     <>
       {/* ── Header — style object copy từ Header 2 ──────────────────────── */}
       <header
+        ref={headerRef}
         style={{
           position: "fixed",
           top: 0,
@@ -78,7 +103,7 @@ export default function Header() {
           boxShadow: scrolled ? "0 1px 8px rgba(0,0,0,0.08)" : "none",
           backdropFilter: scrolled || !isHome ? "blur(12px)" : "none",
           transition: "all 0.25s ease",
-          borderBottom: scrolled ? "1px solid #E2E8F0" : "1px solid transparent",
+          borderBottom: "none",
         }}
       >
         <div

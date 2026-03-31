@@ -34,7 +34,6 @@ export default function LoginPage() {
 
   const DEMO_ACCOUNTS = [
     { label: 'Demo ứng viên', email: 'demo@nexcv.vn', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-    { label: 'Demo nhà tuyển dụng', email: 'employer@nexcv.vn', color: 'bg-violet-50 text-violet-700 border-violet-200' },
   ]
 
   return (
@@ -42,7 +41,7 @@ export default function LoginPage() {
       {/* Left panel */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-slate-900 via-blue-950 to-primary flex-col justify-center p-14 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl" />
-        <Link to="/" className="flex items-center gap-2 mb-14 relative">
+        <Link to="/" className="flex items-center gap-2 mb-14 relative w-max">
           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
             <span className="text-primary font-black text-base">N</span>
           </div>
@@ -67,7 +66,7 @@ export default function LoginPage() {
       {/* Right panel */}
       <div className="flex-1 flex items-center justify-center p-8 bg-muted/30">
         <div className="w-full max-w-md">
-          <Link to="/" className="lg:hidden flex items-center gap-2 mb-8">
+          <Link to="/" className="lg:hidden flex items-center gap-2 mb-8 w-max">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-white font-black text-sm">N</span>
             </div>
@@ -83,7 +82,7 @@ export default function LoginPage() {
           </div>
 
           {/* Demo shortcuts */}
-          <div className="grid grid-cols-2 gap-2 mb-5">
+          <div className="grid grid-cols-1 gap-2 mb-5">
             {DEMO_ACCOUNTS.map(acc => (
               <button key={acc.email} onClick={() => setForm({ email: acc.email, password: 'demo123' })}
                 className={`text-xs px-3 py-2 rounded-lg border font-medium transition-colors hover:opacity-80 ${acc.color}`}>

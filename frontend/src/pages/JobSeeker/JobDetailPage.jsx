@@ -63,7 +63,7 @@ export default function JobDetailPage() {
   return (
     <>
       {/* Breadcrumb */}
-      <div className="bg-white border-b border-[#E2E8F0]">
+      <div className="bg-white border-b border-[#E2E8F0] sticky top-16 z-10 shadow-sm" style={{ top: 'var(--header-height)'}}>
         <div className="container-app py-2.5 flex gap-1.5 items-center text-xs text-[#94A3B8]">
           <Link to="/"     className="hover:text-[#0F172A] transition-colors">Trang chủ</Link>
           <ChevronRight className="h-3 w-3" />
@@ -203,8 +203,8 @@ export default function JobDetailPage() {
           </div>
 
           {/* ── Sidebar ──────────────────────────────────────────── */}
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 sticky top-20">
+          <div  className="space-y-4 sticky self-start" style={{ top: 'calc(var(--header-height) + 64px)' }}>
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 top-20">
               <h3 className="font-bold text-sm text-[#0F172A] mb-4">Tổng quan công việc</h3>
               {[
                 ['Cấp bậc',   job.level],
