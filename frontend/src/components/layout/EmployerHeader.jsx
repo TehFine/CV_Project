@@ -135,11 +135,9 @@ export default function EmployerHeader() {
                       <Link to="/employer/jobs/new">➕ Đăng tin mới</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    {/* Link quay về trang tìm việc */}
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/" style={{ color: "#64748B" }}>
-                        🔄 Về trang tìm việc
-                      </Link>
+                      <Link to="/employer/profile">👤 Xem hồ sơ</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem

@@ -27,6 +27,7 @@ import EmployerDashboard from "./pages/employer/EmployerDashboard";
 import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
 import EmployerJobFormPage from "./pages/employer/EmployerJobFormPage";
 import EmployerApplicantsPage from "./pages/employer/EmployerApplicantsPage";
+import EmployerProfilePage from "./pages/employer/EmployerProfilePage";
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
@@ -204,6 +205,16 @@ export default function App() {
               <EmployerLayout>
                 <ProtectedRoute requireRole="employer">
                   <EmployerDashboard />
+                </ProtectedRoute>
+              </EmployerLayout>
+            }
+          />
+          <Route
+            path="/employer/profile"
+            element={
+              <EmployerLayout>
+                <ProtectedRoute requireRole="employer">
+                  <EmployerProfilePage />
                 </ProtectedRoute>
               </EmployerLayout>
             }
