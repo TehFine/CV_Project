@@ -48,7 +48,7 @@ export default function EmployerHeader() {
       <header className="employer-header">
         <div className="employer-header-inner">
           {/* Logo */}
-          <Link to="/employer/dashboard" className="employer-logo">
+          <Link to="/employer/" className="employer-logo">
             <div className="employer-logo-icon">
               <span>N</span>
             </div>

@@ -11,11 +11,11 @@ import EmployerLayout from "./components/layout/EmployerLayout";
 
 // ── Ứng viên (Job Seeker) ────────────────────────────────────────────────────
 import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/JobSeeker/LoginPage";
-import RegisterPage from "./pages/JobSeeker/RegisterPage";
+import LoginPage from "./pages/JobSeeker/JobLoginPage";
+import RegisterPage from "./pages/JobSeeker/JobRegisterPage";
 import JobsPage from "./pages/JobSeeker/JobsPage";
 import JobDetailPage from "./pages/JobSeeker/JobDetailPage";
-import ProfilePage from "./pages/JobSeeker/ProfilePage";
+import ProfilePage from "./pages/JobSeeker/JobProfilePage";
 import CVUploadPage from "./pages/CV_AIScore/CVUploadPage";
 import CVBuilderPage from "./pages/CVBuilder/CVBuilderPage";
 

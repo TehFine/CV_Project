@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Eye, EyeOff, Loader2, User, Building2, Check } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,10 +26,8 @@ function StrengthBar({ password }) {
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
 
-  const [role, setRole] = useState(searchParams.get('role') === 'employer' ? 'employer' : 'candidate')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', companyName: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [agreed, setAgreed] = useState(false)
@@ -44,7 +42,6 @@ export default function RegisterPage() {
     if (form.phone && !form.phone.match(/^0[3-9]\d{8}$/)) e.phone = 'Số điện thoại không hợp lệ'
     if (form.password.length < 6) e.password = 'Mật khẩu ít nhất 6 ký tự'
     if (form.password !== form.confirmPassword) e.confirmPassword = 'Mật khẩu không khớp'
-    if (role === 'employer' && !form.companyName.trim()) e.companyName = 'Vui lòng nhập tên công ty'
     if (!agreed) e.agreed = 'Vui lòng đồng ý điều khoản'
     return e
   }
@@ -55,24 +52,21 @@ export default function RegisterPage() {
     if (Object.keys(errs).length) { setErrors(errs); return }
     setLoading(true)
     try {
-      await register({ ...form, role })
-      navigate(role === 'employer' ? '/employer/dashboard' : '/')
+      await register({ ...form, role: 'candidate' })
+      navigate('/')
     } catch (err) {
       setErrors({ submit: err?.message || 'Đăng ký thất bại' })
     } finally { setLoading(false) }
   }
 
-  const ROLE_OPTIONS = [
-    { value: 'candidate', label: 'Ứng viên', desc: 'Tìm việc & chấm điểm CV', icon: User, color: 'border-primary bg-primary/5' },
-    { value: 'employer', label: 'Nhà tuyển dụng', desc: 'Đăng tuyển & tìm hồ sơ', icon: Building2, color: 'border-violet-500 bg-violet-50' },
-  ]
-
   return (
     <div className="min-h-screen flex">
       {/* Left */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-900 flex-col justify-center p-14 relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-        <Link to="/" className="flex items-center gap-2 mb-14 relative">
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-slate-900 via-blue-950 to-primary flex-col justify-center p-14 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-cyan-400/10 rounded-full blur-2xl pointer-events-none" />
+        <Link to="/" className="flex items-center gap-2 mb-14 relative w-max">
           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
             <span className="text-primary font-black text-base">N</span>
           </div>
@@ -84,24 +78,35 @@ export default function RegisterPage() {
             Tham gia 50,000+ người dùng đang dùng NexCV để tối ưu CV và kết nối nhân tài.
           </p>
           {[
-            { icon: '✨', title: 'AI Chấm điểm CV', desc: 'Phân tích chi tiết trong 30 giây' },
-            { icon: '🎯', title: 'Gợi ý việc làm phù hợp', desc: 'Dựa trên kỹ năng và kinh nghiệm' },
-            { icon: '🏢', title: 'Kết nối nhà tuyển dụng', desc: 'Hàng nghìn công ty hàng đầu VN' },
+            'Chấm điểm CV bằng AI trong 30 giây',
+            'Gợi ý việc làm phù hợp theo kỹ năng',
+            'Kết nối hàng nghìn nhà tuyển dụng hàng đầu VN',
           ].map(f => (
-            <div key={f.title} className="flex gap-3 p-3.5 bg-white/5 rounded-xl border border-white/10 mb-3">
-              <span className="text-xl flex-shrink-0">{f.icon}</span>
-              <div>
-                <div className="text-white font-semibold text-sm">{f.title}</div>
-                <div className="text-slate-400 text-xs mt-0.5">{f.desc}</div>
+            <div key={f} className="flex items-center gap-3 mb-3">
+              <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+                <span className="text-emerald-400 text-[10px] font-bold">✓</span>
               </div>
+              <span className="text-slate-300 text-sm">{f}</span>
             </div>
           ))}
+          <div className="flex gap-3 mt-10">
+            {[
+              { value: '50K+', label: 'Ứng viên' },
+              { value: '12K+', label: 'Việc làm' },
+              { value: '98%', label: 'Hài lòng' },
+            ].map(s => (
+              <div key={s.label} className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-center backdrop-blur-sm">
+                <div className="text-white font-black text-lg leading-none">{s.value}</div>
+                <div className="text-slate-400 text-xs mt-1">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Right */}
-      <div className="flex-1 flex items-start justify-center p-8 bg-muted/30 overflow-y-auto">
-        <div className="w-full max-w-md py-4">
+      <div className="flex-1 flex items-center justify-center p-8 bg-muted/30 overflow-y-auto">
+        <div className="w-full max-w-md py-8">
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-white font-black text-sm">N</span>
@@ -116,28 +121,6 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Role selector */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {ROLE_OPTIONS.map(opt => (
-              <button key={opt.value} onClick={() => setRole(opt.value)}
-                className={cn(
-                  'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center',
-                  role === opt.value ? opt.color + ' shadow-sm' : 'border-border bg-background hover:border-muted-foreground/30'
-                )}>
-                {role === opt.value && (
-                  <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                    <Check className="h-3 w-3 text-white" />
-                  </div>
-                )}
-                <opt.icon className={cn('h-6 w-6', role === opt.value ? 'text-primary' : 'text-muted-foreground')} />
-                <div>
-                  <div className={cn('font-bold text-sm', role === opt.value ? 'text-foreground' : 'text-muted-foreground')}>{opt.label}</div>
-                  <div className="text-xs text-muted-foreground">{opt.desc}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-
           {errors.submit && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
               ⚠️ {errors.submit}
@@ -150,13 +133,6 @@ export default function RegisterPage() {
               <Input placeholder="Nguyễn Văn An" value={form.name} onChange={set('name')} className={errors.name ? 'border-destructive' : ''} />
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
-            {role === 'employer' && (
-              <div className="space-y-1.5">
-                <Label>Tên công ty *</Label>
-                <Input placeholder="VNG Corporation" value={form.companyName} onChange={set('companyName')} className={errors.companyName ? 'border-destructive' : ''} />
-                {errors.companyName && <p className="text-xs text-destructive">{errors.companyName}</p>}
-              </div>
-            )}
             <div className="space-y-1.5">
               <Label>Email *</Label>
               <Input type="email" placeholder="your@email.com" value={form.email} onChange={set('email')} className={errors.email ? 'border-destructive' : ''} />
@@ -198,8 +174,15 @@ export default function RegisterPage() {
               {errors.agreed && <p className="text-xs text-destructive mt-1">{errors.agreed}</p>}
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            <Button type="submit" size="lg" disabled={loading}
+              className={`
+                w-full h-[44px] text-[15px] font-bold
+                bg-linear-to-r from-blue-500 to-primary
+                hover:opacity-90 transition
+                ${loading ? 'opacity-70 cursor-not-allowed' : ''}
+              `}
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               {loading ? 'Đang tạo tài khoản...' : '🚀 Tạo tài khoản miễn phí'}
             </Button>
           </form>
