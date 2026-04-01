@@ -159,22 +159,24 @@ function HeroSection() {
           >
             🚀 {isAuthenticated ? "Vào Dashboard" : "Đăng ký miễn phí"}
           </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => navigate("/employer/login")}
-            style={{
-              borderColor: "rgba(255,255,255,0.4)",
-              color: "white",
-              backgroundColor: "transparent",
-              fontWeight: 600,
-              fontSize: 15,
-              height: 48,
-              padding: "0 28px",
-            }}
-          >
-            Đăng nhập
-          </Button>
+          {!isAuthenticated && (
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate("/employer/login")}
+              style={{
+                borderColor: "rgba(255,255,255,0.4)",
+                color: "white",
+                backgroundColor: "transparent",
+                fontWeight: 600,
+                fontSize: 15,
+                height: 48,
+                padding: "0 28px",
+              }}
+            >
+              Đăng nhập
+            </Button>
+          )}
         </div>
 
         {/* Popular positions */}
