@@ -4,10 +4,6 @@ import {
   LogOut,
   User,
   Bookmark,
-  LayoutDashboard,
-  Briefcase,
-  Users,
-  PlusCircle,
   Sparkles,
   FileEdit,
 } from "lucide-react";
@@ -18,7 +14,6 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
 
@@ -26,16 +21,7 @@ const CANDIDATE_NAV = [
   { href: "/jobs", label: "Việc làm" },
   { href: "/cv-upload", label: "Chấm điểm CV", badge: "AI" },
 ];
-const EMPLOYER_NAV = [
-  { href: "/employer/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/employer/jobs", label: "Tin tuyển dụng", icon: Briefcase },
-  {
-    href: "/employer/jobs/new",
-    label: "Đăng tin",
-    icon: PlusCircle,
-    highlight: true,
-  },
-];
+
 const getInitials = (name) =>
   name
     ?.split(" ")
@@ -45,17 +31,14 @@ const getInitials = (name) =>
     .toUpperCase() || "U";
 
 export default function Header() {
-  const { user, logout, isAuthenticated, isEmployer } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const headerRef = useRef(null);
 
-  // ── Giữ nguyên 100% từ Header 2 ────────────────────────────────────────
   const isHome = location.pathname === "/";
-  const isEmployerPage = location.pathname.startsWith("/employer");
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -73,32 +56,23 @@ export default function Header() {
 
   useEffect(() => {
     if (!headerRef.current) return;
-
     const updateHeight = () => {
       const height = headerRef.current.offsetHeight;
-      document.documentElement.style.setProperty('--header-height', `${height}px`);
+      document.documentElement.style.setProperty("--header-height", `${height}px`);
     };
-
     updateHeight();
-
     const observer = new ResizeObserver(updateHeight);
     observer.observe(headerRef.current);
-
-    window.addEventListener('resize', updateHeight);
-
+    window.addEventListener("resize", updateHeight);
     return () => {
       observer.disconnect();
-      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener("resize", updateHeight);
     };
   }, []);
 
-
-  // ── Exact same color vars as Header 2 ──────────────────────────────────
-  const headerBg =
-    scrolled || !isHome ? "rgba(255,255,255,0.97)" : "transparent";
+  const headerBg = scrolled || !isHome ? "rgba(255,255,255,0.97)" : "transparent";
   const logoColor = !scrolled && isHome ? "white" : "var(--primary)";
-  const linkColor =
-    !scrolled && isHome ? "rgba(255,255,255,0.9)" : "var(--text-secondary)";
+  const linkColor = !scrolled && isHome ? "rgba(255,255,255,0.9)" : "var(--text-secondary)";
   const linkActiveColor = !scrolled && isHome ? "white" : "var(--primary)";
 
   const isActive = (href) =>
@@ -111,16 +85,12 @@ export default function Header() {
   };
 
   const handleCreateCV = () => {
-    if (!isAuthenticated)
-      navigate("/login", { state: { from: "/cv-builder" } });
+    if (!isAuthenticated) navigate("/login", { state: { from: "/cv-builder" } });
     else navigate("/cv-builder");
   };
 
-  const navLinks = isEmployer ? EMPLOYER_NAV : CANDIDATE_NAV;
-
   return (
     <>
-      {/* ── Header — style object copy từ Header 2 ──────────────────────── */}
       <header
         ref={headerRef}
         style={{
@@ -133,9 +103,7 @@ export default function Header() {
           boxShadow: scrolled ? "0 1px 8px rgba(0,0,0,0.08)" : "none",
           backdropFilter: scrolled || !isHome ? "blur(12px)" : "none",
           transition: "all 0.25s ease",
-          borderBottom: scrolled
-            ? "1px solid #E2E8F0"
-            : "1px solid transparent",
+          borderBottom: scrolled ? "1px solid #E2E8F0" : "1px solid transparent",
         }}
       >
         <div
@@ -144,7 +112,7 @@ export default function Header() {
         >
           {/* Logo */}
           <Link
-            to={isEmployer ? "/employer/dashboard" : "/"}
+            to="/"
             style={{
               display: "flex",
               alignItems: "center",
@@ -164,9 +132,7 @@ export default function Header() {
                 justifyContent: "center",
               }}
             >
-              <span style={{ color: "white", fontWeight: 900, fontSize: 14 }}>
-                N
-              </span>
+              <span style={{ color: "white", fontWeight: 900, fontSize: 14 }}>N</span>
             </div>
             <span
               style={{
@@ -179,11 +145,6 @@ export default function Header() {
             >
               Nex<span style={{ color: "#7C3AED" }}>CV</span>
             </span>
-            {isEmployer && (
-              <Badge className="ml-1 text-[10px] px-1.5 bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-100">
-                NTD
-              </Badge>
-            )}
           </Link>
 
           {/* Desktop Nav */}
@@ -191,32 +152,8 @@ export default function Header() {
             style={{ display: "flex", alignItems: "center", gap: 4, flex: 1 }}
             className="hidden md:flex"
           >
-            {navLinks.map((link) => {
+            {CANDIDATE_NAV.map((link) => {
               const active = isActive(link.href);
-              if (link.highlight)
-                return (
-                  <Link
-                    key={link.href}
-                    to={link.href}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      padding: "6px 14px",
-                      borderRadius: 8,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      backgroundColor: "#1549B8",
-                      color: "white",
-                      textDecoration: "none",
-                      marginLeft: 4,
-                      boxShadow: "0 1px 4px rgba(21,73,184,.25)",
-                    }}
-                  >
-                    <link.icon style={{ width: 14, height: 14 }} />
-                    {link.label}
-                  </Link>
-                );
               return (
                 <Link
                   key={link.href}
@@ -233,13 +170,10 @@ export default function Header() {
                     textDecoration: "none",
                     transition: "all 0.2s",
                     backgroundColor: active
-                      ? scrolled || !isHome
-                        ? "#EEF2FF"
-                        : "rgba(255,255,255,0.15)"
+                      ? scrolled || !isHome ? "#EEF2FF" : "rgba(255,255,255,0.15)"
                       : "transparent",
                   }}
                 >
-                  {link.icon && <link.icon style={{ width: 14, height: 14 }} />}
                   {link.label}
                   {link.badge && (
                     <span
@@ -266,35 +200,33 @@ export default function Header() {
             style={{ alignItems: "center", gap: 8, marginLeft: "auto" }}
           >
             {/* Tạo CV */}
-            {!isEmployer && (
-              <button
-                onClick={handleCreateCV}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "7px 14px",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: scrolled || !isHome ? "#1549B8" : "white",
-                  background: "transparent",
-                  border: `1.5px solid ${scrolled || !isHome ? "#C7D7FA" : "rgba(255,255,255,0.5)"}`,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor =
-                    scrolled || !isHome ? "#EEF2FF" : "rgba(255,255,255,0.15)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <FileEdit style={{ width: 14, height: 14 }} />
-                Tạo CV
-              </button>
-            )}
+            <button
+              onClick={handleCreateCV}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 14px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                color: scrolled || !isHome ? "#1549B8" : "white",
+                background: "transparent",
+                border: `1.5px solid ${scrolled || !isHome ? "#C7D7FA" : "rgba(255,255,255,0.5)"}`,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor =
+                  scrolled || !isHome ? "#EEF2FF" : "rgba(255,255,255,0.15)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "transparent")
+              }
+            >
+              <FileEdit style={{ width: 14, height: 14 }} />
+              Tạo CV
+            </button>
 
             {isAuthenticated ? (
               /* User dropdown */
@@ -314,15 +246,12 @@ export default function Header() {
                   }}
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.backgroundColor =
-                      scrolled || !isHome
-                        ? "#F1F5F9"
-                        : "rgba(255,255,255,0.15)")
+                      scrolled || !isHome ? "#F1F5F9" : "rgba(255,255,255,0.15)")
                   }
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.backgroundColor = "transparent")
                   }
                 >
-                  {/* Avatar */}
                   <div
                     style={{
                       width: 36,
@@ -354,15 +283,10 @@ export default function Header() {
                     <div
                       style={{
                         fontSize: 11,
-                        color:
-                          scrolled || !isHome
-                            ? "#94A3B8"
-                            : "rgba(255,255,255,0.7)",
+                        color: scrolled || !isHome ? "#94A3B8" : "rgba(255,255,255,0.7)",
                       }}
                     >
-                      {isEmployer
-                        ? user?.companyName || "Nhà tuyển dụng"
-                        : "Ứng viên"}
+                      Ứng viên
                     </div>
                   </div>
                   <svg
@@ -370,9 +294,7 @@ export default function Header() {
                     height="14"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke={
-                      scrolled || !isHome ? "#94A3B8" : "rgba(255,255,255,0.7)"
-                    }
+                    stroke={scrolled || !isHome ? "#94A3B8" : "rgba(255,255,255,0.7)"}
                     strokeWidth="2"
                   >
                     <path d="M6 9l6 6 6-6" />
@@ -395,83 +317,19 @@ export default function Header() {
                       animation: "fadeInUp 0.15s ease",
                     }}
                   >
-                    <div
-                      style={{
-                        padding: "12px 16px",
-                        borderBottom: "1px solid #E2E8F0",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "#0F172A",
-                        }}
-                      >
-                        {user?.name}
-                      </div>
-                      <div
-                        style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}
-                      >
-                        {user?.email}
-                      </div>
+                    <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0" }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>{user?.name}</div>
+                      <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>{user?.email}</div>
                     </div>
 
-                    {!isEmployer &&
-                      [
-                        {
-                          href: "/profile",
-                          icon: <User size={14} />,
-                          label: "Hồ sơ của tôi",
-                        },
-                        {
-                          href: "/cv-builder",
-                          icon: <FileEdit size={14} />,
-                          label: "Tạo CV",
-                        },
-                        {
-                          href: "/cv-upload",
-                          icon: <Sparkles size={14} />,
-                          label: "Chấm điểm CV",
-                        },
-                        {
-                          href: "/profile?tab=saved",
-                          icon: <Bookmark size={14} />,
-                          label: "Việc đã lưu",
-                        },
-                      ].map((item) => (
-                        <DDLink
-                          key={item.href}
-                          {...item}
-                          onClick={() => setDropdownOpen(false)}
-                        />
-                      ))}
-
-                    {isEmployer &&
-                      [
-                        {
-                          href: "/employer/dashboard",
-                          icon: <LayoutDashboard size={14} />,
-                          label: "Dashboard",
-                        },
-                        {
-                          href: "/employer/post-job",
-                          icon: <PlusCircle size={14} />,
-                          label: "Đăng tin tuyển dụng",
-                        },
-                        {
-                          href: "/employer/candidates",
-                          icon: <Users size={14} />,
-                          label: "Quản lý ứng viên",
-                        },
-                      ].map((item) => (
-                        <DDLink
-                          key={item.href}
-                          {...item}
-                          accent
-                          onClick={() => setDropdownOpen(false)}
-                        />
-                      ))}
+                    {[
+                      { href: "/profile", icon: <User size={14} />, label: "Hồ sơ của tôi" },
+                      { href: "/cv-builder", icon: <FileEdit size={14} />, label: "Tạo CV" },
+                      { href: "/cv-upload", icon: <Sparkles size={14} />, label: "Chấm điểm CV" },
+                      { href: "/profile?tab=saved", icon: <Bookmark size={14} />, label: "Việc đã lưu" },
+                    ].map((item) => (
+                      <DDLink key={item.href} {...item} onClick={() => setDropdownOpen(false)} />
+                    ))}
 
                     <div style={{ borderTop: "1px solid #E2E8F0" }}>
                       <button
@@ -491,13 +349,8 @@ export default function Header() {
                           fontFamily: "inherit",
                           transition: "background 0.15s",
                         }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#FEF2F2")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor =
-                            "transparent")
-                        }
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#FEF2F2")}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
                         <LogOut size={14} /> Đăng xuất
                       </button>
@@ -564,14 +417,7 @@ export default function Header() {
           <div className="md:hidden" style={{ marginLeft: "auto" }}>
             <Sheet>
               <SheetTrigger asChild>
-                <button
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 4,
-                  }}
-                >
+                <button style={{ background: "transparent", border: "none", cursor: "pointer", padding: 4 }}>
                   <svg
                     width="22"
                     height="22"
@@ -615,32 +461,25 @@ export default function Header() {
                         {getInitials(user?.name)}
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-[#0F172A]">
-                          {user?.name}
-                        </div>
-                        <div className="text-xs text-[#94A3B8]">
-                          {isEmployer ? "Nhà tuyển dụng" : "Ứng viên"}
-                        </div>
+                        <div className="text-sm font-semibold text-[#0F172A]">{user?.name}</div>
+                        <div className="text-xs text-[#94A3B8]">Ứng viên</div>
                       </div>
                     </div>
                   )}
                 </div>
 
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                  {navLinks.map((link) => (
+                  {CANDIDATE_NAV.map((link) => (
                     <SheetClose asChild key={link.href}>
                       <Link
                         to={link.href}
                         className={cn(
                           "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                          link.highlight
-                            ? "bg-[#1549B8] text-white"
-                            : isActive(link.href)
-                              ? "bg-[#EEF2FF] text-[#1549B8]"
-                              : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]",
+                          isActive(link.href)
+                            ? "bg-[#EEF2FF] text-[#1549B8]"
+                            : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
                         )}
                       >
-                        {link.icon && <link.icon className="h-4 w-4" />}
                         {link.label}
                         {link.badge && (
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 ml-auto">
@@ -650,16 +489,14 @@ export default function Header() {
                       </Link>
                     </SheetClose>
                   ))}
-                  {!isEmployer && (
-                    <SheetClose asChild>
-                      <button
-                        onClick={handleCreateCV}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#475569] hover:bg-[#F1F5F9] w-full text-left"
-                      >
-                        <FileEdit className="h-4 w-4" /> Tạo CV
-                      </button>
-                    </SheetClose>
-                  )}
+                  <SheetClose asChild>
+                    <button
+                      onClick={handleCreateCV}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#475569] hover:bg-[#F1F5F9] w-full text-left"
+                    >
+                      <FileEdit className="h-4 w-4" /> Tạo CV
+                    </button>
+                  </SheetClose>
                 </nav>
 
                 <div className="p-4 border-t space-y-2">
@@ -708,14 +545,13 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Spacer — chỉ thêm khi không phải home (giống Header 2) */}
       {!isHome && <div style={{ height: 64 }} />}
     </>
   );
 }
 
 /* Dropdown link helper */
-function DDLink({ href, icon, label, onClick, accent = false }) {
+function DDLink({ href, icon, label, onClick }) {
   return (
     <Link
       to={href}
@@ -726,18 +562,12 @@ function DDLink({ href, icon, label, onClick, accent = false }) {
         gap: 10,
         padding: "10px 16px",
         fontSize: 13,
-        color: accent ? "#7C3AED" : "#475569",
+        color: "#475569",
         textDecoration: "none",
         transition: "background 0.15s",
       }}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.backgroundColor = accent
-          ? "rgba(124,58,237,0.06)"
-          : "#F8FAFC")
-      }
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
-      }
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F8FAFC")}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
     >
       {icon} {label}
     </Link>
