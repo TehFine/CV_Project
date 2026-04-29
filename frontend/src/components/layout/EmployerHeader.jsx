@@ -1,9 +1,26 @@
+<<<<<<< HEAD
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LayoutDashboard, Briefcase, PlusCircle, LogOut } from "lucide-react";
+=======
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+>>>>>>> auth_module
 
 const NAV_LINKS = [
   { href: "/employer/dashboard", label: "Dashboard" },
@@ -11,6 +28,7 @@ const NAV_LINKS = [
   { href: "/employer/jobs/new", label: "Đăng tin mới" },
 ];
 
+<<<<<<< HEAD
 const getInitials = (name) =>
   name
     ?.split(" ")
@@ -19,12 +37,17 @@ const getInitials = (name) =>
     .join("")
     .toUpperCase() || "HR";
 
+=======
+>>>>>>> auth_module
 export default function EmployerHeader() {
   const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+<<<<<<< HEAD
   const [dropdownOpen, setDropdownOpen] = useState(false);
+=======
+>>>>>>> auth_module
 
   const isActive = (href) =>
     href === "/employer/jobs"
@@ -33,6 +56,7 @@ export default function EmployerHeader() {
 
   const handleLogout = () => {
     logout();
+<<<<<<< HEAD
     setDropdownOpen(false);
     navigate("/employer/login");
   };
@@ -44,13 +68,29 @@ export default function EmployerHeader() {
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
+=======
+    navigate("/employer/login");
+  };
+
+  const initials =
+    user?.name
+      ?.split(" ")
+      .slice(-2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || "HR";
+>>>>>>> auth_module
 
   return (
     <>
       <header className="employer-header">
         <div className="employer-header-inner">
           {/* Logo */}
+<<<<<<< HEAD
           <Link to="/employer/" className="employer-logo">
+=======
+          <Link to="/employer/dashboard" className="employer-logo">
+>>>>>>> auth_module
             <div className="employer-logo-icon">
               <span>N</span>
             </div>
@@ -83,6 +123,7 @@ export default function EmployerHeader() {
                   <Link to="/employer/jobs/new">➕ Đăng tin</Link>
                 </Button>
 
+<<<<<<< HEAD
                 {/* Custom dropdown — đồng bộ với Header chính */}
                 <div id="employer-dropdown" style={{ position: "relative" }}>
                   <button
@@ -211,6 +252,77 @@ export default function EmployerHeader() {
                     </div>
                   )}
                 </div>
+=======
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="employer-avatar-btn">
+                      <Avatar className="employer-avatar">
+                        <AvatarFallback className="employer-avatar-fallback">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="employer-user-info">
+                        <span className="employer-user-name">
+                          {user?.name?.split(" ").slice(-1)[0]}
+                        </span>
+                        <span className="employer-user-role">
+                          Nhà tuyển dụng
+                        </span>
+                      </div>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" style={{ width: 220 }}>
+                    <DropdownMenuLabel>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>
+                        {user?.name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: "#94A3B8",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {user?.email}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/employer/dashboard">📊 Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/employer/jobs">📋 Quản lý tin đăng</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/employer/jobs/new">➕ Đăng tin mới</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {/* Link quay về trang tìm việc */}
+                    <DropdownMenuItem asChild>
+                      <Link to="/" style={{ color: "#64748B" }}>
+                        🔄 Về trang tìm việc
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      style={{ color: "#EF4444", cursor: "pointer" }}
+                    >
+                      🚪 Đăng xuất
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+>>>>>>> auth_module
               </>
             ) : (
               <>
@@ -229,7 +341,18 @@ export default function EmployerHeader() {
             className="employer-hamburger mobile-only"
             onClick={() => setMobileOpen((v) => !v)}
           >
+<<<<<<< HEAD
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+=======
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+>>>>>>> auth_module
               {mobileOpen ? (
                 <>
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -262,20 +385,68 @@ export default function EmployerHeader() {
             <div className="employer-mobile-actions">
               {isAuthenticated ? (
                 <>
+<<<<<<< HEAD
                   <Button variant="outline" size="sm" asChild className="w-full">
                     <Link to="/" onClick={() => setMobileOpen(false)}>🔄 Trang tìm việc</Link>
                   </Button>
                   <Button variant="destructive" size="sm" className="w-full" onClick={handleLogout}>
                     <LogOut size={14} className="mr-1" /> Đăng xuất
+=======
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full"
+                  >
+                    <Link to="/" onClick={() => setMobileOpen(false)}>
+                      🔄 Trang tìm việc
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    onClick={handleLogout}
+                  >
+                    🚪 Đăng xuất
+>>>>>>> auth_module
                   </Button>
                 </>
               ) : (
                 <>
+<<<<<<< HEAD
                   <Button variant="outline" size="sm" asChild className="w-full">
                     <Link to="/employer/login" onClick={() => setMobileOpen(false)}>Đăng nhập</Link>
                   </Button>
                   <Button size="sm" className="w-full" style={{ background: "#7C3AED" }} asChild>
                     <Link to="/employer/register" onClick={() => setMobileOpen(false)}>Đăng ký</Link>
+=======
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full"
+                  >
+                    <Link
+                      to="/employer/login"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Đăng nhập
+                    </Link>
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    style={{ background: "#7C3AED" }}
+                    asChild
+                  >
+                    <Link
+                      to="/employer/register"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Đăng ký
+                    </Link>
+>>>>>>> auth_module
                   </Button>
                 </>
               )}
@@ -334,6 +505,24 @@ export default function EmployerHeader() {
         .employer-header-right {
           display: flex; align-items: center; gap: 10px; margin-left: auto;
         }
+<<<<<<< HEAD
+=======
+        .employer-avatar-btn {
+          display: flex; align-items: center; gap: 8px;
+          padding: 4px 10px 4px 4px; border-radius: 10px;
+          border: 1.5px solid #E2E8F0; background: white;
+          cursor: pointer; transition: all 0.15s; color: #64748B;
+        }
+        .employer-avatar-btn:hover { background: #F8FAFC; border-color: #CBD5E1; }
+        .employer-avatar { width: 32px !important; height: 32px !important; }
+        .employer-avatar-fallback {
+          background: linear-gradient(135deg, #7C3AED, #1E40AF) !important;
+          color: white !important; font-size: 12px !important; font-weight: 700 !important;
+        }
+        .employer-user-info { display: flex; flex-direction: column; text-align: left; }
+        .employer-user-name { font-size: 13px; font-weight: 600; color: #0F172A; line-height: 1.2; }
+        .employer-user-role { font-size: 10px; color: #7C3AED; font-weight: 500; }
+>>>>>>> auth_module
         .employer-hamburger {
           display: none; margin-left: auto; background: none; border: none;
           cursor: pointer; padding: 4px; color: #0F172A;
@@ -358,14 +547,18 @@ export default function EmployerHeader() {
           .mobile-only { display: block !important; }
           .employer-hamburger { display: block; }
         }
+<<<<<<< HEAD
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
         }
+=======
+>>>>>>> auth_module
       `}</style>
     </>
   );
 }
+<<<<<<< HEAD
 
 /* Dropdown link helper — đồng bộ với Header chính */
 function DDLink({ href, icon, label, onClick, accent = false }) {
@@ -392,3 +585,5 @@ function DDLink({ href, icon, label, onClick, accent = false }) {
     </Link>
   );
 }
+=======
+>>>>>>> auth_module

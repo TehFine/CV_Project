@@ -1,14 +1,4 @@
 import { useState, useRef } from 'react'
-<<<<<<< HEAD
-import { Download, Eye, Edit3, Save } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { useReactToPrint } from 'react-to-print'
-import { DEFAULT_CV } from './components/constants'
-import { CVPreview } from './components/CVPreview'
-import { EditorPanel } from './components/EditorPanel'
-
-=======
 import { Plus, Trash2, ChevronDown, ChevronUp, Download, Eye, Edit3, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -393,41 +383,17 @@ function EditorPanel({ cv, onChange }) {
 }
 
 // ── Main Page ────────────────────────────────────────────────────────────────
->>>>>>> auth_module
 export default function CVBuilderPage() {
   const [cv, setCv] = useState(DEFAULT_CV)
   const [view, setView] = useState('split') // 'split' | 'preview' | 'edit'
   const [saved, setSaved] = useState(false)
 
-<<<<<<< HEAD
-  const componentRef = useRef(null)
-
-=======
->>>>>>> auth_module
   const handleSave = () => {
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
     // Khi có backend: await cvBuilderService.save(cv)
   }
 
-<<<<<<< HEAD
-  const handlePrint = useReactToPrint({
-    contentRef: componentRef,
-    documentTitle: cv.personal?.name ? `CV_${cv.personal.name}` : 'CV',
-  })
-
-  return (
-    <div className="min-h-screen bg-[#F1F5F9]">
-      {/* Container ẩn được dành riêng cho việc in ấn */}
-      <div style={{ display: 'none' }}>
-        <div ref={componentRef}>
-          <CVPreview cv={cv} />
-        </div>
-      </div>
-
-      {/* Toolbar */}
-      <div className="bg-white border-b border-[#E2E8F0] shadow-sm sticky top-16 z-10">
-=======
   const handlePrint = () => {
     window.print()
   }
@@ -435,8 +401,7 @@ export default function CVBuilderPage() {
   return (
     <div className="min-h-screen bg-[#F1F5F9]">
       {/* Toolbar */}
-      <div className="bg-white border-b border-[#E2E8F0] shadow-sm sticky top-16 z-15">
->>>>>>> auth_module
+      <div className="bg-white border-b border-[#E2E8F0] shadow-sm sticky top-16 z-10">
         <div className="container-app h-12 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm text-[#0F172A]">✏️ Tạo CV</span>
@@ -446,13 +411,8 @@ export default function CVBuilderPage() {
           {/* View toggle */}
           <div className="hidden md:flex items-center gap-1 bg-[#F1F5F9] rounded-lg p-1">
             {[
-<<<<<<< HEAD
-              { key: 'edit', label: 'Chỉnh sửa', icon: Edit3 },
-              { key: 'split', label: 'Chia đôi', icon: null },
-=======
               { key: 'edit',    label: 'Chỉnh sửa', icon: Edit3 },
               { key: 'split',   label: 'Chia đôi',  icon: null },
->>>>>>> auth_module
               { key: 'preview', label: 'Xem trước', icon: Eye },
             ].map(v => (
               <button key={v.key} onClick={() => setView(v.key)}
@@ -501,8 +461,6 @@ export default function CVBuilderPage() {
           </div>
         )}
       </div>
-<<<<<<< HEAD
-=======
 
       {/* Print styles */}
       <style>{`
@@ -512,7 +470,6 @@ export default function CVBuilderPage() {
           header, .sticky { display: none !important; }
         }
       `}</style>
->>>>>>> auth_module
     </div>
   )
 }
