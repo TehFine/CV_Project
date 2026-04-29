@@ -62,11 +62,7 @@ export default function EmployerRegisterPage() {
     try {
       await register({
         name: form.name, email: form.email, phone: form.phone,
-<<<<<<< HEAD
-        password: form.password, role: 'recruiter',
-=======
         password: form.password, role: 'employer',
->>>>>>> auth_module
         companyName: form.companyName, companyWebsite: form.companyWebsite,
         industry: form.industry,
       })
