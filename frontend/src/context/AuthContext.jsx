@@ -71,6 +71,7 @@ export function AuthProvider({ children }) {
         updateUser,
         isAuthenticated: !!user,
         isEmployer: user?.role === "employer" || user?.role === "recruiter",
+        isAdmin: user?.role === "admin",
       }}
     >
       {children}

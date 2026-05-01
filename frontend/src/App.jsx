@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import EmployerLayout from "./components/layout/EmployerLayout";
+import AdminLayout from "./components/layout/AdminLayout";
 
 // ── Ứng viên (Job Seeker) ────────────────────────────────────────────────────
 import HomePage from "./pages/HomePage";
@@ -28,6 +29,11 @@ import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
 import EmployerJobFormPage from "./pages/employer/EmployerJobFormPage";
 import EmployerApplicantsPage from "./pages/employer/EmployerApplicantsPage";
 
+// ── Quản trị viên (Admin) ─────────────────────────────────────────────────────
+import AdminLoginPage from "./pages/admin/LoginPage";
+import AdminDashboard from "./pages/admin/DashboardPage";
+import AdminUsersPage from "./pages/admin/UsersPage";
+
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
   return (
@@ -39,12 +45,13 @@ function Spinner() {
 
 // ── Protected Route ───────────────────────────────────────────────────────────
 function ProtectedRoute({ children, requireRole }) {
-  const { isAuthenticated, isEmployer, loading } = useAuth();
+  const { isAuthenticated, isEmployer, isAdmin, loading } = useAuth();
 
   if (loading) return <Spinner />;
 
-  // ❌ chưa đăng nhập
+  // ❌ Chưa đăng nhập
   if (!isAuthenticated) {
+    if (requireRole === "admin") return <Navigate to="/admin/login" replace />;
     return (
       <Navigate
         to={requireRole === "employer" ? "/employer/login" : "/login"}
@@ -53,12 +60,22 @@ function ProtectedRoute({ children, requireRole }) {
     );
   }
 
-  // ❌ sai role (employer nhưng lại là candidate)
+  // ❌ Nếu yêu cầu Admin nhưng không phải Admin
+  if (requireRole === "admin" && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  // ❌ Nếu là Admin nhưng cố truy cập trang của Candidate/Employer
+  if (isAdmin && requireRole !== "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // ❌ Nếu yêu cầu Employer nhưng là Candidate
   if (requireRole === "employer" && !isEmployer) {
     return <Navigate to="/" replace />;
   }
 
-  // ❌ candidate nhưng lại là employer
+  // ❌ Nếu yêu cầu Candidate nhưng là Employer
   if (requireRole === "candidate" && isEmployer) {
     return <Navigate to="/employer/dashboard" replace />;
   }
@@ -248,6 +265,25 @@ export default function App() {
               </EmployerLayout>
             }
           />
+
+          {/* ── Quản trị viên (Admin) ── */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireRole="admin">
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            {/* Các trang khác có thể thêm sau */}
+            <Route path="jobs" element={<div className="p-6">Quản lý tin tuyển dụng (Comming Soon)</div>} />
+            <Route path="cv-scores" element={<div className="p-6">Lịch sử chấm CV (Comming Soon)</div>} />
+            <Route path="reports" element={<div className="p-6">Báo cáo (Comming Soon)</div>} />
+            <Route path="settings" element={<div className="p-6">Cài đặt (Comming Soon)</div>} />
+          </Route>
 
           {/* ── Fallback ── */}
           <Route path="*" element={<Navigate to="/" replace />} />

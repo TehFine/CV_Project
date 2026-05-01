@@ -84,6 +84,7 @@ export const authService = {
   async getProfile(token) {
     if (USE_MOCK) {
       await delay(300);
+      if (token === "mock_admin_token") return { id: 0, role: "admin", name: "Admin NexCV", email: "admin@nexcv.vn" };
       if (token === "mock_token_employer_001") return MOCK_EMPLOYER_USER;
       if (token?.startsWith("mock_token")) return MOCK_USER;
       throw new Error("Invalid token");
