@@ -49,10 +49,16 @@ export function AuthProvider({ children }) {
     return res;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem("nexcv_token");
-    setToken(null);
-    setUser(null);
+  const logout = useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      localStorage.removeItem("nexcv_token");
+      setToken(null);
+      setUser(null);
+    }
   }, []);
 
   const updateUser = useCallback((data) => {

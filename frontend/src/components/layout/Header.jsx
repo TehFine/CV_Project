@@ -8,6 +8,8 @@ import {
   Sparkles,
   FileEdit,
   LogOut,
+  User,
+  Bookmark,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -33,13 +35,20 @@ const EMPLOYER_NAV = [
     highlight: true,
   },
 ];
-const getInitials = (name) =>
-  name
-    ?.split(" ")
-    .slice(-2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase() || "U";
+const getInitials = (name) => {
+  if (!name) return "U";
+  try {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 0 || (parts.length === 1 && !parts[0])) return "U";
+    return parts
+      .slice(-2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || "U";
+  } catch (e) {
+    return "U";
+  }
+};
 
 export default function Header() {
   const { user, logout, isAuthenticated, isEmployer } = useAuth();
@@ -339,7 +348,7 @@ export default function Header() {
                         color: scrolled || !isHome ? "#0F172A" : "white",
                       }}
                     >
-                      {user?.name?.split(" ").slice(-1)[0]}
+                      {user?.name ? user.name.split(" ").slice(-1)[0] : "User"}
                     </div>
                     <div
                       style={{

@@ -269,7 +269,17 @@ export const jobService = {
       };
     }
     const query = new URLSearchParams(params).toString();
-    return api.get(`/jobs?${query}`);
+    const res = await api.get(`/jobs?${query}`);
+    // Chuẩn hóa dữ liệu từ backend sang format frontend mong muốn
+    if (res && res.data) {
+      res.data = res.data.map((j) => ({
+        ...j,
+        id: j._id, // Backend dùng _id
+        company: j.companyName, // Backend dùng companyName
+        postedAt: j.createdAt, // Backend dùng createdAt
+      }));
+    }
+    return res;
   },
 
   /**
@@ -285,7 +295,16 @@ export const jobService = {
       if (!job) throw { message: "Không tìm thấy công việc" };
       return job;
     }
-    return api.get(`/jobs/${id}`);
+    const res = await api.get(`/jobs/${id}`);
+    if (res) {
+      return {
+        ...res,
+        id: res._id,
+        company: res.companyName,
+        postedAt: res.createdAt,
+      };
+    }
+    return res;
   },
 
   /**
@@ -319,5 +338,13 @@ export const jobService = {
       return JOB_CATEGORIES;
     }
     return api.get("/jobs/categories");
+  },
+
+  async getAppliedJobs() {
+    if (USE_MOCK) {
+      await delay(500);
+      return [];
+    }
+    return api.get("/jobs/my-applications");
   },
 };

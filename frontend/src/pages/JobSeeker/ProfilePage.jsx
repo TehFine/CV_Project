@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
-import { Loader2, Plus, ExternalLink, User, FileText, Bookmark, LayoutDashboard } from 'lucide-react'
-import { MOCK_JOBS } from '@/services/jobService'
+import { Loader2, Plus, ExternalLink, User, FileText, Bookmark, LayoutDashboard, Send } from 'lucide-react'
+import { jobService, MOCK_JOBS } from '@/services/jobService'
 
 const MOCK_CVS = [
   { id:1, fileName:'CV_NguyenVanAn_2025.pdf',  overall:85, grade:'A', gradeLabel:'Xuất sắc', scoredAt:'2025-01-20T10:30:00Z' },
@@ -18,12 +18,21 @@ const MOCK_CVS = [
 ]
 const SAVED_IDS   = [1, 3]
 const gradeVariant = { A:'success', B:'new', C:'warning', D:'destructive' }
-const initials = name => name?.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase() || 'U'
+const initials = name => {
+  if (!name) return 'U'
+  try {
+    const parts = name.trim().split(/\s+/)
+    if (parts.length === 0 || (parts.length === 1 && !parts[0])) return 'U'
+    return parts.slice(-2).map(w => w[0]).join('').toUpperCase() || 'U'
+  } catch (e) {
+    return 'U'
+  }
+}
 
-/* ── Sidebar nav tabs ────────────────────────────────────────────────────── */
 const TABS = [
   { key: 'info',  label: 'Hồ sơ',      icon: User },
   { key: 'cvs',   label: 'CV của tôi',  icon: FileText },
+  { key: 'applied', label: 'Việc đã ứng tuyển', icon: Send },
   { key: 'saved', label: 'Việc làm đã lưu',      icon: Bookmark },
 ]
 
@@ -167,6 +176,65 @@ function SavedTab() {
   )
 }
 
+/* ── Applied tab ─────────────────────────────────────────────────────────── */
+function AppliedTab() {
+  const [apps, setApps] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    jobService.getAppliedJobs().then(res => {
+      setApps(res || [])
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [])
+
+  const STATUS_MAP = {
+    pending:   { label: 'Đang chờ', color: 'bg-slate-100 text-slate-600' },
+    reviewing: { label: 'Đang xem xét', color: 'bg-blue-100 text-blue-600' },
+    interview: { label: 'Phỏng vấn', color: 'bg-purple-100 text-purple-600' },
+    offered:   { label: 'Đã mời làm', color: 'bg-emerald-100 text-emerald-600' },
+    rejected:  { label: 'Từ chối', color: 'bg-red-100 text-red-600' },
+  }
+
+  if (loading) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" /></div>
+
+  return (
+    <div className="space-y-3">
+      <h3 className="font-bold text-foreground">Việc làm đã ứng tuyển ({apps.length})</h3>
+      {apps.length === 0 ? (
+        <Card><CardContent className="py-12 text-center text-muted-foreground">Bạn chưa ứng tuyển công việc nào.</CardContent></Card>
+      ) : (
+        apps.map(app => {
+          const job = app.jobId
+          const status = STATUS_MAP[app.status] || STATUS_MAP.pending
+          return (
+            <Card key={app._id} className="hover:shadow-sm transition-shadow">
+              <CardContent className="p-4 flex gap-4 items-center">
+                <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center font-bold text-primary shrink-0">
+                  {job?.companyName?.slice(0,2).toUpperCase() || 'CV'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="font-bold text-sm truncate">{job?.title || 'Công việc không còn tồn tại'}</p>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${status.color}`}>
+                      {status.label}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{job?.companyName} · {job?.location}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Đã ứng tuyển: {new Date(app.createdAt).toLocaleDateString('vi-VN')}</p>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/jobs/${job?._id}`}>Chi tiết</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )
+        })
+      )}
+    </div>
+  )
+}
+
 /* ── Page ────────────────────────────────────────────────────────────────── */
 export default function ProfilePage() {
   const { user, isAuthenticated, updateUser } = useAuth()
@@ -240,6 +308,7 @@ export default function ProfilePage() {
         <main className="flex-1 min-w-0">
           {activeTab === 'info'  && <ProfileTab user={user} updateUser={updateUser} />}
           {activeTab === 'cvs'   && <CVTab />}
+          {activeTab === 'applied' && <AppliedTab />}
           {activeTab === 'saved' && <SavedTab />}
         </main>
 
