@@ -35,14 +35,14 @@ export default function JobCard({ job, index = 0 }) {
     >
       {/* Top accent line for featured */}
       {job.featured && (
-        <div className="h-[3px] bg-gradient-to-r from-[#1549B8] to-[#7C3AED]" />
+        <div className="h-0.75 bg-linear-to-r from-[#1549B8] to-[#7C3AED]" />
       )}
 
       <CardContent className="p-5">
         {/* Header row */}
         <div className="flex gap-3 mb-3">
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 transition-transform group-hover:scale-105"
+            className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm shrink-0 transition-transform group-hover:scale-105"
             style={{ backgroundColor: logoColor.bg, color: logoColor.text }}
           >
             {job.company.slice(0, 2).toUpperCase()}
@@ -54,7 +54,7 @@ export default function JobCard({ job, index = 0 }) {
                 {job.title}
               </h3>
               {job.featured && (
-                <span className="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#1549B8] border border-[#C7D2FE]">
+                <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EEF2FF] text-[#1549B8] border border-[#C7D2FE]">
                   Nổi bật
                 </span>
               )}
