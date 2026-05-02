@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
@@ -32,9 +32,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await login(form.email, form.password);
-      navigate(res.user.role === "employer" ? "/employer/dashboard" : from, {
-        replace: true,
-      });
+      if (res.user.role === "employer" || res.user.role === "recruiter") {
+        await logout();
+        setError("Vui lòng đăng nhập tại cổng dành cho Nhà tuyển dụng.");
+        setLoading(false);
+        return;
+      }
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err?.message || "Đăng nhập thất bại");
     } finally {

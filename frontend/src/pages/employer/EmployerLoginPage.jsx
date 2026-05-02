@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function EmployerLoginPage() {
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/employer/dashboard";
@@ -28,7 +28,13 @@ export default function EmployerLoginPage() {
     }
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      const res = await login(form.email, form.password);
+      if (res.user.role !== "employer" && res.user.role !== "recruiter") {
+        await logout();
+        setError("Tài khoản này không có quyền truy cập cổng nhà tuyển dụng.");
+        setLoading(false);
+        return;
+      }
       navigate(from, { replace: true });
     } catch (err) {
       setError(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
