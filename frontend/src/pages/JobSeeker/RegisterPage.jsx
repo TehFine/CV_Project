@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Eye, EyeOff, Loader2, User, Building2, Check } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,8 +28,7 @@ export default function RegisterPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const [role, setRole] = useState(searchParams.get('role') === 'employer' ? 'employer' : 'candidate')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '', companyName: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [agreed, setAgreed] = useState(false)
@@ -44,7 +43,6 @@ export default function RegisterPage() {
     if (form.phone && !form.phone.match(/^0[3-9]\d{8}$/)) e.phone = 'Số điện thoại không hợp lệ'
     if (form.password.length < 6) e.password = 'Mật khẩu ít nhất 6 ký tự'
     if (form.password !== form.confirmPassword) e.confirmPassword = 'Mật khẩu không khớp'
-    if (role === 'employer' && !form.companyName.trim()) e.companyName = 'Vui lòng nhập tên công ty'
     if (!agreed) e.agreed = 'Vui lòng đồng ý điều khoản'
     return e
   }
@@ -55,22 +53,19 @@ export default function RegisterPage() {
     if (Object.keys(errs).length) { setErrors(errs); return }
     setLoading(true)
     try {
-      await register({ ...form, role })
-      navigate(role === 'employer' ? '/employer/dashboard' : '/')
+      await register({ ...form, role: 'candidate' })
+      navigate('/')
     } catch (err) {
       setErrors({ submit: err?.message || 'Đăng ký thất bại' })
     } finally { setLoading(false) }
   }
 
-  const ROLE_OPTIONS = [
-    { value: 'candidate', label: 'Ứng viên', desc: 'Tìm việc & chấm điểm CV', icon: User, color: 'border-primary bg-primary/5' },
-    { value: 'employer', label: 'Nhà tuyển dụng', desc: 'Đăng tuyển & tìm hồ sơ', icon: Building2, color: 'border-violet-500 bg-violet-50' },
-  ]
+
 
   return (
     <div className="min-h-screen flex">
       {/* Left */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-indigo-950 via-violet-950 to-slate-900 flex-col justify-center p-14 relative overflow-hidden">
+      <div className="hidden lg:flex flex-1 bg-linear-to-br from-indigo-950 via-violet-950 to-slate-900 flex-col justify-center p-14 relative overflow-hidden">
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
         <Link to="/" className="flex items-center gap-2 mb-14 relative">
           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
@@ -89,7 +84,7 @@ export default function RegisterPage() {
             { icon: '🏢', title: 'Kết nối nhà tuyển dụng', desc: 'Hàng nghìn công ty hàng đầu VN' },
           ].map(f => (
             <div key={f.title} className="flex gap-3 p-3.5 bg-white/5 rounded-xl border border-white/10 mb-3">
-              <span className="text-xl flex-shrink-0">{f.icon}</span>
+              <span className="text-xl shrink-0">{f.icon}</span>
               <div>
                 <div className="text-white font-semibold text-sm">{f.title}</div>
                 <div className="text-slate-400 text-xs mt-0.5">{f.desc}</div>
@@ -100,7 +95,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Right */}
-      <div className="flex-1 flex items-start justify-center p-8 bg-muted/30 overflow-y-auto">
+      <div className="flex-1 flex items-center justify-center p-8 bg-muted/30 overflow-y-auto">
         <div className="w-full max-w-md py-4">
           <Link to="/" className="lg:hidden flex items-center gap-2 mb-8">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -116,27 +111,7 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Role selector */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            {ROLE_OPTIONS.map(opt => (
-              <button key={opt.value} onClick={() => setRole(opt.value)}
-                className={cn(
-                  'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center',
-                  role === opt.value ? opt.color + ' shadow-sm' : 'border-border bg-background hover:border-muted-foreground/30'
-                )}>
-                {role === opt.value && (
-                  <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                    <Check className="h-3 w-3 text-white" />
-                  </div>
-                )}
-                <opt.icon className={cn('h-6 w-6', role === opt.value ? 'text-primary' : 'text-muted-foreground')} />
-                <div>
-                  <div className={cn('font-bold text-sm', role === opt.value ? 'text-foreground' : 'text-muted-foreground')}>{opt.label}</div>
-                  <div className="text-xs text-muted-foreground">{opt.desc}</div>
-                </div>
-              </button>
-            ))}
-          </div>
+
 
           {errors.submit && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
@@ -150,13 +125,7 @@ export default function RegisterPage() {
               <Input placeholder="Nguyễn Văn An" value={form.name} onChange={set('name')} className={errors.name ? 'border-destructive' : ''} />
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
-            {role === 'employer' && (
-              <div className="space-y-1.5">
-                <Label>Tên công ty *</Label>
-                <Input placeholder="VNG Corporation" value={form.companyName} onChange={set('companyName')} className={errors.companyName ? 'border-destructive' : ''} />
-                {errors.companyName && <p className="text-xs text-destructive">{errors.companyName}</p>}
-              </div>
-            )}
+
             <div className="space-y-1.5">
               <Label>Email *</Label>
               <Input type="email" placeholder="your@email.com" value={form.email} onChange={set('email')} className={errors.email ? 'border-destructive' : ''} />
@@ -190,7 +159,7 @@ export default function RegisterPage() {
             <div>
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-primary flex-shrink-0" />
+                  className="mt-0.5 w-4 h-4 accent-primary shrink-0" />
                 <span className="text-xs text-muted-foreground leading-relaxed">
                   Tôi đồng ý với <a href="#" className="text-primary font-medium hover:underline">Điều khoản dịch vụ</a> và <a href="#" className="text-primary font-medium hover:underline">Chính sách bảo mật</a>
                 </span>
