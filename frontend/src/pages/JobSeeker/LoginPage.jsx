@@ -53,7 +53,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left panel */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-slate-900 via-blue-950 to-primary flex-col justify-center p-14 relative overflow-hidden">
+      <div className="hidden lg:flex flex-1 bg-linear-to-br from-slate-900 via-blue-950 to-primary flex-col justify-center p-14 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl" />
         <Link to="/" className="flex items-center gap-2 mb-14 relative w-max">
           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
@@ -79,7 +79,7 @@ export default function LoginPage() {
             "Nhận gợi ý cải thiện CV chuyên sâu",
           ].map((f) => (
             <div key={f} className="flex items-center gap-3 mb-3">
-              <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+              <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
                 <span className="text-emerald-400 text-[10px] font-bold">
                   ✓
                 </span>
