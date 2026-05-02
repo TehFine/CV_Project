@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 
 const CANDIDATE_NAV = [
   { href: "/jobs", label: "Việc làm" },
-  { href: "/cv-upload", label: "Chấm điểm CV", badge: "AI" },
+  { href: "/cv-upload", label: "Phân tích CV", badge: "AI" },
 ];
 const EMPLOYER_NAV = [
   { href: "/employer/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -80,6 +80,7 @@ export default function Header() {
   useEffect(() => {
     if (!headerRef.current) return;
     const updateHeight = () => {
+      if (!headerRef.current) return;
       const height = headerRef.current.offsetHeight;
       document.documentElement.style.setProperty("--header-height", `${height}px`);
     };
@@ -428,7 +429,7 @@ export default function Header() {
                         {
                           href: "/cv-upload",
                           icon: <Sparkles size={14} />,
-                          label: "Chấm điểm CV",
+                          label: "Phân tích CV",
                         },
                         {
                           href: "/profile?tab=saved",

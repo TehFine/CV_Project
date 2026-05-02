@@ -328,4 +328,24 @@ export const employerService = {
       status,
     });
   },
+
+  // ── CV Scoring ──
+  async scoreCv(jobId, file) {
+    if (USE_MOCK) {
+      await delay(1500);
+      return {
+        success: true,
+        data: {
+          score: Math.floor(Math.random() * 5) + 5, // Random 5-10
+          review: "Đây là nhận xét mẫu (Mock) từ AI. Ứng viên có kỹ năng phù hợp nhưng cần cải thiện thêm một số yêu cầu cụ thể của công việc."
+        }
+      };
+    }
+    const formData = new FormData();
+    formData.append('cv', file);
+    const response = await api.post(`/cv-scoring/score/${jobId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data; // or response depending on how your api wrapper works
+  },
 };

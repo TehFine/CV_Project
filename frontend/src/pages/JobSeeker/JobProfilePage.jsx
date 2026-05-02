@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { Loader2, Plus, ExternalLink, User, FileText, Bookmark, LayoutDashboard } from 'lucide-react'
-import { MOCK_JOBS } from '@/services/jobService'
+// Removed MOCK_JOBS import
 
 const MOCK_CVS = [
   { id:1, fileName:'CV_NguyenVanAn_2025.pdf',  overall:85, grade:'A', gradeLabel:'Xuất sắc', scoredAt:'2025-01-20T10:30:00Z' },
@@ -65,7 +65,7 @@ function ProfileTab({ user, updateUser }) {
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-3 mb-6 p-3 bg-muted/50 rounded-xl">
-            {[['📄', MOCK_CVS.length, 'CV đã chấm'], ['🔖', SAVED_IDS.length, 'Việc đã lưu'], ['📨', 3, 'Đã ứng tuyển']].map(([icon, val, label]) => (
+            {[['📄', MOCK_CVS.length, 'CV đã phân tích'], ['🔖', SAVED_IDS.length, 'Việc đã lưu'], ['📨', 3, 'Đã ứng tuyển']].map(([icon, val, label]) => (
               <div key={label} className="text-center">
                 <div className="text-base mb-0.5">{icon}</div>
                 <div className="text-xl font-black text-foreground">{val}</div>
@@ -116,8 +116,8 @@ function CVTab() {
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h3 className="font-bold text-foreground">Lịch sử chấm điểm CV</h3>
-        <Button size="sm" asChild><Link to="/cv-upload"><Plus className="h-3.5 w-3.5 mr-1" />Chấm CV mới</Link></Button>
+        <h3 className="font-bold text-foreground">Lịch sử phân tích CV</h3>
+        <Button size="sm" asChild><Link to="/cv-upload"><Plus className="h-3.5 w-3.5 mr-1" />Phân tích CV mới</Link></Button>
       </div>
       {MOCK_CVS.map(cv => (
         <Card key={cv.id}>
@@ -145,7 +145,7 @@ function CVTab() {
 
 /* ── Saved tab ───────────────────────────────────────────────────────────── */
 function SavedTab() {
-  const saved = MOCK_JOBS.filter(j => SAVED_IDS.includes(j.id))
+  const saved = []
   return (
     <div className="space-y-3">
       <h3 className="font-bold text-foreground">Việc làm đã lưu ({saved.length})</h3>

@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { jobService, MOCK_JOBS } from '@/services/jobService'
+import { jobService } from '@/services/jobService'
 
 const LEVEL_BADGE = {
   Intern:         { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0' },
@@ -29,9 +29,16 @@ export default function JobDetailPage() {
   const [applying,    setApplying]    = useState(false)
   const [showApply,   setShowApply]   = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
+  const [related,     setRelated]     = useState([])
 
   useEffect(() => {
-    jobService.getJob(id).then(setJob).catch(() => navigate('/jobs')).finally(() => setLoading(false))
+    jobService.getJob(id).then(res => {
+      setJob(res)
+      // Fetch related jobs
+      jobService.getJobs({ category: res.category, limit: 4 }).then(r => {
+        setRelated((r.data || []).filter(j => j.id !== id).slice(0, 3))
+      })
+    }).catch(() => navigate('/jobs')).finally(() => setLoading(false))
   }, [id])
 
   const handleApply = async () => {
@@ -57,7 +64,6 @@ export default function JobDetailPage() {
   if (!job) return null
 
   const daysAgo   = Math.floor((Date.now() - new Date(job.postedAt)) / 86400000)
-  const related   = MOCK_JOBS.filter(j => j.id !== job.id && j.category === job.category).slice(0, 3)
   const levelStyle = LEVEL_BADGE[job.level] || LEVEL_BADGE.Middle
 
   return (
@@ -220,12 +226,12 @@ export default function JobDetailPage() {
                 </div>
               ))}
 
-              <Link to="/cv-upload"
+              <Link to={`/cv-upload?jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`}
                 className="flex items-center gap-2.5 mt-4 p-3 bg-[#F5F3FF] border border-[#DDD6FE] rounded-xl hover:bg-[#EDE9FE] transition-colors no-underline group">
                 <Sparkles className="h-4 w-4 text-[#7C3AED] flex-shrink-0" />
                 <div>
-                  <p className="text-xs font-bold text-[#7C3AED]">Kiểm tra CV phù hợp?</p>
-                  <p className="text-[11px] text-[#A78BFA]">Chấm điểm AI ngay — Miễn phí</p>
+                  <p className="text-xs font-bold text-[#7C3AED]">Xem mức độ phù hợp</p>
+                  <p className="text-[11px] text-[#A78BFA]">So sánh 1:1 CV với Job này</p>
                 </div>
               </Link>
             </div>
@@ -255,7 +261,7 @@ export default function JobDetailPage() {
             <p className="text-xs text-[#94A3B8]">{job.company}</p>
           </DialogHeader>
           <div className="p-3 bg-[#F5F3FF] border border-[#DDD6FE] rounded-xl text-xs text-[#7C3AED]">
-            💡 <Link to="/cv-upload" className="font-bold hover:underline text-[#7C3AED]">Chấm điểm CV</Link> trước để tăng tỷ lệ đậu
+            💡 <Link to={`/cv-upload?jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`} className="font-bold hover:underline text-[#7C3AED]">Xem mức độ phù hợp</Link> trước để tăng tỷ lệ đậu
           </div>
           <div className="space-y-1.5">
             <Label>Thư giới thiệu (tuỳ chọn)</Label>

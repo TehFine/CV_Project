@@ -63,7 +63,7 @@ export default function RegisterPage() {
   }
 
   const ROLE_OPTIONS = [
-    { value: 'candidate', label: 'Ứng viên', desc: 'Tìm việc & chấm điểm CV', icon: User, color: 'border-primary bg-primary/5' },
+    { value: 'candidate', label: 'Ứng viên', desc: 'Tìm việc & phân tích CV', icon: User, color: 'border-primary bg-primary/5' },
     { value: 'employer', label: 'Nhà tuyển dụng', desc: 'Đăng tuyển & tìm hồ sơ', icon: Building2, color: 'border-violet-500 bg-violet-50' },
   ]
 
@@ -84,7 +84,7 @@ export default function RegisterPage() {
             Tham gia 50,000+ người dùng đang dùng NexCV để tối ưu CV và kết nối nhân tài.
           </p>
           {[
-            { icon: '✨', title: 'AI Chấm điểm CV', desc: 'Phân tích chi tiết trong 30 giây' },
+            { icon: '✨', title: 'AI Phân tích CV', desc: 'Phân tích chi tiết trong 30 giây' },
             { icon: '🎯', title: 'Gợi ý việc làm phù hợp', desc: 'Dựa trên kỹ năng và kinh nghiệm' },
             { icon: '🏢', title: 'Kết nối nhà tuyển dụng', desc: 'Hàng nghìn công ty hàng đầu VN' },
           ].map(f => (

@@ -14,10 +14,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import JobCard from "@/components/JobCard";
-import { JOB_CATEGORIES, MOCK_JOBS } from "@/services/jobService";
+import { JOB_CATEGORIES, jobService } from "@/services/jobService";
+import { useEffect } from "react";
 
 const STATS = [
-  { value: "50,000+", label: "CV đã chấm điểm", icon: "📄" },
+  { value: "50,000+", label: "CV đã phân tích", icon: "📄" },
   { value: "12,000+", label: "Việc làm đang tuyển", icon: "💼" },
   { value: "3,500+", label: "Công ty đối tác", icon: "🏢" },
   { value: "95%", label: "Tỷ lệ hài lòng", icon: "⭐" },
@@ -64,6 +65,33 @@ export default function HomePage() {
     navigate(`/jobs?${p}`);
   };
 
+  const [featuredJobs, setFeaturedJobs] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+
+  const [categories, setCategories] = useState(JOB_CATEGORIES);
+
+  useEffect(() => {
+    jobService.getJobs({ limit: 6 }).then(res => {
+      setFeaturedJobs(res.data || []);
+      setLoadingJobs(false);
+    }).catch(() => setLoadingJobs(false));
+
+    jobService.getCategories().then(res => {
+      if (res && res.length > 0) {
+        // Map icons from JOB_CATEGORIES to real categories
+        const mapped = res.map(c => {
+          const iconMatch = JOB_CATEGORIES.find(jc => jc.name === c.name);
+          return {
+            ...c,
+            id: c.name,
+            icon: iconMatch ? iconMatch.icon : "📁"
+          };
+        });
+        setCategories(mapped);
+      }
+    });
+  }, []);
+
   const handleCreateCV = () =>
     navigate(isAuthenticated ? "/cv-builder" : "/login", {
       state: { from: "/cv-builder" },
@@ -100,7 +128,7 @@ export default function HomePage() {
           <div className="inline-flex items-center gap-1.5 bg-violet-500/20 border border-violet-400/30 rounded-full px-3 py-1.5 mb-5">
             <Sparkles className="h-3.5 w-3.5 text-violet-300" />
             <span className="text-xs font-medium text-violet-200">
-              Tích hợp AI chấm điểm CV thông minh
+              Tích hợp AI phân tích CV thông minh
             </span>
           </div>
 
@@ -203,9 +231,9 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {JOB_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
-                key={cat.id}
+                key={cat.id || cat.name}
                 onClick={() => navigate(`/jobs?category=${cat.name}`)}
                 className="flex items-center gap-3 p-4 bg-white rounded-xl border border-[#E2E8F0] hover:-translate-y-1 hover:shadow-md hover:border-[#1549B8]/30 transition-all duration-200 text-left"
               >
@@ -215,7 +243,7 @@ export default function HomePage() {
                     {cat.name}
                   </div>
                   <div className="text-xs text-[#94A3B8] mt-0.5">
-                    {cat.count.toLocaleString()} việc
+                    {(cat.count || 0).toLocaleString()} việc
                   </div>
                 </div>
               </button>
@@ -247,9 +275,15 @@ export default function HomePage() {
             </Button>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {MOCK_JOBS.slice(0, 6).map((job, i) => (
-              <JobCard key={job.id} job={job} index={i} />
-            ))}
+            {loadingJobs ? (
+              [1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-40 rounded-xl bg-slate-100 animate-pulse" />)
+            ) : featuredJobs.length === 0 ? (
+              <p className="col-span-full text-center text-slate-500 py-10">Chưa có công việc nào mới nhất.</p>
+            ) : (
+              featuredJobs.map((job, i) => (
+                <JobCard key={job.id} job={job} index={i} />
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -279,7 +313,7 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg"
                   className="gap-2 bg-gradient-to-r from-[#1549B8] to-[#1240A0] hover:opacity-90 text-white font-bold shadow-lg">
-                  <Link to="/cv-upload"><Sparkles className="h-4 w-4" />Chấm điểm CV — Miễn phí</Link>
+                  <Link to="/cv-upload"><Sparkles className="h-4 w-4" />Phân tích CV — Miễn phí</Link>
                 </Button>
                 <Button
                   variant="outline"
