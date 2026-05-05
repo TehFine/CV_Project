@@ -24,6 +24,28 @@ function PasswordStrength({ password }) {
   )
 }
 
+const Field = ({ name, label, type = 'text', placeholder, required, form, errors, set, showPass, setShowPass }) => (
+  <div>
+    <label className="employer-auth-label">
+      {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
+    </label>
+    <div style={{ position: 'relative' }}>
+      <Input
+        type={name === 'password' || name === 'confirmPassword' ? (showPass ? 'text' : 'password') : type}
+        name={name} value={form[name]} onChange={set} placeholder={placeholder}
+        style={{ borderColor: errors[name] ? '#EF4444' : undefined, borderRadius: 10, paddingRight: (name === 'password' || name === 'confirmPassword') ? 44 : undefined }}
+      />
+      {(name === 'password' || name === 'confirmPassword') && (
+        <button type="button" onClick={() => setShowPass(v => !v)} className="employer-auth-eye">
+          {showPass ? '🙈' : '👁️'}
+        </button>
+      )}
+    </div>
+    {name === 'password' && <PasswordStrength password={form.password} />}
+    {errors[name] && <p style={{ fontSize: 12, color: '#EF4444', margin: '4px 0 0' }}>⚠️ {errors[name]}</p>}
+  </div>
+)
+
 export default function EmployerRegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -74,27 +96,7 @@ export default function EmployerRegisterPage() {
     }
   }
 
-  const Field = ({ name, label, type = 'text', placeholder, required }) => (
-    <div>
-      <label className="employer-auth-label">
-        {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
-      </label>
-      <div style={{ position: 'relative' }}>
-        <Input
-          type={name === 'password' || name === 'confirmPassword' ? (showPass ? 'text' : 'password') : type}
-          name={name} value={form[name]} onChange={set} placeholder={placeholder}
-          style={{ borderColor: errors[name] ? '#EF4444' : undefined, borderRadius: 10, paddingRight: (name === 'password' || name === 'confirmPassword') ? 44 : undefined }}
-        />
-        {(name === 'password' || name === 'confirmPassword') && (
-          <button type="button" onClick={() => setShowPass(v => !v)} className="employer-auth-eye">
-            {showPass ? '🙈' : '👁️'}
-          </button>
-        )}
-      </div>
-      {name === 'password' && <PasswordStrength password={form.password} />}
-      {errors[name] && <p style={{ fontSize: 12, color: '#EF4444', margin: '4px 0 0' }}>⚠️ {errors[name]}</p>}
-    </div>
-  )
+  const fieldProps = { form, errors, set, showPass, setShowPass }
 
   return (
     <div className="employer-auth-page">
@@ -157,19 +159,19 @@ export default function EmployerRegisterPage() {
             {/* Thông tin cá nhân */}
             <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>👤 Thông tin cá nhân</p>
-              <Field name="name" label="Họ và tên" placeholder="Nguyễn Văn An" required />
+              <Field {...fieldProps} name="name" label="Họ và tên" placeholder="Nguyễn Văn An" required />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <Field name="email" label="Email" type="email" placeholder="hr@company.com" required />
-                <Field name="phone" label="Số điện thoại" placeholder="0901 234 567" />
+                <Field {...fieldProps} name="email" label="Email" type="email" placeholder="hr@company.com" required />
+                <Field {...fieldProps} name="phone" label="Số điện thoại" placeholder="0901 234 567" />
               </div>
             </div>
 
             {/* Thông tin công ty */}
             <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>🏢 Thông tin công ty</p>
-              <Field name="companyName" label="Tên công ty" placeholder="Công ty TNHH ABC" required />
+              <Field {...fieldProps} name="companyName" label="Tên công ty" placeholder="Công ty TNHH ABC" required />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <Field name="companyWebsite" label="Website" placeholder="https://company.com" />
+                <Field {...fieldProps} name="companyWebsite" label="Website" placeholder="https://company.com" />
                 <div>
                   <label className="employer-auth-label">Lĩnh vực</label>
                   <select name="industry" value={form.industry} onChange={set}
@@ -186,8 +188,8 @@ export default function EmployerRegisterPage() {
             {/* Mật khẩu */}
             <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>🔒 Bảo mật</p>
-              <Field name="password" label="Mật khẩu" placeholder="Tối thiểu 6 ký tự" required />
-              <Field name="confirmPassword" label="Xác nhận mật khẩu" placeholder="Nhập lại mật khẩu" required />
+              <Field {...fieldProps} name="password" label="Mật khẩu" placeholder="Tối thiểu 6 ký tự" required />
+              <Field {...fieldProps} name="confirmPassword" label="Xác nhận mật khẩu" placeholder="Nhập lại mật khẩu" required />
             </div>
 
             {/* Terms */}

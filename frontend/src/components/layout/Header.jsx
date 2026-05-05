@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
+import UserDropdown from "./UserDropdown";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -53,7 +54,6 @@ export default function Header() {
   const headerRef = useRef(null);
 
   const [scrolled,     setScrolled]     = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const isHome   = location.pathname === "/";
   const isSolid  = scrolled || !isHome;
@@ -63,13 +63,6 @@ export default function Header() {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
-  }, []);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const close = (e) => { if (!e.target.closest("#user-dropdown")) setDropdownOpen(false); };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
   }, []);
 
   // Sync --header-height CSS var
@@ -90,7 +83,7 @@ export default function Header() {
   const isActive = (href) =>
     location.pathname === href || location.pathname.startsWith(href + "/");
 
-  const handleLogout    = () => { logout(); setDropdownOpen(false); navigate("/"); };
+  const handleLogout    = () => { logout(); navigate("/"); };
   const handleCreateCV  = () => navigate("/cv-builder");
 
   // ─── Reusable class builders ────────────────────────────────────────────────
@@ -194,50 +187,16 @@ export default function Header() {
             </button>
 
             {isAuthenticated ? (
-              <div id="user-dropdown" className="relative">
-                <button onClick={() => setDropdownOpen((v) => !v)} className={userBtnCls}>
-                  <div className={avatarCls}>{getInitials(user?.name)}</div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-[13px] font-semibold leading-tight">
-                      {user?.name?.split(" ").slice(-1)[0] ?? "User"}
-                    </span>
-                    <span className={roleTagCls}>Ứng viên</span>
-                  </div>
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-
-                {dropdownOpen && (
-                  <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                    {/* User info */}
-                    <div className="px-4 py-3 border-b border-slate-100">
-                      <div className="text-[13px] font-semibold text-slate-900">{user?.name}</div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">{user?.email}</div>
-                    </div>
-                    {/* Links */}
-                    <div className="p-1.5">
-                      {DROPDOWN_ITEMS.map((item) => (
-                        <Link
-                          key={item.href}
-                          to={item.href}
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-slate-600 hover:bg-slate-50 transition-colors"
-                        >
-                          {item.icon} {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                    {/* Logout */}
-                    <div className="p-1.5 border-t border-slate-100">
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-red-600 hover:bg-red-50 transition-colors w-full text-left"
-                      >
-                        <LogOut size={14} /> Đăng xuất
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <UserDropdown
+                user={user}
+                roleLabel="Ứng viên"
+                roleTagCls={roleTagCls}
+                userBtnCls={userBtnCls}
+                avatarCls={avatarCls}
+                items={DROPDOWN_ITEMS}
+                fallbackInitial="U"
+                logoutRedirect="/"
+              />
             ) : (
               <>
                 <Link to="/login"    className={btnOutlineCls}>Đăng nhập</Link>

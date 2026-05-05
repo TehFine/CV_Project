@@ -4,6 +4,7 @@ import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, P
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
+import UserDropdown from "./UserDropdown";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -40,7 +41,6 @@ export default function EmployerHeader() {
 
   const [scrolled,    setScrolled]    = useState(false);
   const [mobileOpen,  setMobileOpen]  = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const isHome  = location.pathname === "/employer";
   const isSolid = scrolled || !isHome;
@@ -50,13 +50,6 @@ export default function EmployerHeader() {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
-  }, []);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const close = (e) => { if (!e.target.closest("#employer-user-dropdown")) setDropdownOpen(false); };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
   }, []);
 
   const isActive = (href) =>
@@ -169,60 +162,24 @@ export default function EmployerHeader() {
                 </Link>
 
                 {/* User dropdown */}
-                <div id="employer-user-dropdown" className="relative">
-                  <button onClick={() => setDropdownOpen((v) => !v)} className={userBtnCls}>
-                    <div className={avatarCls}>{getInitials(user?.name)}</div>
-                    <div className="flex flex-col text-left">
-                      <span className="text-[13px] font-semibold leading-tight">
-                        {user?.name?.split(" ").slice(-1)[0] ?? "HR"}
-                      </span>
-                      <span className={roleTagCls}>Nhà tuyển dụng</span>
-                    </div>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-
-                  {dropdownOpen && (
-                    <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                      {/* User info */}
-                      <div className="px-4 py-3 border-b border-slate-100">
-                        <div className="text-[13px] font-semibold text-slate-900">{user?.name}</div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">{user?.email}</div>
-                      </div>
-                      {/* Nav items */}
-                      <div className="p-1.5">
-                        {DROPDOWN_ITEMS.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setDropdownOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-slate-600 hover:bg-slate-50 transition-colors"
-                          >
-                            {item.label}
-                          </Link>
-                        ))}
-                      </div>
-                      {/* Extra */}
-                      <div className="p-1.5 border-t border-slate-100">
-                        <Link
-                          to="/"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-                        >
-                          🔄 Về trang tìm việc
-                        </Link>
-                      </div>
-                      {/* Logout */}
-                      <div className="p-1.5 border-t border-slate-100">
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-red-600 hover:bg-red-50 transition-colors w-full text-left"
-                        >
-                          <LogOut size={14} /> Đăng xuất
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <UserDropdown
+                  user={user}
+                  roleLabel="Nhà tuyển dụng"
+                  roleTagCls={roleTagCls}
+                  userBtnCls={userBtnCls}
+                  avatarCls={avatarCls}
+                  items={DROPDOWN_ITEMS}
+                  fallbackInitial="HR"
+                  logoutRedirect="/employer/login"
+                  extraItems={
+                    <Link
+                      to="/"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                    >
+                      🔄 Về trang tìm việc
+                    </Link>
+                  }
+                />
               </>
             ) : (
               <>
