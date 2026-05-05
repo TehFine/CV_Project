@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Job, JobDocument } from './schemas/job.schema';
 import { Application, ApplicationDocument } from './schemas/application.schema';
+import { SEED_JOBS } from './jobs-seed.data';
 
 @Injectable()
 export class JobsService {
@@ -134,58 +135,8 @@ export class JobsService {
   }
 
   async seedData() {
-    const mockJobs = [
-      {
-        title: "Frontend Developer (React)",
-        companyName: "VNG Corporation",
-        location: "TP. Hồ Chí Minh",
-        salary: "20 - 35 triệu",
-        category: "Công nghệ thông tin",
-        type: "Toàn thời gian",
-        level: "Middle",
-        tags: ["React", "TypeScript", "TailwindCSS"],
-        description: "Phát triển các tính năng giao diện cho sản phẩm Zalo.",
-        requirements: ["2+ năm kinh nghiệm React", "TypeScript", "RESTful API"],
-        benefits: ["Lương cạnh tranh", "MacBook Pro", "Bảo hiểm sức khỏe"],
-        status: "active",
-        featured: true,
-        employerId: "65e123456789012345678901"
-      },
-      {
-        title: "Senior Backend Engineer (Node.js)",
-        companyName: "Momo (M_Service)",
-        location: "TP. Hồ Chí Minh",
-        salary: "30 - 50 triệu",
-        category: "Công nghệ thông tin",
-        type: "Toàn thời gian",
-        level: "Senior",
-        tags: ["Node.js", "MongoDB", "Redis"],
-        description: "Xây dựng hệ thống thanh toán quy mô lớn.",
-        requirements: ["4+ năm kinh nghiệm Node.js", "Kinh nghiệm Microservices"],
-        benefits: ["Thưởng KPI", "Remote flexible", "Stock options"],
-        status: "active",
-        featured: true,
-        employerId: "65e123456789012345678902"
-      },
-      {
-        title: "UI/UX Designer",
-        companyName: "Grab Vietnam",
-        location: "TP. Hồ Chí Minh",
-        salary: "18 - 28 triệu",
-        category: "Thiết kế",
-        type: "Toàn thời gian",
-        level: "Middle",
-        tags: ["Figma", "User Research"],
-        description: "Thiết kế trải nghiệm người dùng cho ứng dụng Grab.",
-        requirements: ["2+ năm kinh nghiệm UI/UX", "Portfolio đẹp"],
-        benefits: ["Grab credits", "Môi trường quốc tế"],
-        status: "active",
-        featured: false,
-        employerId: "65e123456789012345678903"
-      }
-    ];
-
     await this.jobModel.deleteMany({});
-    return this.jobModel.insertMany(mockJobs);
+    const result = await this.jobModel.insertMany(SEED_JOBS());
+    return { message: `Da seed ${result.length} jobs vao database`, count: result.length };
   }
 }

@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { EmployerModule } from './employer/employer.module';
 import { JobsModule } from './jobs/jobs.module';
+import { CvScoringModule } from './cv-scoring/cv-scoring.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { JobsModule } from './jobs/jobs.module';
     UsersModule,
     EmployerModule,
     JobsModule,
+    CvScoringModule,
   ],
   controllers: [AppController],
   providers: [AppService],

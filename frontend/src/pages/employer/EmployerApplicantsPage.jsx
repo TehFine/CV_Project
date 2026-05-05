@@ -164,6 +164,13 @@ export default function EmployerApplicantsPage() {
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState('all')
   const [sortBy, setSortBy] = useState('score') // score | date
+  
+  // CV Scoring Modal state
+  const [showScoringModal, setShowScoringModal] = useState(false)
+  const [scoringFile, setScoringFile] = useState(null)
+  const [scoringLoading, setScoringLoading] = useState(false)
+  const [scoringResult, setScoringResult] = useState(null)
+  const [scoringError, setScoringError] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -188,23 +195,61 @@ export default function EmployerApplicantsPage() {
       return new Date(b.applied_at) - new Date(a.applied_at)
     })
 
-  const countByStatus = (s) => applications.filter(a => a.status === s).length
+  const handleScoreCv = async () => {
+    if (!scoringFile) {
+      setScoringError('Vui lòng chọn file PDF CV')
+      return
+    }
+    setScoringError('')
+    setScoringLoading(true)
+    setScoringResult(null)
+    
+    try {
+      const res = await employerService.scoreCv(jobId, scoringFile)
+      setScoringResult(res.data)
+    } catch (err) {
+      setScoringError(err.response?.data?.message || err.message || 'Lỗi khi chấm điểm CV')
+    } finally {
+      setScoringLoading(false)
+    }
+  }
 
   return (
     <div style={{ padding: '32px 0', maxWidth: 960, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <button onClick={() => navigate('/employer/jobs')} style={{
-          background: 'none', border: 'none', cursor: 'pointer', color: '#64748B',
-          fontSize: 13, fontFamily: 'inherit', fontWeight: 600, padding: 0, marginBottom: 12,
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}>
-          ← Quay lại danh sách tin
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <button onClick={() => navigate('/employer/jobs')} style={{
+            background: 'none', border: 'none', cursor: 'pointer', color: '#64748B',
+            fontSize: 13, fontFamily: 'inherit', fontWeight: 600, padding: 0, marginBottom: 12,
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            ← Quay lại danh sách tin
+          </button>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>
+            👥 Ứng viên — {jobTitle}
+          </h1>
+          <p style={{ fontSize: 13, color: '#64748B' }}>{applications.length} hồ sơ ứng tuyển</p>
+        </div>
+        <button 
+          onClick={() => setShowScoringModal(true)} 
+          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+          style={{
+            padding: '14px 28px', borderRadius: 12, border: 'none',
+            background: 'linear-gradient(135deg, #6366F1, #A855F7, #EC4899)',
+            color: 'white',
+            cursor: 'pointer', fontSize: 15, fontWeight: 800, fontFamily: 'inherit',
+            boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.5), 0 8px 10px -6px rgba(168, 85, 247, 0.3)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            textTransform: 'uppercase', letterSpacing: '0.5px',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: 'translateY(0)'
+          }}
+        >
+          <span style={{ fontSize: '1.3em' }}>✨</span> 
+          <span>Chấm Điểm CV Bằng AI</span>
         </button>
-        <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>
-          👥 Ứng viên — {jobTitle}
-        </h1>
-        <p style={{ fontSize: 13, color: '#64748B' }}>{applications.length} hồ sơ ứng tuyển</p>
       </div>
 
       {/* Status summary */}
@@ -257,6 +302,94 @@ export default function EmployerApplicantsPage() {
           {filtered.map(app => (
             <ApplicantCard key={app.id} app={app} onStatusChange={handleStatusChange} />
           ))}
+        </div>
+      )}
+
+      {/* CV Scoring Modal */}
+      {showScoringModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 20
+        }}>
+          <div style={{
+            background: 'white', borderRadius: 16, width: '100%', maxWidth: 500,
+            overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: 18, color: '#0F172A' }}>✨ Chấm điểm CV Bằng AI</h3>
+              <button onClick={() => { setShowScoringModal(false); setScoringResult(null); setScoringFile(null); }} style={{
+                background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#94A3B8'
+              }}>×</button>
+            </div>
+            
+            <div style={{ padding: 24, flex: 1, overflowY: 'auto' }}>
+              <p style={{ fontSize: 14, color: '#64748B', marginTop: 0, marginBottom: 16 }}>
+                Tải lên file CV (PDF) để hệ thống AI đánh giá mức độ phù hợp với tin tuyển dụng <b>{jobTitle}</b>.
+              </p>
+              
+              <div style={{ marginBottom: 20 }}>
+                <input 
+                  type="file" 
+                  accept=".pdf" 
+                  onChange={(e) => setScoringFile(e.target.files[0])}
+                  style={{ 
+                    display: 'block', width: '100%', padding: '10px 14px', 
+                    border: '1.5px dashed #CBD5E1', borderRadius: 8, 
+                    fontSize: 14, color: '#475569'
+                  }}
+                />
+              </div>
+
+              {scoringError && (
+                <div style={{ padding: 12, background: '#FEF2F2', color: '#EF4444', borderRadius: 8, fontSize: 13, marginBottom: 20 }}>
+                  {scoringError}
+                </div>
+              )}
+
+              {scoringResult && (
+                <div style={{ padding: 20, background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0' }}>
+                  <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                    <div style={{ 
+                      fontSize: 48, fontWeight: 900, lineHeight: 1,
+                      color: scoringResult.score >= 8 ? '#10B981' : scoringResult.score >= 5 ? '#F59E0B' : '#EF4444' 
+                    }}>
+                      {scoringResult.score}/10
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#64748B', marginTop: 4 }}>ĐIỂM PHÙ HỢP</div>
+                  </div>
+                  
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: '#0F172A' }}>📝 Nhận xét chi tiết:</h4>
+                  <p style={{ margin: 0, fontSize: 14, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                    {scoringResult.review}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: '16px 24px', borderTop: '1px solid #E2E8F0', background: '#F8FAFC', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <button 
+                onClick={() => { setShowScoringModal(false); setScoringResult(null); setScoringFile(null); }}
+                style={{ padding: '10px 16px', borderRadius: 8, border: '1.5px solid #E2E8F0', background: 'white', color: '#64748B', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Đóng
+              </button>
+              <button 
+                onClick={handleScoreCv} 
+                disabled={scoringLoading}
+                style={{ 
+                  padding: '10px 20px', borderRadius: 8, border: 'none', 
+                  background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white', 
+                  fontWeight: 700, cursor: scoringLoading ? 'not-allowed' : 'pointer',
+                  opacity: scoringLoading ? 0.7 : 1
+                }}
+              >
+                {scoringLoading ? 'Đang phân tích AI...' : 'Bắt đầu chấm điểm'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

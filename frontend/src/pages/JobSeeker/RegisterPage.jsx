@@ -61,7 +61,6 @@ export default function RegisterPage() {
   }
 
 
-
   return (
     <div className="min-h-screen flex">
       {/* Left */}
@@ -79,7 +78,7 @@ export default function RegisterPage() {
             Tham gia 50,000+ người dùng đang dùng NexCV để tối ưu CV và kết nối nhân tài.
           </p>
           {[
-            { icon: '✨', title: 'AI Chấm điểm CV', desc: 'Phân tích chi tiết trong 30 giây' },
+            { icon: '✨', title: 'AI Phân tích CV', desc: 'Phân tích chi tiết trong 30 giây' },
             { icon: '🎯', title: 'Gợi ý việc làm phù hợp', desc: 'Dựa trên kỹ năng và kinh nghiệm' },
             { icon: '🏢', title: 'Kết nối nhà tuyển dụng', desc: 'Hàng nghìn công ty hàng đầu VN' },
           ].map(f => (

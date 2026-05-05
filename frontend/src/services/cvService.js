@@ -85,8 +85,8 @@ export const cvService = {
 
     const formData = new FormData()
     formData.append('cv', file)
-    if (options.jobId) formData.append('job_id', options.jobId)
-    if (options.jobTitle) formData.append('job_title', options.jobTitle)
+    if (options.jobId) formData.append('jobId', options.jobId)
+    if (options.jobTitle) formData.append('jobTitle', options.jobTitle)
     if (options.targetPosition) formData.append('target_position', options.targetPosition)
 
     // Use XMLHttpRequest for progress tracking
@@ -111,7 +111,7 @@ export const cvService = {
 
       xhr.addEventListener('error', () => reject({ message: 'Lỗi kết nối mạng' }))
 
-      xhr.open('POST', `${BASE_URL}/cv/score`)
+      xhr.open('POST', `${BASE_URL}/cv-scoring/candidate-score`)
       if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
       xhr.send(formData)
     })

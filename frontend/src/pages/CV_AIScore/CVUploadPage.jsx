@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { Upload, Sparkles, FileText, X, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -111,8 +111,12 @@ function ScoreResult({ result, onReset }) {
 }
 
 export default function CVUploadPage() {
+  const [searchParams] = useSearchParams()
+  const jobId = searchParams.get('jobId')
+  const paramJobTitle = searchParams.get('jobTitle')
+
   const [file, setFile] = useState(null)
-  const [targetPos, setTargetPos] = useState('')
+  const [targetPos, setTargetPos] = useState(paramJobTitle || '')
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState('idle') // idle | uploading | result | error
   const [result, setResult] = useState(null)
@@ -136,7 +140,7 @@ export default function CVUploadPage() {
     if (!file) return
     setStatus('uploading'); setProgress(0)
     try {
-      const res = await cvService.scoreCV(file, { targetPosition: targetPos }, setProgress)
+      const res = await cvService.scoreCV(file, { targetPosition: targetPos, jobId, jobTitle: paramJobTitle }, setProgress)
       setResult(res); setStatus('result')
     } catch (err) { setError(err?.message || 'Lỗi phân tích'); setStatus('idle') }
   }
@@ -149,8 +153,12 @@ export default function CVUploadPage() {
       <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-900 pt-12 pb-10 mb-8">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
           <Badge variant="ai" className="mb-4 gap-1.5 text-white"><Sparkles className="h-3.5 w-3.5 " />AI-Powered Analysis</Badge>
-          <h1 className="text-4xl font-black text-white mb-3">Chấm điểm CV bằng AI</h1>
-          <p className="text-slate-300 max-w-md mx-auto">Upload CV và nhận phân tích chi tiết trong 30 giây — Hoàn toàn miễn phí</p>
+          <h1 className="text-4xl font-black text-white mb-3">
+            {jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV bằng AI'}
+          </h1>
+          <p className="text-slate-300 max-w-md mx-auto">
+            {jobId ? `So sánh 1:1 CV của bạn với công việc: ${paramJobTitle}` : 'Upload CV và nhận phân tích chi tiết trong 30 giây — Hoàn toàn miễn phí'}
+          </p>
           <div className="flex justify-center gap-8 mt-6">
             {[['50K+','CV đã chấm'],['30s','Tốc độ AI'],['5','Tiêu chí'],['100%','Miễn phí']].map(([v,l]) => (
               <div key={l} className="text-center">
@@ -239,7 +247,7 @@ export default function CVUploadPage() {
                 )}
 
                 <Button variant="ai" size="xl" className="w-full gap-2" onClick={handleSubmit} disabled={!file}>
-                  <Sparkles className="h-5 w-5" />Chấm điểm CV ngay — Miễn phí
+                  <Sparkles className="h-5 w-5" />{jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV ngay — Miễn phí'}
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground">🔒 File được bảo mật và không lưu trữ lâu dài</p>
