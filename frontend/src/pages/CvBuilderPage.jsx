@@ -131,7 +131,7 @@ function CVPreview({ cv }) {
                       <p className="font-bold text-sm text-[#0F172A]">{exp.role || 'Chức vụ'}</p>
                       <p className="text-xs font-semibold text-[#1549B8]">{exp.company || 'Công ty'}</p>
                     </div>
-                    <div className="text-right text-xs text-[#94A3B8] flex-shrink-0 ml-4">
+                    <div className="text-right text-xs text-[#94A3B8] shrink-0 ml-4">
                       <p>{exp.period}</p>
                       <p>{exp.location}</p>
                     </div>
@@ -139,7 +139,7 @@ function CVPreview({ cv }) {
                   <ul className="mt-1.5 space-y-1">
                     {exp.bullets.filter(Boolean).map((b, i) => (
                       <li key={i} className="flex gap-2 text-xs text-[#475569]">
-                        <span className="text-[#1549B8] flex-shrink-0 mt-0.5">•</span>{b}
+                        <span className="text-[#1549B8] shrink-0 mt-0.5">•</span>{b}
                       </li>
                     ))}
                   </ul>
@@ -162,7 +162,7 @@ function CVPreview({ cv }) {
                     <p className="font-bold text-sm text-[#0F172A]">{edu.school}</p>
                     <p className="text-xs text-[#475569]">{edu.degree}{edu.gpa && ` — GPA: ${edu.gpa}`}</p>
                   </div>
-                  <span className="text-xs text-[#94A3B8] flex-shrink-0 ml-4">{edu.period}</span>
+                  <span className="text-xs text-[#94A3B8] shrink-0 ml-4">{edu.period}</span>
                 </div>
               ))}
             </div>
@@ -178,7 +178,7 @@ function CVPreview({ cv }) {
             <div className="space-y-1.5">
               {skills.map(s => (
                 <div key={s.id} className="flex gap-2 text-xs">
-                  <span className="font-bold text-[#0F172A] w-24 flex-shrink-0">{s.category}:</span>
+                  <span className="font-bold text-[#0F172A] w-24 shrink-0">{s.category}:</span>
                   <span className="text-[#475569]">{s.items}</span>
                 </div>
               ))}
@@ -337,9 +337,9 @@ function EditorPanel({ cv, onChange }) {
       <Section title="Kỹ năng" icon="🛠️">
         {cv.skills.map(s => (
           <div key={s.id} className="flex gap-2 items-center">
-            <Input value={s.category} onChange={e => setArr('skills', s.id, 'category', e.target.value)} className="h-8 text-xs w-28 flex-shrink-0" placeholder="Danh mục" />
+            <Input value={s.category} onChange={e => setArr('skills', s.id, 'category', e.target.value)} className="h-8 text-xs w-28 shrink-0" placeholder="Danh mục" />
             <Input value={s.items} onChange={e => setArr('skills', s.id, 'items', e.target.value)} className="h-8 text-xs flex-1" placeholder="Kỹ năng 1, Kỹ năng 2..." />
-            <button onClick={() => removeItem('skills', s.id)} className="text-[#94A3B8] hover:text-red-500 flex-shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
+            <button onClick={() => removeItem('skills', s.id)} className="text-[#94A3B8] hover:text-red-500 shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
           </div>
         ))}
         <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs border-dashed border-[#1549B8]/40 text-[#1549B8] hover:bg-[#EEF2FF]"
@@ -368,9 +368,9 @@ function EditorPanel({ cv, onChange }) {
         {cv.certifications.map(c => (
           <div key={c.id} className="flex gap-2 items-center">
             <Input value={c.name} onChange={e => setArr('certifications', c.id, 'name', e.target.value)} className="h-8 text-xs flex-1" placeholder="Tên chứng chỉ" />
-            <Input value={c.issuer} onChange={e => setArr('certifications', c.id, 'issuer', e.target.value)} className="h-8 text-xs w-28" placeholder="Đơn vị cấp" />
-            <Input value={c.year} onChange={e => setArr('certifications', c.id, 'year', e.target.value)} className="h-8 text-xs w-16" placeholder="Năm" />
-            <button onClick={() => removeItem('certifications', c.id)} className="text-[#94A3B8] hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+            <Input value={c.issuer} onChange={e => setArr('certifications', c.id, 'issuer', e.target.value)} className="h-8 text-xs w-28 shrink-0" placeholder="Đơn vị cấp" />
+            <Input value={c.year} onChange={e => setArr('certifications', c.id, 'year', e.target.value)} className="h-8 text-xs w-16 shrink-0" placeholder="Năm" />
+            <button onClick={() => removeItem('certifications', c.id)} className="text-[#94A3B8] hover:text-red-500 shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
           </div>
         ))}
         <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs border-dashed border-[#1549B8]/40 text-[#1549B8] hover:bg-[#EEF2FF]"
@@ -443,7 +443,7 @@ export default function CVBuilderPage() {
             <div className="space-y-0 overflow-y-auto max-h-[calc(100vh-9rem)] pr-1">
               <EditorPanel cv={cv} onChange={setCv} />
             </div>
-            <div className="sticky top-[7rem] overflow-auto max-h-[calc(100vh-9rem)] rounded-xl shadow-xl ring-1 ring-[#E2E8F0]">
+            <div className="sticky top-28 overflow-auto max-h-[calc(100vh-9rem)] rounded-xl shadow-xl ring-1 ring-[#E2E8F0]">
               <CVPreview cv={cv} />
             </div>
           </div>
@@ -456,7 +456,7 @@ export default function CVBuilderPage() {
         )}
 
         {view === 'preview' && (
-          <div className="max-w-[780px] mx-auto shadow-xl rounded-xl overflow-hidden ring-1 ring-[#E2E8F0]">
+          <div className="max-w-195 mx-auto shadow-xl rounded-xl overflow-hidden ring-1 ring-[#E2E8F0]">
             <CVPreview cv={cv} />
           </div>
         )}

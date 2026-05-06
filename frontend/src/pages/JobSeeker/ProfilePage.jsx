@@ -55,8 +55,8 @@ function ProfileTab({ user, updateUser }) {
         <CardContent className="p-6">
           {/* Avatar + name row */}
           <div className="flex gap-4 items-start mb-6">
-            <Avatar className="h-16 w-16 flex-shrink-0">
-              <AvatarFallback className="text-xl font-black bg-gradient-to-br from-primary to-violet-600 text-white">
+            <Avatar className="h-16 w-16 shrink-0">
+              <AvatarFallback className="text-xl font-black bg-linear-to-br from-primary to-violet-600 text-white">
                 {initials(user?.name)}
               </AvatarFallback>
             </Avatar>
@@ -131,7 +131,7 @@ function CVTab() {
       {MOCK_CVS.map(cv => (
         <Card key={cv.id}>
           <CardContent className="p-4 flex gap-3 items-center">
-            <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center text-xl flex-shrink-0">📄</div>
+            <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center text-xl shrink-0">📄</div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{cv.fileName}</p>
               <div className="flex items-center gap-2 mt-1">
@@ -161,7 +161,7 @@ function SavedTab() {
       {saved.map(job => (
         <Card key={job.id} className="hover:-translate-y-0.5 hover:shadow-sm transition-all duration-200">
           <CardContent className="p-4 flex gap-3 items-center">
-            <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center font-black text-sm text-primary flex-shrink-0">
+            <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center font-black text-sm text-primary shrink-0">
               {job.company.slice(0,2).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -258,10 +258,10 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-muted/30 pb-16">
 
       {/* ── Hero banner — không có pb lớn, không dùng -mt trick ─────────── */}
-      <div className="bg-gradient-to-br from-slate-900 to-primary py-8">
-        <div className="max-w-[1200px] mx-auto px-6 flex items-center gap-4">
-          <Avatar className="h-14 w-14 flex-shrink-0">
-            <AvatarFallback className="text-lg font-black bg-gradient-to-br from-primary to-violet-600 text-white">
+      <div className="bg-linear-to-br from-slate-900 to-primary py-8">
+        <div className="max-w-300 mx-auto px-6 flex items-center gap-4">
+          <Avatar className="h-14 w-14 shrink-0">
+            <AvatarFallback className="text-lg font-black bg-linear-to-br from-primary to-violet-600 text-white">
               {initials(user?.name)}
             </AvatarFallback>
           </Avatar>
@@ -273,7 +273,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Content — sidebar + main, bình thường không overlap ─────────── */}
-      <div className="max-w-[1200px] mx-auto px-6 pt-6 flex gap-5 items-start">
+      <div className="max-w-300 mx-auto px-6 pt-6 flex gap-5 items-start">
 
         {/* Sidebar — cố định 180px, sticky */}
         <aside style={{ width: 180, flexShrink: 0 }} className="sticky top-20">
@@ -294,7 +294,7 @@ export default function ProfilePage() {
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                       ].join(' ')}
                     >
-                      <Icon className="h-4 w-4 flex-shrink-0" />
+                      <Icon className="h-4 w-4 shrink-0" />
                       {tab.label}
                     </button>
                   )

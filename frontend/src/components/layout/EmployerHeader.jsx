@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, Plus } from "lucide-react";
+import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, Plus, RefreshCcw } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
@@ -10,39 +10,27 @@ import UserDropdown from "./UserDropdown";
 
 const NAV_LINKS = [
   { href: "/employer/dashboard", label: "Dashboard" },
-  { href: "/employer/jobs",      label: "Tin tuyển dụng" },
-  { href: "/employer/jobs/new",  label: "Đăng tin mới" },
+  { href: "/employer/jobs", label: "Tin tuyển dụng" },
+  { href: "/employer/jobs/new", label: "Đăng tin mới" },
 ];
 
 const DROPDOWN_ITEMS = [
-  { href: "/employer/dashboard",  label: "📊 Dashboard" },
-  { href: "/employer/jobs",       label: "📋 Quản lý tin đăng" },
-  { href: "/employer/jobs/new",   label: "➕ Đăng tin mới" },
+  { href: "/employer/dashboard", icon: <LayoutDashboard size={14} />, label: "Dashboard" },
+  { href: "/employer/jobs", icon: <Briefcase size={14} />, label: "Quản lý tin đăng" },
+  { href: "/employer/jobs/new", icon: <PlusCircle size={14} />, label: "Đăng tin mới" },
 ];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const getInitials = (name) => {
-  if (!name) return "HR";
-  try {
-    const parts = name.trim().split(/\s+/);
-    return parts.slice(-2).map((w) => w[0]).join("").toUpperCase() || "HR";
-  } catch {
-    return "HR";
-  }
-};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function EmployerHeader() {
   const { user, logout, isAuthenticated } = useAuth();
-  const location  = useLocation();
-  const navigate  = useNavigate();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const [scrolled,    setScrolled]    = useState(false);
-  const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isHome  = location.pathname === "/employer";
+  const isHome = location.pathname === "/employer";
   const isSolid = scrolled || !isHome;
 
   // Scroll listener
@@ -176,14 +164,14 @@ export default function EmployerHeader() {
                       to="/"
                       className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                     >
-                      🔄 Về trang tìm việc
+                      <RefreshCcw size={14} /> Về trang tìm việc
                     </Link>
                   }
                 />
               </>
             ) : (
               <>
-                <Link to="/employer/login"    className={btnOutlineCls}>Đăng nhập</Link>
+                <Link to="/employer/login" className={btnOutlineCls}>Đăng nhập</Link>
                 <Link to="/employer/register" className={btnPrimaryCls}>Đăng ký miễn phí</Link>
               </>
             )}
@@ -223,15 +211,15 @@ export default function EmployerHeader() {
                   <Link
                     to="/"
                     onClick={() => setMobileOpen(false)}
-                    className="flex-1 py-2.5 text-center rounded-lg text-sm font-medium border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors no-underline"
+                    className="flex flex-1 items-center justify-center gap-2 py-2.5 text-center rounded-lg text-sm font-medium border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors no-underline"
                   >
-                    🔄 Trang tìm việc
+                    <RefreshCcw className="w-4 h-4" /> Trang tìm việc
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex-1 py-2.5 text-center rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                    className="flex flex-1 items-center justify-center gap-2 py-2.5 text-center rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                   >
-                    🚪 Đăng xuất
+                    <LogOut className="w-4 h-4" /> Đăng xuất
                   </button>
                 </>
               ) : (

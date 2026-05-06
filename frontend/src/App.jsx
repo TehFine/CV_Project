@@ -21,18 +21,18 @@ import CVUploadPage from "./pages/CV_AIScore/CVUploadPage";
 import CVBuilderPage from "./pages/CVBuilder/CVBuilderPage";
 
 // ── Nhà tuyển dụng (Employer) ─────────────────────────────────────────────────
-import EmployerHomePage from "./pages/employer/EmployerHomePage";
-import EmployerLoginPage from "./pages/employer/EmployerLoginPage";
-import EmployerRegisterPage from "./pages/employer/EmployerRegisterPage";
-import EmployerDashboard from "./pages/employer/EmployerDashboard";
-import EmployerJobsPage from "./pages/employer/EmployerJobsPage";
-import EmployerJobFormPage from "./pages/employer/EmployerJobFormPage";
-import EmployerApplicantsPage from "./pages/employer/EmployerApplicantsPage";
+import EmployerHomePage from "./pages/Employer/EmployerHomePage";
+import EmployerLoginPage from "./pages/Employer/EmployerLoginPage";
+import EmployerRegisterPage from "./pages/Employer/EmployerRegisterPage";
+import EmployerDashboard from "./pages/Employer/EmployerDashboard";
+import EmployerJobsPage from "./pages/Employer/EmployerJobsPage";
+import EmployerJobFormPage from "./pages/Employer/EmployerJobFormPage";
+import EmployerApplicantsPage from "./pages/Employer/EmployerApplicantsPage";
 
 // ── Quản trị viên (Admin) ─────────────────────────────────────────────────────
-import AdminLoginPage from "./pages/admin/LoginPage";
-import AdminDashboard from "./pages/admin/DashboardPage";
-import AdminUsersPage from "./pages/admin/UsersPage";
+import AdminLoginPage from "./pages/Admin/LoginPage";
+import AdminDashboard from "./pages/Admin/DashboardPage";
+import AdminUsersPage from "./pages/Admin/UsersPage";
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
