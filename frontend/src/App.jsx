@@ -110,6 +110,32 @@ function HomeRoute() {
   );
 }
 // ── App ───────────────────────────────────────────────────────────────────────
+function EmployerLoginRoute() {
+  const { isAuthenticated, isEmployer, loading } = useAuth();
+  if (loading) return <Spinner />;
+  if (isAuthenticated) {
+    return isEmployer ? <Navigate to="/employer/dashboard" replace /> : <Navigate to="/" replace />;
+  }
+  return (
+    <EmployerLayout>
+      <EmployerLoginPage />
+    </EmployerLayout>
+  );
+}
+
+function EmployerRegisterRoute() {
+  const { isAuthenticated, isEmployer, loading } = useAuth();
+  if (loading) return <Spinner />;
+  if (isAuthenticated) {
+    return isEmployer ? <Navigate to="/employer/dashboard" replace /> : <Navigate to="/" replace />;
+  }
+  return (
+    <EmployerLayout>
+      <EmployerRegisterPage />
+    </EmployerLayout>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -189,22 +215,8 @@ export default function App() {
           />
 
           {/* ── Nhà tuyển dụng — auth pages ── */}
-          <Route
-            path="/employer/login"
-            element={
-              <EmployerLayout>
-                <EmployerLoginPage />
-              </EmployerLayout>
-            }
-          />
-          <Route
-            path="/employer/register"
-            element={
-              <EmployerLayout>
-                <EmployerRegisterPage />
-              </EmployerLayout>
-            }
-          />
+          <Route path="/employer/login" element={<EmployerLoginRoute />} />
+          <Route path="/employer/register" element={<EmployerRegisterRoute />} />
 
           {/* ── Nhà tuyển dụng — EmployerLayout (header riêng) ── */}
           <Route

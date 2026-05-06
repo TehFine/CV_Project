@@ -131,7 +131,7 @@ export default function EmployerJobFormPage() {
           ← Quay lại danh sách
         </button>
         <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A' }}>
-          {isEdit ? '✏️ Chỉnh sửa tin tuyển dụng' : '➕ Đăng tin tuyển dụng mới'}
+          {isEdit ? '✏️ Chỉnh sửa tin tuyển dụng' : 'Đăng tin tuyển dụng mới'}
         </h1>
       </div>
 
