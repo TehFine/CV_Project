@@ -14,7 +14,7 @@ function HeroSection() {
     <section
       style={{
         background:
-          "linear-gradient(135deg, #0F172A 0%, #1E3A6E 50%, #1549B8 100%)",
+          "linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4C1D95 100%)",
         paddingTop: 120,
         paddingBottom: 80,
         position: "relative",
@@ -51,7 +51,7 @@ function HeroSection() {
             height: 400,
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(21,73,184,0.3) 0%, transparent 70%)",
+              "radial-gradient(circle, rgba(76,29,149,0.4) 0%, transparent 70%)",
           }}
         />
         <svg
@@ -150,7 +150,7 @@ function HeroSection() {
             }
             style={{
               background: "white",
-              color: "#1549B8",
+              color: "#4C1D95",
               fontWeight: 700,
               fontSize: 15,
               height: 48,
@@ -159,22 +159,24 @@ function HeroSection() {
           >
             🚀 {isAuthenticated ? "Vào Dashboard" : "Đăng ký miễn phí"}
           </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => navigate("/employer/login")}
-            style={{
-              borderColor: "rgba(255,255,255,0.4)",
-              color: "white",
-              backgroundColor: "transparent",
-              fontWeight: 600,
-              fontSize: 15,
-              height: 48,
-              padding: "0 28px",
-            }}
-          >
-            Đăng nhập
-          </Button>
+          {!isAuthenticated && (
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate("/employer/login")}
+              style={{
+                borderColor: "rgba(255,255,255,0.4)",
+                color: "white",
+                backgroundColor: "transparent",
+                fontWeight: 600,
+                fontSize: 15,
+                height: 48,
+                padding: "0 28px",
+              }}
+            >
+              Đăng nhập
+            </Button>
+          )}
         </div>
 
         {/* Popular positions */}
@@ -553,13 +555,13 @@ function RecentJobPostsSection() {
                       width: 48,
                       height: 48,
                       borderRadius: 10,
-                      backgroundColor: "#EEF2FF",
+                      backgroundColor: "rgba(124,58,237,0.1)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontWeight: 800,
                       fontSize: 14,
-                      color: "#1549B8",
+                      color: "#7C3AED",
                       flexShrink: 0,
                     }}
                   >
@@ -645,7 +647,7 @@ function RecentJobPostsSection() {
                       style={{
                         fontSize: 12,
                         fontWeight: 600,
-                        color: "#1549B8",
+                        color: "#7C3AED",
                       }}
                     >
                       📩 {job.applications} ứng tuyển
@@ -748,18 +750,20 @@ function AIPromoSection() {
               >
                 ✨ {isAuthenticated ? "Vào Dashboard" : "Dùng thử miễn phí"}
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => navigate("/employer/login")}
-                style={{
-                  borderColor: "rgba(255,255,255,0.3)",
-                  color: "white",
-                  backgroundColor: "transparent",
-                }}
-              >
-                Đăng nhập →
-              </Button>
+              {!isAuthenticated && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => navigate("/employer/login")}
+                  style={{
+                    borderColor: "rgba(255,255,255,0.3)",
+                    color: "white",
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  Đăng nhập →
+                </Button>
+              )}
             </div>
           </div>
 

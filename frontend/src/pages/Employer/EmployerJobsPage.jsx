@@ -3,10 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
-  active:  { label: 'Đang tuyển', color: '#10B981', bg: '#D1FAE5' },
-  draft:   { label: 'Bản nháp',   color: '#64748B', bg: '#F1F5F9' },
-  expired: { label: 'Hết hạn',    color: '#EF4444', bg: '#FEE2E2' },
-  closed:  { label: 'Đã đóng',    color: '#94A3B8', bg: '#F8FAFC' },
+  active: { label: 'Đang tuyển', color: '#10B981', bg: '#D1FAE5' },
+  draft: { label: 'Bản nháp', color: '#64748B', bg: '#F1F5F9' },
+  expired: { label: 'Hết hạn', color: '#EF4444', bg: '#FEE2E2' },
+  closed: { label: 'Đã đóng', color: '#94A3B8', bg: '#F8FAFC' },
 }
 
 const JOB_TYPE_LABEL = {
@@ -184,7 +184,7 @@ export default function EmployerJobsPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>📋 Tin tuyển dụng</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>Tin tuyển dụng</h1>
           <p style={{ fontSize: 13, color: '#64748B' }}>{jobs.length} tin đã đăng</p>
         </div>
         <Link to="/employer/jobs/new" style={{

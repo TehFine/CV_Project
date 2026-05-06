@@ -41,7 +41,7 @@ export function CVPreview({ cv }) {
                       <p className="font-bold text-sm text-[#0F172A]">{exp.role || 'Chức vụ'}</p>
                       <p className="text-xs font-semibold text-[#1549B8]">{exp.company || 'Công ty'}</p>
                     </div>
-                    <div className="text-right text-xs text-[#94A3B8] flex-shrink-0 ml-4">
+                    <div className="text-right text-xs text-[#94A3B8] shrink-0 ml-4">
                       <p>{exp.period}</p>
                       <p>{exp.location}</p>
                     </div>
@@ -49,7 +49,7 @@ export function CVPreview({ cv }) {
                   <ul className="mt-1.5 space-y-1">
                     {exp.bullets.filter(Boolean).map((b, i) => (
                       <li key={i} className="flex gap-2 text-xs text-[#475569]">
-                        <span className="text-[#1549B8] flex-shrink-0 mt-0.5">•</span>{b}
+                        <span className="text-[#1549B8] shrink-0 mt-0.5">•</span>{b}
                       </li>
                     ))}
                   </ul>
@@ -72,7 +72,7 @@ export function CVPreview({ cv }) {
                     <p className="font-bold text-sm text-[#0F172A]">{edu.school}</p>
                     <p className="text-xs text-[#475569]">{edu.degree}{edu.gpa && ` — GPA: ${edu.gpa}`}</p>
                   </div>
-                  <span className="text-xs text-[#94A3B8] flex-shrink-0 ml-4">{edu.period}</span>
+                  <span className="text-xs text-[#94A3B8] shrink-0 ml-4">{edu.period}</span>
                 </div>
               ))}
             </div>
@@ -88,7 +88,7 @@ export function CVPreview({ cv }) {
             <div className="space-y-1.5">
               {skills.map(s => (
                 <div key={s.id} className="flex gap-2 text-xs">
-                  <span className="font-bold text-[#0F172A] w-24 flex-shrink-0">{s.category}:</span>
+                  <span className="font-bold text-[#0F172A] w-24 shrink-0">{s.category}:</span>
                   <span className="text-[#475569]">{s.items}</span>
                 </div>
               ))}

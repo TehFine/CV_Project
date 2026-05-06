@@ -39,7 +39,7 @@ function ScoreResult({ result, onReset }) {
     <div className="max-w-2xl mx-auto space-y-4 animate-fade-in-up">
       {/* Overall */}
       <Card className="overflow-hidden">
-        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900 p-7">
+        <div className="bg-linear-to-br from-slate-900 via-blue-950 to-indigo-900 p-7">
           <div className="flex gap-6 items-center flex-wrap">
             <div className="text-center">
               <ScoreRing score={result.overall} size={120} />
@@ -94,7 +94,7 @@ function ScoreResult({ result, onReset }) {
           <div className="space-y-3">
             {result.improvements.map((imp, i) => (
               <div key={i} className="flex gap-3 items-start py-2.5 border-b last:border-0">
-                <div className="w-6 h-6 rounded-full bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-xs font-black text-amber-700 flex-shrink-0 mt-0.5">{i + 1}</div>
+                <div className="w-6 h-6 rounded-full bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-xs font-black text-amber-700 shrink-0 mt-0.5">{i + 1}</div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{imp}</p>
               </div>
             ))}
@@ -150,8 +150,8 @@ export default function CVUploadPage() {
   return (
     <div className="min-h-screen bg-muted/30 pb-16">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-900 pt-12 pb-10 mb-8">
-        <div className="max-w-[1200px] mx-auto px-6 text-center">
+      <div className="bg-linear-to-br from-slate-900 via-indigo-950 to-violet-900 pt-12 pb-10 mb-8">
+        <div className="max-w-300 mx-auto px-6 text-center">
           <Badge variant="ai" className="mb-4 gap-1.5 text-white"><Sparkles className="h-3.5 w-3.5 " />AI-Powered Analysis</Badge>
           <h1 className="text-4xl font-black text-white mb-3">
             {jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV bằng AI'}
@@ -170,7 +170,7 @@ export default function CVUploadPage() {
         </div>
       </div>
 
-      <div className="max-w-[1200px] mx-auto px-6">
+      <div className="max-w-300 mx-auto px-6">
         {status === 'result' ? (
           <ScoreResult result={result} onReset={reset} />
         ) : (
@@ -178,13 +178,13 @@ export default function CVUploadPage() {
             {status === 'uploading' ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center mx-auto mb-5 animate-pulse">
+                  <div className="w-16 h-16 rounded-full bg-linear-to-br from-primary to-violet-600 flex items-center justify-center mx-auto mb-5 animate-pulse">
                     <Sparkles className="h-7 w-7 text-white" />
                   </div>
                   <h3 className="font-bold text-lg text-foreground mb-1">AI đang phân tích CV</h3>
                   <p className="text-sm text-muted-foreground mb-6">{file?.name}</p>
                   <div className="h-2 bg-muted rounded-full overflow-hidden mb-2 max-w-xs mx-auto">
-                    <div className="h-full rounded-full bg-gradient-to-r from-primary to-violet-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+                    <div className="h-full rounded-full bg-linear-to-r from-primary to-violet-500 transition-all duration-300" style={{ width: `${progress}%` }} />
                   </div>
                   <p className="text-sm font-semibold text-violet-600">{progress}%</p>
                   <p className="text-xs text-muted-foreground mt-2">Thường mất khoảng 30 giây...</p>
@@ -206,7 +206,7 @@ export default function CVUploadPage() {
                       <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" onChange={e => e.target.files[0] && handleFile(e.target.files[0])} className="hidden" />
                       {file ? (
                         <div className="flex items-center justify-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg max-w-xs mx-auto">
-                          <FileText className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+                          <FileText className="h-5 w-5 text-emerald-600 shrink-0" />
                           <div className="text-left flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground truncate">{file.name}</p>
                             <p className="text-xs text-muted-foreground">{(file.size/1024).toFixed(1)} KB</p>
@@ -242,7 +242,7 @@ export default function CVUploadPage() {
 
                 {error && (
                   <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-sm text-destructive">
-                    <AlertCircle className="h-4 w-4 flex-shrink-0" />{error}
+                    <AlertCircle className="h-4 w-4 shrink-0" />{error}
                   </div>
                 )}
 
@@ -264,7 +264,7 @@ export default function CVUploadPage() {
                       { icon: '🔍', title: 'Từ khóa & ATS', desc: 'Tối ưu cho hệ thống lọc tự động' },
                     ].map(item => (
                       <div key={item.title} className="flex gap-3 py-2.5 border-b last:border-0 items-start">
-                        <span className="text-lg flex-shrink-0">{item.icon}</span>
+                        <span className="text-lg shrink-0">{item.icon}</span>
                         <div>
                           <p className="text-sm font-semibold">{item.title}</p>
                           <p className="text-xs text-muted-foreground">{item.desc}</p>

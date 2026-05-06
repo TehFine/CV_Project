@@ -89,10 +89,10 @@ export default function JobDetailPage() {
             <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 overflow-hidden relative">
               {/* Featured ribbon */}
               {job.featured && (
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#1549B8] to-[#7C3AED]" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-[#1549B8] to-[#7C3AED]" />
               )}
               <div className="flex gap-4 mb-5">
-                <div className="w-16 h-16 rounded-2xl bg-[#EEF2FF] flex items-center justify-center font-black text-xl text-[#1549B8] flex-shrink-0 shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-[#EEF2FF] flex items-center justify-center font-black text-xl text-[#1549B8] shrink-0 shadow-sm">
                   {job.company.slice(0,2).toUpperCase()}
                 </div>
                 <div className="flex-1">
@@ -174,7 +174,7 @@ export default function JobDetailPage() {
                 <ul className="space-y-2.5">
                   {job.requirements.map((req, i) => (
                     <li key={i} className="flex gap-3 text-sm text-[#475569]">
-                      <div className="w-5 h-5 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-5 h-5 rounded-full bg-[#EEF2FF] border border-[#C7D2FE] flex items-center justify-center shrink-0 mt-0.5">
                         <CheckCircle2 className="h-3 w-3 text-[#1549B8]" />
                       </div>
                       {req}
@@ -228,7 +228,7 @@ export default function JobDetailPage() {
 
               <Link to={`/cv-upload?jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`}
                 className="flex items-center gap-2.5 mt-4 p-3 bg-[#F5F3FF] border border-[#DDD6FE] rounded-xl hover:bg-[#EDE9FE] transition-colors no-underline group">
-                <Sparkles className="h-4 w-4 text-[#7C3AED] flex-shrink-0" />
+                <Sparkles className="h-4 w-4 text-[#7C3AED] shrink-0" />
                 <div>
                   <p className="text-xs font-bold text-[#7C3AED]">Xem mức độ phù hợp</p>
                   <p className="text-[11px] text-[#A78BFA]">So sánh 1:1 CV với Job này</p>

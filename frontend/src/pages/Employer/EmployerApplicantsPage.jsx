@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
-  pending:   { label: 'Chờ xem',    color: '#F59E0B', bg: '#FEF3C7', next: 'reviewing' },
-  reviewing: { label: 'Đang xét',   color: '#3B82F6', bg: '#DBEAFE', next: 'interview' },
-  interview: { label: 'Phỏng vấn',  color: '#8B5CF6', bg: '#EDE9FE', next: 'offered' },
-  offered:   { label: 'Đã offer',   color: '#10B981', bg: '#D1FAE5', next: null },
-  rejected:  { label: 'Từ chối',    color: '#EF4444', bg: '#FEE2E2', next: null },
+  pending: { label: 'Chờ xem', color: '#F59E0B', bg: '#FEF3C7', next: 'reviewing' },
+  reviewing: { label: 'Đang xét', color: '#3B82F6', bg: '#DBEAFE', next: 'interview' },
+  interview: { label: 'Phỏng vấn', color: '#8B5CF6', bg: '#EDE9FE', next: 'offered' },
+  offered: { label: 'Đã offer', color: '#10B981', bg: '#D1FAE5', next: null },
+  rejected: { label: 'Từ chối', color: '#EF4444', bg: '#FEE2E2', next: null },
 }
 
 function ScoreBar({ label, value, color }) {

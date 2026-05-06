@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
-  pending:   { label: 'Chờ xem',    color: '#F59E0B', bg: '#FEF3C7' },
-  reviewing: { label: 'Đang xét',   color: '#3B82F6', bg: '#DBEAFE' },
-  interview: { label: 'Phỏng vấn',  color: '#8B5CF6', bg: '#EDE9FE' },
-  offered:   { label: 'Đã offer',   color: '#10B981', bg: '#D1FAE5' },
-  rejected:  { label: 'Từ chối',    color: '#EF4444', bg: '#FEE2E2' },
+  pending: { label: 'Chờ xem', color: '#F59E0B', bg: '#FEF3C7' },
+  reviewing: { label: 'Đang xét', color: '#3B82F6', bg: '#DBEAFE' },
+  interview: { label: 'Phỏng vấn', color: '#8B5CF6', bg: '#EDE9FE' },
+  offered: { label: 'Đã offer', color: '#10B981', bg: '#D1FAE5' },
+  rejected: { label: 'Từ chối', color: '#EF4444', bg: '#FEE2E2' },
 }
 
 function StatCard({ icon, label, value, sub, color = '#3B82F6', to }) {
@@ -68,7 +68,7 @@ export default function EmployerDashboard() {
       {/* Header */}
       <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>📊 Dashboard</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>Dashboard</h1>
           <p style={{ fontSize: 14, color: '#64748B' }}>Tổng quan hoạt động tuyển dụng của bạn</p>
         </div>
         <Link to="/employer/jobs/new" style={{

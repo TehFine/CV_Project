@@ -41,7 +41,7 @@ function Sidebar({ filters, onChange }) {
   )
 
   return (
-    <aside className="hidden lg:block w-56 flex-shrink-0">
+    <aside className="hidden lg:block w-56 shrink-0">
       <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 sticky top-20">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2 font-bold text-sm text-[#0F172A]">
@@ -150,14 +150,14 @@ export default function JobsPage() {
 
             {/* AI Banner */}
             {!loading && jobs.length > 0 && (
-              <div className="mt-5 rounded-2xl bg-gradient-to-r from-[#1E1B4B] to-[#4C1D95] p-5 flex items-center justify-between gap-4 flex-wrap">
+              <div className="mt-5 rounded-2xl bg-linear-to-r from-[#1E1B4B] to-[#4C1D95] p-5 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <p className="text-violet-300 text-xs font-bold mb-1">✨ AI CV SCORING</p>
                   <p className="text-white font-bold text-base">Tăng cơ hội được tuyển lên 3x với CV tối ưu</p>
                   <p className="text-slate-400 text-xs mt-0.5">Nhận phân tích chi tiết từ AI — Miễn phí</p>
                 </div>
                 <Button asChild
-                  className="bg-gradient-to-r from-[#7C3AED] to-[#9333EA] hover:opacity-90 text-white font-bold flex-shrink-0">
+                  className="bg-linear-to-r from-[#7C3AED] to-[#9333EA] hover:opacity-90 text-white font-bold shrink-0">
                   <Link to="/cv-upload"><Sparkles className="h-3.5 w-3.5 mr-1" />Thử ngay</Link>
                 </Button>
               </div>

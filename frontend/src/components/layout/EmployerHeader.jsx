@@ -1,17 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, Plus, RefreshCcw } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import Logo from "./Logo";
+import UserDropdown from "./UserDropdown";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const NAV_LINKS = [
   { href: "/employer/dashboard", label: "Dashboard" },
@@ -19,244 +14,236 @@ const NAV_LINKS = [
   { href: "/employer/jobs/new", label: "Đăng tin mới" },
 ];
 
+const DROPDOWN_ITEMS = [
+  { href: "/employer/dashboard", icon: <LayoutDashboard size={14} />, label: "Dashboard" },
+  { href: "/employer/jobs", icon: <Briefcase size={14} />, label: "Quản lý tin đăng" },
+  { href: "/employer/jobs/new", icon: <PlusCircle size={14} />, label: "Đăng tin mới" },
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function EmployerHeader() {
   const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const isHome = location.pathname === "/employer";
+  const isSolid = scrolled || !isHome;
+
+  // Scroll listener
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
 
   const isActive = (href) =>
     href === "/employer/jobs"
       ? location.pathname === href
       : location.pathname === href || location.pathname.startsWith(href + "/");
 
-  const handleLogout = () => {
-    logout();
-    navigate("/employer/login");
-  };
+  const handleLogout = () => { logout(); navigate("/employer/login"); };
 
-  const initials =
-    user?.name
-      ?.split(" ")
-      .slice(-2)
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase() || "HR";
+  // ─── Reusable class builders ────────────────────────────────────────────────
+
+  // Nav link
+  const navLinkCls = (active) =>
+    cn(
+      "px-3.5 py-1.5 rounded-lg text-sm whitespace-nowrap transition-all duration-150",
+      active
+        ? isSolid
+          ? "bg-violet-600/10 text-violet-600 font-semibold"
+          : "bg-white/20 text-white font-semibold"
+        : isSolid
+          ? "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+          : "text-white/80 hover:bg-white/10 hover:text-white font-medium"
+    );
+
+  // Outline button
+  const btnOutlineCls = cn(
+    "flex items-center gap-1.5 px-4 py-[7px] rounded-lg text-sm font-medium transition-all duration-200 border-[1.5px]",
+    isSolid
+      ? "text-slate-900 border-slate-200 hover:bg-slate-50"
+      : "text-white border-white/50 hover:bg-white/10"
+  );
+
+  // Violet primary button
+  const btnPrimaryCls = cn(
+    "flex items-center gap-1.5 px-4 py-[7px] rounded-lg text-sm font-semibold transition-all duration-200 shadow-sm",
+    isSolid
+      ? "bg-violet-600 text-white shadow-violet-600/30 hover:bg-violet-700"
+      : "bg-white text-violet-900 hover:bg-white/90"
+  );
+
+  // Violet outline (Đăng tin)
+  const btnVioletOutlineCls = cn(
+    "flex items-center gap-1.5 px-4 py-[7px] rounded-lg text-sm font-semibold transition-all duration-200 border-[1.5px]",
+    isSolid
+      ? "text-violet-600 border-purple-200 hover:bg-purple-50"
+      : "text-white border-white/50 hover:bg-white/15"
+  );
+
+  // User dropdown trigger
+  const userBtnCls = cn(
+    "flex items-center gap-2 px-2 py-1 rounded-lg border-none bg-transparent cursor-pointer transition-colors duration-200",
+    isSolid ? "text-slate-900 hover:bg-slate-50" : "text-white hover:bg-white/10"
+  );
+
+  const avatarCls = cn(
+    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+    isSolid ? "bg-indigo-50 text-blue-700" : "bg-white/15 text-white"
+  );
+
+  const roleTagCls = cn(
+    "text-[10px] font-medium",
+    isSolid ? "text-violet-600" : "text-violet-400"
+  );
+
+  // ─── JSX ──────────────────────────────────────────────────────────────────
 
   return (
     <>
-      <header className="employer-header">
-        <div className="employer-header-inner">
-          {/* Logo */}
-          <Link to="/employer/dashboard" className="employer-logo">
-            <div className="employer-logo-icon">
-              <span>N</span>
-            </div>
-            <span className="employer-logo-text">
-              Nex<span style={{ color: "#7C3AED" }}>CV</span>
-              <Badge variant="secondary" className="employer-badge">
-                Nhà tuyển dụng
-              </Badge>
-            </span>
-          </Link>
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-250",
+          isSolid
+            ? "bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm"
+            : "bg-transparent border-b border-transparent shadow-none"
+        )}
+      >
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
 
-          {/* Desktop nav */}
-          <nav className="employer-nav desktop-only">
+          {/* Logo */}
+          <Logo
+            to="/employer"
+            iconBg={isSolid ? "bg-violet-600" : "bg-white/15"}
+            iconColor="text-white"
+            textColor={isSolid ? "text-slate-900" : "text-white"}
+            cvColor={isSolid ? "text-violet-600" : "text-violet-400"}
+            badgeText="Nhà tuyển dụng"
+            badgeClassName={
+              isSolid
+                ? "bg-violet-600/10 text-violet-600 border-transparent"
+                : "bg-violet-600/30 text-violet-300 border-violet-600/40"
+            }
+          />
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-0.5 flex-1">
             {NAV_LINKS.map((l) => (
-              <Link
-                key={l.href}
-                to={l.href}
-                className={`employer-nav-link ${isActive(l.href) ? "active" : ""}`}
-              >
+              <Link key={l.href} to={l.href} className={navLinkCls(isActive(l.href))}>
                 {l.label}
               </Link>
             ))}
           </nav>
 
-          {/* Right side */}
-          <div className="employer-header-right desktop-only">
+          {/* Desktop Right */}
+          <div className="hidden md:flex items-center gap-2.5 ml-auto">
             {isAuthenticated ? (
               <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/employer/jobs/new">➕ Đăng tin</Link>
-                </Button>
+                <Link to="/employer/jobs/new" className={btnVioletOutlineCls}>
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  Đăng tin
+                </Link>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="employer-avatar-btn">
-                      <Avatar className="employer-avatar">
-                        <AvatarFallback className="employer-avatar-fallback">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="employer-user-info">
-                        <span className="employer-user-name">
-                          {user?.name?.split(" ").slice(-1)[0]}
-                        </span>
-                        <span className="employer-user-role">
-                          Nhà tuyển dụng
-                        </span>
-                      </div>
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" style={{ width: 220 }}>
-                    <DropdownMenuLabel>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>
-                        {user?.name}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: "#94A3B8",
-                          fontWeight: 400,
-                        }}
-                      >
-                        {user?.email}
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/employer/dashboard">📊 Dashboard</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/employer/jobs">📋 Quản lý tin đăng</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/employer/jobs/new">➕ Đăng tin mới</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {/* Link quay về trang tìm việc */}
-                    <DropdownMenuItem asChild>
-                      <Link to="/" style={{ color: "#64748B" }}>
-                        🔄 Về trang tìm việc
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleLogout}
-                      style={{ color: "#EF4444", cursor: "pointer" }}
+                {/* User dropdown */}
+                <UserDropdown
+                  user={user}
+                  roleLabel="Nhà tuyển dụng"
+                  roleTagCls={roleTagCls}
+                  userBtnCls={userBtnCls}
+                  avatarCls={avatarCls}
+                  items={DROPDOWN_ITEMS}
+                  fallbackInitial="HR"
+                  logoutRedirect="/employer/login"
+                  extraItems={
+                    <Link
+                      to="/"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                     >
-                      🚪 Đăng xuất
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <RefreshCcw size={14} /> Về trang tìm việc
+                    </Link>
+                  }
+                />
               </>
             ) : (
               <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/employer/login">Đăng nhập</Link>
-                </Button>
-                <Button size="sm" style={{ background: "#7C3AED" }} asChild>
-                  <Link to="/employer/register">Đăng ký miễn phí</Link>
-                </Button>
+                <Link to="/employer/login" className={btnOutlineCls}>Đăng nhập</Link>
+                <Link to="/employer/register" className={btnPrimaryCls}>Đăng ký miễn phí</Link>
               </>
             )}
           </div>
 
           {/* Mobile hamburger */}
           <button
-            className="employer-hamburger mobile-only"
+            className={cn("md:hidden ml-auto p-1 rounded-md bg-transparent border-none cursor-pointer transition-colors", isSolid ? "text-slate-600 hover:bg-slate-100" : "text-white hover:bg-white/10")}
             onClick={() => setMobileOpen((v) => !v)}
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              {mobileOpen ? (
-                <>
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </>
-              ) : (
-                <>
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </>
-              )}
-            </svg>
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="employer-mobile-menu">
+          <div className={cn("md:hidden flex flex-col gap-1 p-4 pb-5 border-t", isSolid ? "bg-white border-slate-200 shadow-sm" : "bg-indigo-900 border-white/10")}>
             {NAV_LINKS.map((l) => (
               <Link
                 key={l.href}
                 to={l.href}
                 onClick={() => setMobileOpen(false)}
-                className={`employer-mobile-link ${isActive(l.href) ? "active" : ""}`}
+                className={cn(
+                  "block px-3 py-2.5 rounded-lg text-sm transition-colors",
+                  isActive(l.href)
+                    ? isSolid ? "bg-violet-600/10 text-violet-600 font-semibold" : "bg-white/20 text-white font-semibold"
+                    : isSolid ? "text-slate-600 font-medium hover:bg-slate-50 hover:text-slate-900" : "text-white/80 font-medium hover:bg-white/10 hover:text-white"
+                )}
               >
                 {l.label}
               </Link>
             ))}
-            <div className="employer-mobile-actions">
+
+            <div className={cn("flex gap-2.5 mt-3 pt-3 border-t", isSolid ? "border-slate-200" : "border-white/10")}>
               {isAuthenticated ? (
                 <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                    className="w-full"
+                  <Link
+                    to="/"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex flex-1 items-center justify-center gap-2 py-2.5 text-center rounded-lg text-sm font-medium border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors no-underline"
                   >
-                    <Link to="/" onClick={() => setMobileOpen(false)}>
-                      🔄 Trang tìm việc
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full"
+                    <RefreshCcw className="w-4 h-4" /> Trang tìm việc
+                  </Link>
+                  <button
                     onClick={handleLogout}
+                    className="flex flex-1 items-center justify-center gap-2 py-2.5 text-center rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                   >
-                    🚪 Đăng xuất
-                  </Button>
+                    <LogOut className="w-4 h-4" /> Đăng xuất
+                  </button>
                 </>
               ) : (
                 <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    asChild
-                    className="w-full"
+                  <Link
+                    to="/employer/login"
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex-1 py-2.5 text-center rounded-lg text-sm font-medium border transition-colors no-underline",
+                      isSolid ? "border-slate-200 text-slate-900 hover:bg-slate-50" : "bg-transparent text-white border-white/30 hover:bg-white/10"
+                    )}
                   >
-                    <Link
-                      to="/employer/login"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      Đăng nhập
-                    </Link>
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    style={{ background: "#7C3AED" }}
-                    asChild
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    to="/employer/register"
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex-1 py-2.5 text-center rounded-lg text-sm font-semibold transition-colors no-underline",
+                      isSolid ? "bg-violet-600 text-white hover:bg-violet-700" : "bg-white text-indigo-900 hover:bg-white/90"
+                    )}
                   >
-                    <Link
-                      to="/employer/register"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      Đăng ký
-                    </Link>
-                  </Button>
+                    Đăng ký
+                  </Link>
                 </>
               )}
             </div>
@@ -264,84 +251,7 @@ export default function EmployerHeader() {
         )}
       </header>
 
-      <div style={{ height: 64 }} />
-
-      <style>{`
-        .employer-header {
-          position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-          background: white;
-          border-bottom: 1.5px solid #E2E8F0;
-          box-shadow: 0 1px 8px rgba(0,0,0,0.06);
-        }
-        .employer-header-inner {
-          max-width: 1200px; margin: 0 auto;
-          padding: 0 24px;
-          height: 64px;
-          display: flex; align-items: center; gap: 24px;
-        }
-        .employer-logo {
-          display: flex; align-items: center; gap: 10px;
-          text-decoration: none; flex-shrink: 0;
-        }
-        .employer-logo-icon {
-          width: 32px; height: 32px; border-radius: 8px;
-          background: #7C3AED;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .employer-logo-icon span { color: white; font-weight: 900; font-size: 14px; }
-        .employer-logo-text {
-          font-weight: 800; font-size: 18px; color: #0F172A;
-          letter-spacing: -0.5px;
-          display: flex; align-items: center; gap: 8px;
-        }
-        .employer-badge {
-          font-size: 10px !important; padding: 2px 8px !important;
-          background: rgba(124,58,237,0.1) !important;
-          color: #7C3AED !important; border: none !important;
-        }
-        .employer-nav {
-          display: flex; align-items: center; gap: 2px; flex: 1;
-        }
-        .employer-nav-link {
-          padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
-          color: #64748B; text-decoration: none; transition: all 0.15s;
-          white-space: nowrap;
-        }
-        .employer-nav-link:hover { background: #F8FAFC; color: #0F172A; }
-        .employer-nav-link.active {
-          background: rgba(124,58,237,0.08); color: #7C3AED; font-weight: 600;
-        }
-        .employer-header-right {
-          display: flex; align-items: center; gap: 10px; margin-left: auto;
-        }
-        .employer-user-role { font-size: 10px; color: #7C3AED; font-weight: 500; }
-        .employer-hamburger {
-          display: none; margin-left: auto; background: none; border: none;
-          cursor: pointer; padding: 4px; color: #0F172A;
-        }
-        .employer-mobile-menu {
-          border-top: 1px solid #E2E8F0; padding: 16px 24px 20px;
-          display: flex; flex-direction: column; gap: 4px;
-        }
-        .employer-mobile-link {
-          display: block; padding: 10px 12px; border-radius: 8px;
-          font-size: 14px; font-weight: 500; color: #475569; text-decoration: none;
-        }
-        .employer-mobile-link.active { background: rgba(124,58,237,0.08); color: #7C3AED; font-weight: 600; }
-        .employer-mobile-actions {
-          display: flex; gap: 10px; margin-top: 12px; padding-top: 12px;
-          border-top: 1px solid #E2E8F0;
-        }
-        .desktop-only { display: flex; }
-        .mobile-only { display: none; }
-        @media (max-width: 768px) {
-          .desktop-only { display: none !important; }
-          .mobile-only { display: block !important; }
-          .employer-hamburger { display: block; }
-        }
-
-      `}</style>
+      {!isHome && <div className="h-16" />}
     </>
   );
 }
-

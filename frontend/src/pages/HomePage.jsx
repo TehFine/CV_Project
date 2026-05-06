@@ -100,10 +100,10 @@ export default function HomePage() {
   return (
     <>
       {/* ─── Hero ───────────────────────────────────────────────── */}
-      <section className="relative bg-gradient-to-br from-[#0F172A] via-[#1E3A6E] to-[#1549B8] overflow-hidden pt-20 pb-0">
+      <section className="relative bg-linear-to-br from-[#0F172A] via-[#1E3A6E] to-[#1549B8] overflow-hidden pt-20 pb-0">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-24 -right-24 w-[500px] h-[500px] rounded-full bg-violet-600/20 blur-3xl" />
-          <div className="absolute bottom-0 -left-20 w-[400px] h-[400px] rounded-full bg-[#1549B8]/30 blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-125 h-125 rounded-full bg-violet-600/20 blur-3xl" />
+          <div className="absolute bottom-0 -left-20 w-100 h-100 rounded-full bg-[#1549B8]/30 blur-3xl" />
           <svg
             className="absolute right-10 top-20 opacity-10"
             width="200"
@@ -135,11 +135,11 @@ export default function HomePage() {
           <h1 className="text-4xl md:text-[56px] font-black text-white leading-[1.1] mb-5 max-w-3xl">
             Tìm việc làm mơ ước
             <br />
-            <span className="bg-gradient-to-r from-blue-300 to-violet-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-blue-300 to-violet-400 bg-clip-text text-transparent">
               với sức mạnh AI
             </span>
           </h1>
-          <p className="text-slate-300 text-base md:text-lg mb-8 max-w-[520px] leading-relaxed">
+          <p className="text-slate-300 text-base md:text-lg mb-8 max-w-130 leading-relaxed">
             Upload CV và nhận đánh giá chi tiết từ AI trong 30 giây. Khám phá
             hàng nghìn cơ hội từ các công ty hàng đầu Việt Nam.
           </p>
@@ -150,7 +150,7 @@ export default function HomePage() {
             className="flex flex-col sm:flex-row bg-white rounded-2xl p-2 shadow-2xl max-w-2xl mb-5 gap-0"
           >
             <div className="flex-1 flex items-center gap-2 px-3 py-1.5">
-              <Search className="h-4 w-4 text-[#94A3B8] flex-shrink-0" />
+              <Search className="h-4 w-4 text-[#94A3B8] shrink-0" />
               <Input
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
@@ -163,7 +163,7 @@ export default function HomePage() {
               className="hidden sm:block h-8 self-center mx-1"
             />
             <div className="flex items-center gap-2 px-3 py-1.5">
-              <MapPin className="h-4 w-4 text-[#94A3B8] flex-shrink-0" />
+              <MapPin className="h-4 w-4 text-[#94A3B8] shrink-0" />
               <Input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -174,7 +174,7 @@ export default function HomePage() {
             <Button
               type="submit"
               size="lg"
-              className="rounded-xl sm:ml-1 bg-[#1549B8] hover:bg-[#1240A0] text-white font-bold flex-shrink-0"
+              className="rounded-xl sm:ml-1 bg-[#1549B8] hover:bg-[#1240A0] text-white font-bold shrink-0"
             >
               Tìm kiếm
             </Button>
@@ -291,7 +291,7 @@ export default function HomePage() {
       {/* ─── AI Promo ────────────────────────────────────────────── */}
       <section className="section-sm relative bg-white from-[#0F172A] via-[#1E3A6E] to-[#1549B8] overflow-hidden">
         <div className="container-app">
-          <div className="rounded-3xl bg-gradient-to-br from-[#0F172A] via-[#1E3A6E] to-[#1549B8] p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center relative overflow-hidden">
+          <div className="rounded-3xl bg-linear-to-br from-[#0F172A] via-[#1E3A6E] to-[#1549B8] p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl pointer-events-none" />
             <div className="flex-1 relative">
               <div className="inline-flex items-center gap-1.5 bg-violet-500/20 border border-violet-400/30 rounded-full px-3 py-1 mb-4">
@@ -312,8 +312,8 @@ export default function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg"
-                  className="gap-2 bg-gradient-to-r from-[#1549B8] to-[#1240A0] hover:opacity-90 text-white font-bold shadow-lg">
-                  <Link to="/cv-upload"><Sparkles className="h-4 w-4" />Phân tích CV — Miễn phí</Link>
+                  className="gap-2 bg-linear-to-r from-[#1549B8] to-[#1240A0] hover:opacity-90 text-white font-bold shadow-lg">
+                  <Link to="/cv-upload"><Sparkles className="h-4 w-4" />Chấm điểm CV — Miễn phí</Link>
                 </Button>
                 <Button
                   variant="outline"
@@ -329,7 +329,7 @@ export default function HomePage() {
             </div>
 
             {/* Score card preview */}
-            <div className="w-full md:w-72 bg-white/8 backdrop-blur-sm border border-white/15 rounded-2xl p-6 flex-shrink-0">
+            <div className="w-full md:w-72 bg-white/8 backdrop-blur-sm border border-white/15 rounded-2xl p-6 shrink-0">
               <div className="text-center mb-5">
                 <div className="w-20 h-20 mx-auto rounded-full border-4 border-blue-400 bg-blue-500/20 flex items-center justify-center mb-2">
                   <span className="text-3xl font-black text-white">82</span>
@@ -404,7 +404,7 @@ export default function HomePage() {
         <div className="container-app">
           <div className="grid md:grid-cols-2 gap-5">
             {/* Candidate */}
-            <div className="bg-gradient-to-br from-[#1549B8] to-[#1E40AF] rounded-2xl p-8 text-white">
+            <div className="bg-linear-to-br from-[#1549B8] to-[#1E40AF] rounded-2xl p-8 text-white">
               <Users className="h-8 w-8 mb-4 opacity-80" />
               <h3 className="text-2xl font-black mb-2">Dành cho ứng viên</h3>
               <p className="text-blue-100 text-sm leading-relaxed mb-5">
@@ -431,7 +431,7 @@ export default function HomePage() {
             </div>
 
             {/* Employer — mở tab mới sang /employer */}
-            <div className="bg-gradient-to-br from-[#0F172A] to-[#1E293B] rounded-2xl p-8 text-white">
+            <div className="bg-linear-to-br from-[#0F172A] to-[#1E293B] rounded-2xl p-8 text-white">
               <span className="text-3xl mb-4 block">🏢</span>
               <h3 className="text-2xl font-black mb-2">
                 Dành cho nhà tuyển dụng
