@@ -118,9 +118,9 @@ export function EditorPanel({ cv, onChange }) {
       <Section title="Kỹ năng" icon="🛠️">
         {cv.skills.map(s => (
           <div key={s.id} className="flex gap-2 items-center">
-            <Input value={s.category} onChange={e => setArr('skills', s.id, 'category', e.target.value)} className="h-8 text-xs w-28 flex-shrink-0" placeholder="Danh mục" />
+            <Input value={s.category} onChange={e => setArr('skills', s.id, 'category', e.target.value)} className="h-8 text-xs w-28 shrink-0" placeholder="Danh mục" />
             <Input value={s.items} onChange={e => setArr('skills', s.id, 'items', e.target.value)} className="h-8 text-xs flex-1" placeholder="Kỹ năng 1, Kỹ năng 2..." />
-            <button onClick={() => removeItem('skills', s.id)} className="text-[#94A3B8] hover:text-red-500 flex-shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
+            <button onClick={() => removeItem('skills', s.id)} className="text-[#94A3B8] hover:text-red-500 shrink-0"><Trash2 className="h-3.5 w-3.5" /></button>
           </div>
         ))}
         <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs border-dashed border-[#1549B8]/40 text-[#1549B8] hover:bg-[#EEF2FF]"
