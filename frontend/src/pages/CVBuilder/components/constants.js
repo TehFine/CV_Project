@@ -1,5 +1,6 @@
 export const DEFAULT_CV = {
   personal: {
+    photo: '',
     name: 'Nguyễn Văn An',
     title: 'Frontend Developer',
     email: 'an.nguyen@email.com',

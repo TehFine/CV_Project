@@ -5,16 +5,40 @@ export function CVPreview({ cv }) {
     <div id="cv-preview" className="bg-white shadow-lg text-[#0F172A]" style={{ fontFamily: "'Be Vietnam Pro', sans-serif", minHeight: '297mm', fontSize: 13 }}>
       {/* Header */}
       <div className="bg-[#1549B8] px-8 py-6 text-white">
-        <h1 className="text-2xl font-black tracking-tight mb-0.5">{personal.name || 'Họ và tên'}</h1>
-        <p className="text-blue-200 font-semibold text-sm mb-3">{personal.title || 'Chức danh'}</p>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-blue-100">
-          {personal.email && <span>✉ {personal.email}</span>}
-          {personal.phone && <span>📞 {personal.phone}</span>}
-          {personal.location && <span>📍 {personal.location}</span>}
-          {personal.linkedin && <span>🔗 {personal.linkedin}</span>}
-          {personal.website && <span>🌐 {personal.website}</span>}
+        <div className="flex items-center gap-6">
+          {/* Photo */}
+          {personal.photo && (
+            <div className="shrink-0">
+              <img
+                src={personal.photo}
+                alt={personal.name || 'Ảnh CV'}
+                style={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '3px solid rgba(255,255,255,0.4)',
+                  display: 'block',
+                }}
+              />
+            </div>
+          )}
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-black tracking-tight mb-0.5">{personal.name || 'Họ và tên'}</h1>
+            <p className="text-blue-200 font-semibold text-sm mb-3">{personal.title || 'Chức danh'}</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-blue-100">
+              {personal.email    && <span>✉ {personal.email}</span>}
+              {personal.phone    && <span>📞 {personal.phone}</span>}
+              {personal.location && <span>📍 {personal.location}</span>}
+              {personal.linkedin && <span>🔗 {personal.linkedin}</span>}
+              {personal.website  && <span>🌐 {personal.website}</span>}
+            </div>
+          </div>
         </div>
       </div>
+
 
       <div className="px-8 py-5 space-y-5">
         {/* Summary */}
