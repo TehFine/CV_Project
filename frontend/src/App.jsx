@@ -11,7 +11,7 @@ import EmployerLayout from "./components/layout/EmployerLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 
 // ── Ứng viên (Job Seeker) ────────────────────────────────────────────────────
-import HomePage from "./pages/HomePage";
+import HomePage from "./pages/Home/HomePage";
 import LoginPage from "./pages/JobSeeker/LoginPage";
 import RegisterPage from "./pages/JobSeeker/RegisterPage";
 import JobsPage from "./pages/JobSeeker/JobsPage";
