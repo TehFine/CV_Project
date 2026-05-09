@@ -80,6 +80,46 @@ export const jobService = {
    * @param {{ cvId?, coverLetter? }} data
    */
   async applyJob(jobId, data = {}) {
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 600));
+      const localAppsStr = localStorage.getItem("nexcv_mock_applications");
+      const apps = localAppsStr ? JSON.parse(localAppsStr) : [];
+      const newApp = {
+        id: "app_" + Date.now(),
+        job_id: jobId,
+        seeker_id: "demo_seeker",
+        status: "pending",
+        cover_letter: data.coverLetter || "",
+        applied_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        seeker: {
+          full_name: "Nguyễn Văn An (Demo)",
+          email: "demo@nexcv.vn",
+          avatar_url: null,
+        },
+        resume: { title: "CV_Demo_UngVien.pdf", pdf_url: "#" },
+        ai_score: { 
+          overall_score: Math.floor(Math.random() * 20) + 75, 
+          breakdown: { skills: 80, experience: 80, education: 80, keywords: 80 } 
+        },
+      };
+      apps.push(newApp);
+      localStorage.setItem("nexcv_mock_applications", JSON.stringify(apps));
+      
+      // Tăng application_count trong nexcv_mock_jobs
+      const jobsStr = localStorage.getItem("nexcv_mock_jobs");
+      if (jobsStr) {
+        const jobs = JSON.parse(jobsStr);
+        const jobIndex = jobs.findIndex(j => j.id == jobId);
+        if (jobIndex !== -1) {
+          jobs[jobIndex].application_count = (jobs[jobIndex].application_count || 0) + 1;
+          localStorage.setItem("nexcv_mock_jobs", JSON.stringify(jobs));
+        }
+      }
+      
+      return { message: "Ứng tuyển thành công" };
+    }
     return api.post(`/jobs/${jobId}/apply`, data);
   },
 
@@ -102,6 +142,34 @@ export const jobService = {
    * Lấy danh sách công việc đã ứng tuyển
    */
   async getAppliedJobs() {
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 400));
+      const appsStr = localStorage.getItem("nexcv_mock_applications");
+      const jobsStr = localStorage.getItem("nexcv_mock_jobs");
+      
+      const apps = appsStr ? JSON.parse(appsStr) : [];
+      const jobs = jobsStr ? JSON.parse(jobsStr) : [];
+      
+      // Lọc các ứng tuyển của seeker hiện tại (trong mock ta dùng 'demo_seeker')
+      const myApps = apps.filter(a => a.seeker_id === "demo_seeker");
+      
+      // Map format cho AppliedTab
+      return myApps.map(app => {
+        const job = jobs.find(j => j.id === app.job_id) || {};
+        return {
+          _id: app.id,
+          status: app.status,
+          createdAt: app.applied_at,
+          jobId: {
+            _id: job.id,
+            title: job.title,
+            companyName: job.company || "Công ty TNHH NexCV",
+            location: job.location,
+          }
+        };
+      });
+    }
     return api.get("/jobs/my-applications");
   },
 };

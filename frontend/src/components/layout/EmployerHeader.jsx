@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, Plus, RefreshCcw } from "lucide-react";
+import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, Plus, RefreshCcw, User } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
@@ -12,12 +12,14 @@ const NAV_LINKS = [
   { href: "/employer/dashboard", label: "Dashboard" },
   { href: "/employer/jobs", label: "Tin tuyển dụng" },
   { href: "/employer/jobs/new", label: "Đăng tin mới" },
+  { href: "/employer/profile", label: "Hồ sơ công ty" },
 ];
 
 const DROPDOWN_ITEMS = [
   { href: "/employer/dashboard", icon: <LayoutDashboard size={14} />, label: "Dashboard" },
   { href: "/employer/jobs", icon: <Briefcase size={14} />, label: "Quản lý tin đăng" },
   { href: "/employer/jobs/new", icon: <PlusCircle size={14} />, label: "Đăng tin mới" },
+  { href: "/employer/profile", icon: <User size={14} />, label: "Hồ sơ công ty" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────

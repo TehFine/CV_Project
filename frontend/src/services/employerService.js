@@ -186,6 +186,22 @@ const mockApplications = [
     },
   },
 ];
+
+function syncAppsToStorage(apps) {
+  localStorage.setItem("nexcv_mock_applications", JSON.stringify(apps));
+}
+
+try {
+  const localAppsStr = localStorage.getItem("nexcv_mock_applications");
+  if (localAppsStr) {
+    const localApps = JSON.parse(localAppsStr);
+    mockApplications.splice(0, mockApplications.length, ...localApps);
+  } else {
+    syncAppsToStorage(mockApplications);
+  }
+} catch (e) {
+  // ignore
+}
 function syncPostedJobsToStorage(jobs) {
   localStorage.setItem("nexcv_mock_jobs", JSON.stringify(jobs));
 }
@@ -332,6 +348,7 @@ export const employerService = {
       if (app) {
         app.status = status;
         app.updated_at = new Date().toISOString();
+        syncAppsToStorage(mockApplications);
       }
       return app;
     }

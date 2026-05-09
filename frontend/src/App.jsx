@@ -24,6 +24,7 @@ import CVBuilderPage from "./pages/CVBuilder/CVBuilderPage";
 import EmployerHomePage from "./pages/Employer/EmployerHomePage";
 import EmployerLoginPage from "./pages/Employer/EmployerLoginPage";
 import EmployerRegisterPage from "./pages/Employer/EmployerRegisterPage";
+import EmployerProfilePage from "./pages/Employer/EmployerProfilePage";
 import EmployerDashboard from "./pages/Employer/EmployerDashboard";
 import EmployerJobsPage from "./pages/Employer/EmployerJobsPage";
 import EmployerJobFormPage from "./pages/Employer/EmployerJobFormPage";
@@ -244,6 +245,16 @@ export default function App() {
               <EmployerLayout>
                 <ProtectedRoute requireRole="employer">
                   <EmployerJobsPage />
+                </ProtectedRoute>
+              </EmployerLayout>
+            }
+          />
+          <Route
+            path="/employer/profile"
+            element={
+              <EmployerLayout>
+                <ProtectedRoute requireRole="employer">
+                  <EmployerProfilePage />
                 </ProtectedRoute>
               </EmployerLayout>
             }
