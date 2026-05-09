@@ -104,7 +104,7 @@ export default function EmployerJobFormPage() {
         salary_min: form.salary_min ? Number(form.salary_min) : null,
         salary_max: form.salary_max ? Number(form.salary_max) : null,
         expired_at: form.expired_at ? new Date(form.expired_at).toISOString() : null,
-        status: publish ? 'active' : form.status,
+        status: publish ? 'pending' : form.status,
       }
       if (isEdit) {
         await employerService.updateJob(id, payload)
@@ -312,7 +312,7 @@ export default function EmployerJobFormPage() {
           boxShadow: saving ? 'none' : '0 4px 12px rgba(59,130,246,0.35)',
           transition: 'all 0.2s', flex: 1,
         }}>
-          {saving ? '⏳ Đang lưu...' : isEdit ? '✅ Cập nhật & Đăng tin' : '🚀 Đăng tin ngay'}
+          {saving ? '⏳ Đang lưu...' : isEdit ? '✅ Cập nhật & Gửi duyệt' : '🚀 Đăng tin (Chờ duyệt)'}
         </button>
       </div>
     </div>

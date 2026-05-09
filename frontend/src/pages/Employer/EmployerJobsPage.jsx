@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
-  active: { label: 'Đang tuyển', color: '#10B981', bg: '#D1FAE5' },
-  draft: { label: 'Bản nháp', color: '#64748B', bg: '#F1F5F9' },
-  expired: { label: 'Hết hạn', color: '#EF4444', bg: '#FEE2E2' },
-  closed: { label: 'Đã đóng', color: '#94A3B8', bg: '#F8FAFC' },
+  active:  { label: 'Đang tuyển', color: '#10B981', bg: '#D1FAE5' },
+  pending: { label: 'Chờ duyệt',  color: '#D97706', bg: '#FEF3C7' },
+  draft:   { label: 'Bản nháp',   color: '#64748B', bg: '#F1F5F9' },
+  expired: { label: 'Hết hạn',    color: '#EF4444', bg: '#FEE2E2' },
+  closed:  { label: 'Đã đóng',    color: '#94A3B8', bg: '#F8FAFC' },
 }
 
 const JOB_TYPE_LABEL = {
@@ -111,10 +112,12 @@ function JobCard({ job, onDelete, onStatusChange }) {
                   { icon: '✏️', label: 'Chỉnh sửa', action: () => navigate(`/employer/jobs/${job.id}/edit`) },
                   { icon: '👥', label: 'Xem ứng viên', action: () => navigate(`/employer/jobs/${job.id}/applicants`) },
                   job.status === 'draft'
-                    ? { icon: '✅', label: 'Đăng tin', action: () => { onStatusChange(job.id, 'active'); setMenuOpen(false) } }
+                    ? { icon: '✅', label: 'Gửi duyệt tin', action: () => { onStatusChange(job.id, 'pending'); setMenuOpen(false) } }
+                    : job.status === 'pending'
+                    ? null
                     : { icon: '⏸️', label: 'Tạm đóng', action: () => { onStatusChange(job.id, 'closed'); setMenuOpen(false) } },
                   { icon: '🗑️', label: 'Xóa tin', action: handleDelete, danger: true },
-                ].map(item => (
+                ].filter(Boolean).map(item => (
                   <button key={item.label} onClick={() => { item.action(); setMenuOpen(false) }} style={{
                     width: '100%', padding: '10px 16px', background: 'none', border: 'none',
                     cursor: 'pointer', fontSize: 13, fontWeight: 500, textAlign: 'left',
@@ -201,6 +204,7 @@ export default function EmployerJobsPage() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         {[
           { key: 'all', label: 'Tất cả', count: jobs.length },
+          { key: 'pending', label: 'Chờ duyệt', count: jobs.filter(j => j.status === 'pending').length },
           { key: 'active', label: 'Đang tuyển', count: jobs.filter(j => j.status === 'active').length },
           { key: 'draft', label: 'Bản nháp', count: jobs.filter(j => j.status === 'draft').length },
           { key: 'expired', label: 'Hết hạn', count: jobs.filter(j => j.status === 'expired').length },

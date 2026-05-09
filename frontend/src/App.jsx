@@ -33,6 +33,7 @@ import EmployerApplicantsPage from "./pages/Employer/EmployerApplicantsPage";
 import AdminLoginPage from "./pages/Admin/LoginPage";
 import AdminDashboard from "./pages/Admin/DashboardPage";
 import AdminUsersPage from "./pages/Admin/UsersPage";
+import AdminJobsPage from "./pages/Admin/JobsPage";
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
@@ -291,7 +292,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsersPage />} />
             {/* Các trang khác có thể thêm sau */}
-            <Route path="jobs" element={<div className="p-6">Quản lý tin tuyển dụng (Comming Soon)</div>} />
+            <Route path="jobs" element={<AdminJobsPage />} />
             <Route path="cv-scores" element={<div className="p-6">Lịch sử chấm CV (Comming Soon)</div>} />
             <Route path="reports" element={<div className="p-6">Báo cáo (Comming Soon)</div>} />
             <Route path="settings" element={<div className="p-6">Cài đặt (Comming Soon)</div>} />

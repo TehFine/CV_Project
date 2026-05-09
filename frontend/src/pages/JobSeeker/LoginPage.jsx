@@ -32,6 +32,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await login(form.email, form.password);
+      if (res.user.role === "admin") {
+        navigate("/admin", { replace: true });
+        return;
+      }
       if (res.user.role === "employer" || res.user.role === "recruiter") {
         await logout();
         setError("Vui lòng đăng nhập tại cổng dành cho Nhà tuyển dụng.");
@@ -47,7 +51,8 @@ export default function LoginPage() {
   };
 
   const DEMO_ACCOUNTS = [
-    { label: 'Demo ứng viên', email: 'demo@nexcv.vn', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+    { label: 'Demo ứng viên', email: 'demo@nexcv.vn', password: 'demo123', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+    { label: 'Demo Admin', email: 'admin@nexcv.vn', password: 'admin123', color: 'bg-amber-50 text-amber-700 border-amber-200' },
   ]
 
   return (
@@ -118,9 +123,9 @@ export default function LoginPage() {
           </div>
 
           {/* Demo shortcuts */}
-          <div className="grid grid-cols-1 gap-2 mb-5">
+          <div className="grid grid-cols-2 gap-2 mb-5">
             {DEMO_ACCOUNTS.map(acc => (
-              <button key={acc.email} onClick={() => setForm({ email: acc.email, password: 'demo123' })}
+              <button key={acc.email} onClick={() => setForm({ email: acc.email, password: acc.password })}
                 className={`text-xs px-3 py-2 rounded-lg border font-medium transition-colors hover:opacity-80 ${acc.color}`}>
                 💡 {acc.label}
               </button>
