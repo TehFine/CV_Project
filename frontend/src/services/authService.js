@@ -51,6 +51,9 @@ export const authService = {
       if (email === "employer@nexcv.vn" && password === "demo123") {
         return { token: "mock_token_employer_001", user: MOCK_EMPLOYER_USER };
       }
+      if (email === "admin@nexcv.vn" && password === "admin123") {
+        return { token: "mock_admin_token", user: { id: 0, role: "admin", name: "Admin NexCV", email: "admin@nexcv.vn" } };
+      }
       throw { message: "Email hoặc mật khẩu không đúng" };
     }
     return api.post("/auth/login", { email, password });
