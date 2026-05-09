@@ -281,6 +281,19 @@ export const adminService = {
         if (USE_MOCK) {
             await delay(400)
             let list = [...MOCK_ADMIN_JOBS]
+            const localStr = localStorage.getItem("nexcv_mock_jobs");
+            if (localStr) {
+                try {
+                    const localJobs = JSON.parse(localStr).map(j => ({
+                        id: j.id, title: j.title, company: j.company || 'Công ty TNHH NexCV',
+                        companyId: j.recruiter_id, location: j.location, salary: j.salary_min ? `${(j.salary_min/1000000)} - ${(j.salary_max/1000000)} triệu` : 'Thỏa thuận',
+                        level: j.level, type: j.job_type, category: 'Công nghệ thông tin',
+                        status: j.status, featured: false, views: j.view_count, applied: j.application_count,
+                        postedAt: j.created_at, deadline: j.expired_at, tags: j.required_skills, reportCount: 0
+                    }));
+                    list = [...list, ...localJobs.filter(lj => !list.find(aj => aj.id === lj.id))];
+                } catch(e) {}
+            }
             if (params.status) list = list.filter(j => j.status === params.status)
             if (params.keyword) {
                 const kw = params.keyword.toLowerCase()
@@ -292,7 +305,21 @@ export const adminService = {
     },
 
     async updateJobStatus(id, status) {
-        if (USE_MOCK) { await delay(400); return { id, status } }
+        if (USE_MOCK) { 
+            await delay(400); 
+            const localStr = localStorage.getItem("nexcv_mock_jobs");
+            if (localStr) {
+                try {
+                    const localJobs = JSON.parse(localStr);
+                    const idx = localJobs.findIndex(j => j.id === id);
+                    if (idx !== -1) {
+                        localJobs[idx].status = status;
+                        localStorage.setItem("nexcv_mock_jobs", JSON.stringify(localJobs));
+                    }
+                } catch(e) {}
+            }
+            return { id, status } 
+        }
         return api.patch(`/admin/jobs/${id}/status`, { status })
     },
 

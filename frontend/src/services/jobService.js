@@ -7,6 +7,23 @@ export const jobService = {
    * @param {{ keyword?, location?, category?, level?, type?, page?, limit? }} params
    */
   async getJobs(params = {}) {
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+    if (USE_MOCK) {
+      const localStr = localStorage.getItem("nexcv_mock_jobs");
+      let jobs = localStr ? JSON.parse(localStr) : [];
+      // Candidate only sees 'active' jobs
+      jobs = jobs.filter(j => j.status === 'active');
+      
+      // Map to frontend format
+      const formatted = jobs.map(j => ({
+        ...j,
+        company: j.company || 'Công ty TNHH NexCV',
+        postedAt: j.created_at,
+        salary: j.salary_min ? `${(j.salary_min/1000000)} - ${(j.salary_max/1000000)} triệu` : 'Thỏa thuận',
+        tags: j.required_skills || [],
+      }));
+      return { data: formatted, total: formatted.length };
+    }
     const query = new URLSearchParams(params).toString();
     const res = await api.get(`/jobs?${query}`);
     // Chuẩn hóa dữ liệu từ backend sang format frontend mong muốn
@@ -26,6 +43,25 @@ export const jobService = {
    * @param {string|number} id
    */
   async getJob(id) {
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+    if (USE_MOCK) {
+      const localStr = localStorage.getItem("nexcv_mock_jobs");
+      const jobs = localStr ? JSON.parse(localStr) : [];
+      // Note: id might be string or number
+      const job = jobs.find(j => j.id == id);
+      if (job) {
+        return {
+          ...job,
+          company: job.company || 'Công ty TNHH NexCV',
+          postedAt: job.created_at,
+          salary: job.salary_min ? `${(job.salary_min/1000000)} - ${(job.salary_max/1000000)} triệu` : 'Thỏa thuận',
+          tags: job.required_skills || [],
+          requirements: job.requirements || ['Yêu cầu xem trong phần mô tả chi tiết'],
+          benefits: job.benefits || ['Được làm việc trong môi trường năng động', 'Đầy đủ chế độ bảo hiểm'],
+        };
+      }
+      throw new Error("Job not found");
+    }
     const res = await api.get(`/jobs/${id}`);
     if (res) {
       return {

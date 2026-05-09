@@ -187,8 +187,19 @@ const mockApplications = [
   },
 ];
 function syncPostedJobsToStorage(jobs) {
-  const activeJobs = jobs.filter((j) => j.status === "active");
-  localStorage.setItem("nexcv_posted_jobs", JSON.stringify(activeJobs));
+  localStorage.setItem("nexcv_mock_jobs", JSON.stringify(jobs));
+}
+
+try {
+  const localStr = localStorage.getItem("nexcv_mock_jobs");
+  if (localStr) {
+    const localJobs = JSON.parse(localStr);
+    mockJobs.splice(0, mockJobs.length, ...localJobs);
+  } else {
+    syncPostedJobsToStorage(mockJobs);
+  }
+} catch (e) {
+  // ignore
 }
 // ─── Employer Service ──────────────────────────────────────────────────────────
 export const employerService = {
