@@ -195,6 +195,8 @@ export default function EmployerApplicantsPage() {
       return new Date(b.applied_at) - new Date(a.applied_at)
     })
 
+  const countByStatus = (status) => applications.filter(a => a.status === status).length
+
   const handleScoreCv = async () => {
     if (!scoringFile) {
       setScoringError('Vui lòng chọn file PDF CV')

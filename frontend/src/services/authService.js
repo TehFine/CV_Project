@@ -104,6 +104,9 @@ export const authService = {
   async updateProfile(data) {
     if (USE_MOCK) {
       await delay(600);
+      if (data.role === 'employer') {
+        return { ...MOCK_EMPLOYER_USER, ...data };
+      }
       return { ...MOCK_USER, ...data };
     }
     return api.patch("/auth/me", data);
