@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, Plus, RefreshCcw, User } from "lucide-react";
+import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, Plus, User } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
 import Logo from "./Logo";
@@ -161,14 +161,7 @@ export default function EmployerHeader() {
                   items={DROPDOWN_ITEMS}
                   fallbackInitial="HR"
                   logoutRedirect="/employer/login"
-                  extraItems={
-                    <Link
-                      to="/"
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
-                    >
-                      <RefreshCcw size={14} /> Về trang tìm việc
-                    </Link>
-                  }
+                  extraItems={null}
                 />
               </>
             ) : (
@@ -210,13 +203,7 @@ export default function EmployerHeader() {
             <div className={cn("flex gap-2.5 mt-3 pt-3 border-t", isSolid ? "border-slate-200" : "border-white/10")}>
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex flex-1 items-center justify-center gap-2 py-2.5 text-center rounded-lg text-sm font-medium border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors no-underline"
-                  >
-                    <RefreshCcw className="w-4 h-4" /> Trang tìm việc
-                  </Link>
+
                   <button
                     onClick={handleLogout}
                     className="flex flex-1 items-center justify-center gap-2 py-2.5 text-center rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors"

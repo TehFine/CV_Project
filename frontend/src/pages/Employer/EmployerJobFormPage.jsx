@@ -42,6 +42,8 @@ export default function EmployerJobFormPage() {
     salary_min: '',
     salary_max: '',
     required_skills: [],
+    requirements: '',
+    benefits: '',
     status: 'draft',
     expired_at: '',
   })
@@ -62,6 +64,8 @@ export default function EmployerJobFormPage() {
         salary_min: job.salary_min || '',
         salary_max: job.salary_max || '',
         required_skills: job.required_skills || [],
+        requirements: job.requirements || '',
+        benefits: job.benefits || '',
         status: job.status || 'draft',
         expired_at: job.expired_at ? job.expired_at.slice(0, 10) : '',
       })
@@ -210,19 +214,38 @@ export default function EmployerJobFormPage() {
         </Field>
       </div>
 
-      {/* Description */}
+      {/* Description & Details */}
       <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: 32, marginBottom: 20 }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9' }}>
-          📄 Mô tả công việc
+          📄 Chi tiết tin đăng
         </h2>
-        <Field label="Mô tả chi tiết" required hint="Yêu cầu, quyền lợi, môi trường làm việc...">
+        
+        <Field label="Mô tả công việc" required>
           <textarea value={form.description} onChange={e => set('description', e.target.value)}
-            rows={8} placeholder="Mô tả công việc, yêu cầu ứng viên, quyền lợi được hưởng..."
-            style={{ ...inputStyle, resize: 'vertical', minHeight: 160, borderColor: errors.description ? '#EF4444' : '#E2E8F0' }}
+            rows={6} placeholder="Nhập mô tả chung về công việc..."
+            style={{ ...inputStyle, resize: 'vertical', minHeight: 120, borderColor: errors.description ? '#EF4444' : '#E2E8F0' }}
             onFocus={e => e.target.style.borderColor = '#3B82F6'}
             onBlur={e => e.target.style.borderColor = errors.description ? '#EF4444' : '#E2E8F0'}
           />
           {errors.description && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.description}</p>}
+        </Field>
+
+        <Field label="Yêu cầu ứng viên" hint="Kỹ năng, kinh nghiệm, bằng cấp...">
+          <textarea value={form.requirements} onChange={e => set('requirements', e.target.value)}
+            rows={5} placeholder="Nhập các yêu cầu đối với ứng viên..."
+            style={{ ...inputStyle, resize: 'vertical', minHeight: 100 }}
+            onFocus={e => e.target.style.borderColor = '#3B82F6'}
+            onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+          />
+        </Field>
+
+        <Field label="Quyền lợi" hint="Lương thưởng, bảo hiểm, chế độ đãi ngộ...">
+          <textarea value={form.benefits} onChange={e => set('benefits', e.target.value)}
+            rows={5} placeholder="Nhập các quyền lợi ứng viên sẽ được hưởng..."
+            style={{ ...inputStyle, resize: 'vertical', minHeight: 100 }}
+            onFocus={e => e.target.style.borderColor = '#3B82F6'}
+            onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+          />
         </Field>
       </div>
 

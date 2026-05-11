@@ -206,6 +206,10 @@ function syncPostedJobsToStorage(jobs) {
   localStorage.setItem("nexcv_mock_jobs", JSON.stringify(jobs));
 }
 
+function syncAdminNotificationsToStorage(notifs) {
+  localStorage.setItem("nexcv_mock_notifications", JSON.stringify(notifs));
+}
+
 try {
   const localStr = localStorage.getItem("nexcv_mock_jobs");
   if (localStr) {
@@ -294,6 +298,23 @@ export const employerService = {
       };
       mockJobs.push(newJob);
       syncPostedJobsToStorage(mockJobs);
+
+      // Nếu tin đăng ở trạng thái pending, tạo thông báo cho Admin
+      if (newJob.status === "pending") {
+        const notifsStr = localStorage.getItem("nexcv_mock_notifications");
+        const notifs = notifsStr ? JSON.parse(notifsStr) : [];
+        notifs.unshift({
+          id: Date.now(),
+          title: "Tin tuyển dụng mới chờ duyệt",
+          message: `Nhà tuyển dụng vừa đăng tin "${newJob.title}". Vui lòng kiểm tra và phê duyệt.`,
+          type: "info",
+          time: "Vừa xong",
+          unread: true,
+          jobId: newJob.id,
+        });
+        syncAdminNotificationsToStorage(notifs);
+      }
+
       return newJob;
     }
     return api.post("/employer/jobs", data);

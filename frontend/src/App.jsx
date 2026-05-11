@@ -35,6 +35,11 @@ import AdminLoginPage from "./pages/Admin/LoginPage";
 import AdminDashboard from "./pages/Admin/DashboardPage";
 import AdminUsersPage from "./pages/Admin/UsersPage";
 import AdminJobsPage from "./pages/Admin/JobsPage";
+import AdminJobDetailsPage from "./pages/Admin/AdminJobDetailsPage";
+import AdminCVScoresPage from "./pages/Admin/AdminCVScoresPage";
+import AdminNotificationsPage from "./pages/Admin/AdminNotificationsPage";
+import AdminReportsPage from "./pages/Admin/AdminReportsPage";
+import AdminSettingsPage from "./pages/Admin/AdminSettingsPage";
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
@@ -304,9 +309,11 @@ export default function App() {
             <Route path="users" element={<AdminUsersPage />} />
             {/* Các trang khác có thể thêm sau */}
             <Route path="jobs" element={<AdminJobsPage />} />
-            <Route path="cv-scores" element={<div className="p-6">Lịch sử chấm CV (Comming Soon)</div>} />
-            <Route path="reports" element={<div className="p-6">Báo cáo (Comming Soon)</div>} />
-            <Route path="settings" element={<div className="p-6">Cài đặt (Comming Soon)</div>} />
+            <Route path="jobs/:id" element={<AdminJobDetailsPage />} />
+            <Route path="cv-scores" element={<AdminCVScoresPage />} />
+            <Route path="notifications" element={<AdminNotificationsPage />} />
+            <Route path="reports" element={<AdminReportsPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
 
           {/* ── Fallback ── */}
