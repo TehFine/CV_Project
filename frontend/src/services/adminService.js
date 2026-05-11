@@ -289,7 +289,10 @@ export const adminService = {
                         companyId: j.recruiter_id, location: j.location, salary: j.salary_min ? `${(j.salary_min/1000000)} - ${(j.salary_max/1000000)} triệu` : 'Thỏa thuận',
                         level: j.level, type: j.job_type, category: 'Công nghệ thông tin',
                         status: j.status, featured: false, views: j.view_count, applied: j.application_count,
-                        postedAt: j.created_at, deadline: j.expired_at, tags: j.required_skills, reportCount: 0
+                        postedAt: j.created_at, deadline: j.expired_at, tags: j.required_skills, reportCount: 0,
+                        description: j.description,
+                        requirements: j.requirements,
+                        benefits: j.benefits
                     }));
                     list = [...list, ...localJobs.filter(lj => !list.find(aj => aj.id === lj.id))];
                 } catch(e) {}

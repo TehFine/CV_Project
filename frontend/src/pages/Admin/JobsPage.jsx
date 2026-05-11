@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { adminService } from '../../services/adminService'
 
 /* ── Configs ───────────────────────────────────────────────────────────────── */
@@ -19,7 +20,7 @@ const TABS = [
 
 /* ── Job Card ──────────────────────────────────────────────────────────────── */
 function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
-  const [expanded, setExpanded] = useState(false)
+  const navigate = useNavigate()
   const [actionLoading, setActionLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const cfg = STATUS_CONFIG[job.status] || STATUS_CONFIG.active
@@ -150,21 +151,12 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
           {job.deadline && ` · Hạn ${new Date(job.deadline).toLocaleDateString('vi-VN')}`}
         </span>
         <button
-          onClick={() => setExpanded(v => !v)}
+          onClick={() => navigate(`/admin/jobs/${job.id}`)}
           style={{ fontSize: 12, fontWeight: 700, color: '#3B82F6', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
         >
-          {expanded ? 'Thu gọn ↑' : 'Chi tiết ↓'}
+          Chi tiết →
         </button>
       </div>
-
-      {/* Expanded detail */}
-      {expanded && (
-        <div style={{ marginTop: 12, padding: 16, background: '#FAFBFC', borderRadius: 10, border: '1px solid #F1F5F9' }}>
-          <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.6 }}>
-            <strong>ID:</strong> {job.id} · <strong>Company ID:</strong> {job.companyId}
-          </p>
-        </div>
-      )}
     </div>
   )
 }

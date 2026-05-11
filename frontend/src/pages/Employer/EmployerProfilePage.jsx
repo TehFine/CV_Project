@@ -22,7 +22,7 @@ const inputStyle = {
 }
 
 export default function EmployerProfilePage() {
-  const { user, login } = useAuth()
+  const { user, updateUser } = useAuth()
   const [form, setForm] = useState({
     companyName: '',
     email: '',
@@ -30,7 +30,9 @@ export default function EmployerProfilePage() {
     industry: '',
     companyWebsite: '',
     description: '',
+    avatar: '',
   })
+  const [logoPreview, setLogoPreview] = useState(null)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
 
@@ -43,13 +45,34 @@ export default function EmployerProfilePage() {
         industry: user.industry || '',
         companyWebsite: user.companyWebsite || '',
         description: user.description || '',
+        avatar: user.avatar || '',
       })
+      setLogoPreview(user.avatar || null)
     }
   }, [user])
 
   const handleChange = (field, value) => {
     setForm(f => ({ ...f, [field]: value }))
     setSuccess(false)
+  }
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Ảnh quá lớn! Vui lòng chọn ảnh dưới 2MB.")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result
+      setLogoPreview(base64String)
+      setForm(f => ({ ...f, avatar: base64String }))
+      setSuccess(false)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleSave = async () => {
@@ -61,8 +84,10 @@ export default function EmployerProfilePage() {
         ...form,
         role: 'employer' // Để backend/mock biết đây là employer
       })
-      // Cập nhật lại context (login tạm thời update local user state)
-      // Nhưng do AuthContext ko expose updateUser, ta chỉ show thông báo
+      
+      // Cập nhật lại context toàn cục
+      updateUser(updatedUser)
+      
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (err) {
@@ -81,26 +106,41 @@ export default function EmployerProfilePage() {
 
       <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E2E8F0', padding: 40, boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
         
-        {/* Avatar/Logo Section */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 40, paddingBottom: 32, borderBottom: '1px solid #F1F5F9' }}>
-          <div style={{ 
-            width: 100, height: 100, borderRadius: 24, backgroundColor: '#EEF2FF', 
-            display: 'flex', alignItems: 'center', justifyContent: 'center', 
-            color: '#1549B8', fontSize: 32, fontWeight: 900, position: 'relative'
-          }}>
-            {form.companyName ? form.companyName.slice(0, 2).toUpperCase() : 'HR'}
-            <button style={{
-              position: 'absolute', bottom: -8, right: -8, width: 36, height: 36,
-              borderRadius: '50%', backgroundColor: 'white', border: '1px solid #E2E8F0',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', color: '#64748B'
+          <div 
+            onClick={() => document.getElementById('logo-upload').click()}
+            style={{ 
+              width: 100, height: 100, borderRadius: 24, backgroundColor: '#EEF2FF', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              color: '#1549B8', fontSize: 32, fontWeight: 900, position: 'relative',
+              cursor: 'pointer', overflow: 'hidden', border: '2px dashed #E2E8F0'
+            }}
+          >
+            {logoPreview ? (
+              <img src={logoPreview} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              form.companyName ? form.companyName.slice(0, 2).toUpperCase() : 'HR'
+            )}
+            
+            <div style={{
+              position: 'absolute', bottom: 0, left: 0, right: 0, height: 28,
+              backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', color: 'white'
             }}>
-              <Camera size={16} />
-            </button>
+              <Camera size={14} />
+            </div>
+
+            <input 
+              id="logo-upload"
+              type="file" 
+              accept="image/*" 
+              onChange={handleLogoChange} 
+              style={{ display: 'none' }} 
+            />
           </div>
           <div>
             <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>Logo công ty</h3>
-            <p style={{ fontSize: 13, color: '#94A3B8' }}>Định dạng JPG, PNG hoặc GIF. Kích thước tối đa 2MB.</p>
+            <p style={{ fontSize: 13, color: '#94A3B8' }}>Nhấp vào ô bên trái để tải ảnh lên. Định dạng JPG, PNG hoặc GIF.</p>
           </div>
         </div>
 
