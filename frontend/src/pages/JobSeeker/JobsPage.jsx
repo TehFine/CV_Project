@@ -25,10 +25,21 @@ function Sidebar({ filters, onChange }) {
         const val    = typeof item === 'string' ? item : item.name
         const active = filters[fkey] === val
         return (
-          <label key={val} className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-[#F1F5F9] cursor-pointer transition-colors">
-            <input type="radio" name={fkey} checked={active} onChange={() => toggle(fkey, val)}
-              className="accent-[#1549B8] w-3.5 h-3.5" />
-            <span className={cn('text-sm transition-colors flex-1', active ? 'text-[#1549B8] font-semibold' : 'text-[#475569]')}>
+          <label 
+            key={val} 
+            className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-[#F1F5F9] cursor-pointer transition-colors group"
+            onClick={(e) => {
+              e.preventDefault(); // Prevent radio default behavior
+              toggle(fkey, val);
+            }}
+          >
+            <div className={cn(
+              "w-4 h-4 rounded-full border flex items-center justify-center transition-all",
+              active ? "border-[#1549B8] bg-[#1549B8]" : "border-[#CBD5E1] bg-white group-hover:border-[#1549B8]"
+            )}>
+              {active && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+            </div>
+            <span className={cn('text-sm transition-colors flex-1', active ? 'text-[#1549B8] font-bold' : 'text-[#475569]')}>
               {val}
             </span>
             {typeof item !== 'string' && item.count && (
