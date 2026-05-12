@@ -13,6 +13,29 @@ export const jobService = {
       let jobs = localStr ? JSON.parse(localStr) : [];
       // Candidate only sees 'active' jobs
       jobs = jobs.filter(j => j.status === 'active');
+
+      // Apply filters
+      if (params.keyword) {
+        const term = params.keyword.toLowerCase();
+        jobs = jobs.filter(j => 
+            j.title.toLowerCase().includes(term) || 
+            (j.company && j.company.toLowerCase().includes(term)) ||
+            (j.description && j.description.toLowerCase().includes(term)) ||
+            (j.required_skills && j.required_skills.some(s => s.toLowerCase().includes(term)))
+        );
+      }
+      if (params.location) {
+        jobs = jobs.filter(j => j.location && j.location.includes(params.location));
+      }
+      if (params.category) {
+        jobs = jobs.filter(j => j.category === params.category);
+      }
+      if (params.level) {
+        jobs = jobs.filter(j => j.level === params.level);
+      }
+      if (params.type) {
+        jobs = jobs.filter(j => j.type === params.type);
+      }
       
       // Map to frontend format
       const formatted = jobs.map(j => ({

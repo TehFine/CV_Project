@@ -164,6 +164,7 @@ export default function EmployerApplicantsPage() {
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState('all')
   const [sortBy, setSortBy] = useState('score') // score | date
+  const [search, setSearch] = useState('')
   
   // CV Scoring Modal state
   const [showScoringModal, setShowScoringModal] = useState(false)
@@ -190,6 +191,12 @@ export default function EmployerApplicantsPage() {
 
   const filtered = applications
     .filter(a => filterStatus === 'all' || a.status === filterStatus)
+    .filter(a => {
+        if (!search) return true
+        const term = search.toLowerCase()
+        return a.candidate_name?.toLowerCase().includes(term) || 
+               a.candidate_email?.toLowerCase().includes(term)
+    })
     .sort((a, b) => {
       if (sortBy === 'score') return (b.ai_score?.overall_score || 0) - (a.ai_score?.overall_score || 0)
       return new Date(b.applied_at) - new Date(a.applied_at)
@@ -268,6 +275,23 @@ export default function EmployerApplicantsPage() {
       </div>
 
       {/* Filter + Sort */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: 300 }}>
+              <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>🔍</span>
+              <input 
+                type="text" 
+                placeholder="Tìm kiếm ứng viên theo tên hoặc email..." 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  width: '100%', padding: '12px 14px 12px 42px', border: '1.5px solid #E2E8F0', borderRadius: 12,
+                  fontSize: 14, fontFamily: 'inherit', color: '#0F172A', boxSizing: 'border-box',
+                  outline: 'none', transition: 'all 0.2s', backgroundColor: 'white'
+                }}
+              />
+          </div>
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {[{ key: 'all', label: `Tất cả (${applications.length})` }, ...Object.entries(STATUS_CONFIG).map(([key, cfg]) => ({ key, label: cfg.label }))].map(tab => (
