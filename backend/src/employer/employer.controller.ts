@@ -1,9 +1,12 @@
 import { Controller, Get, UseGuards, Param, Body, Patch } from '@nestjs/common';
 import { EmployerService } from './employer.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('employer')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('employer', 'admin')
 export class EmployerController {
   constructor(private readonly employerService: EmployerService) {}
 
