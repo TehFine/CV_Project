@@ -42,7 +42,6 @@ import AdminReportsPage from "./pages/Admin/AdminReportsPage";
 import AdminSettingsPage from "./pages/Admin/AdminSettingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
-
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
   return (
@@ -73,7 +72,6 @@ function ProtectedRoute({ children, requireRole }) {
   if (requireRole === "admin" && !isAdmin) {
     return <Navigate to="/404" replace />;
   }
-
 
   // ❌ Nếu là Admin nhưng cố truy cập trang của Candidate/Employer
   if (isAdmin && requireRole !== "admin") {
@@ -109,6 +107,7 @@ function SeekerLayout({ children }) {
     </div>
   );
 }
+
 function HomeRoute() {
   const { isEmployer, loading } = useAuth();
   if (loading) return <Spinner />;
@@ -119,6 +118,7 @@ function HomeRoute() {
     </SeekerLayout>
   );
 }
+
 // ── App ───────────────────────────────────────────────────────────────────────
 function EmployerLoginRoute() {
   const { isAuthenticated, isEmployer, loading } = useAuth();
@@ -310,7 +310,6 @@ export default function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsersPage />} />
-            {/* Các trang khác có thể thêm sau */}
             <Route path="jobs" element={<AdminJobsPage />} />
             <Route path="jobs/:id" element={<AdminJobDetailsPage />} />
             <Route path="cv-scores" element={<AdminCVScoresPage />} />
@@ -322,7 +321,6 @@ export default function App() {
           {/* ── 404 & Fallback ── */}
           <Route path="/404" element={<NotFoundPage />} />
           <Route path="*" element={<NotFoundPage />} />
-
         </Routes>
       </Router>
     </AuthProvider>

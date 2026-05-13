@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Eye, EyeOff, Sparkles, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,9 @@ export default function LoginPage() {
     }
   };
 
-
+  const DEMO_ACCOUNTS = [
+    { label: 'Demo ứng viên', email: 'demo@nexcv.vn', password: 'demo123', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+  ]
 
   return (
     <div className="min-h-screen flex">
@@ -119,7 +121,15 @@ export default function LoginPage() {
             </p>
           </div>
 
-
+          {/* Demo shortcuts */}
+          <div className="mb-5">
+            {DEMO_ACCOUNTS.map(acc => (
+              <button key={acc.email} onClick={() => setForm({ email: acc.email, password: acc.password })}
+                className={`text-xs px-3 py-2 rounded-lg border font-medium transition-colors hover:opacity-80 ${acc.color}`}>
+                💡 {acc.label}
+              </button>
+            ))}
+          </div>
 
           {error && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">

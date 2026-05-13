@@ -1,8 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Home, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function NotFoundPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
@@ -22,23 +24,21 @@ export default function NotFoundPage() {
           Opps! Trang này không tồn tại
         </h2>
         <p className="text-slate-500 mb-10 leading-relaxed">
-          Có vẻ như đường dẫn bạn truy cập không đúng hoặc bạn không có quyền truy cập vào khu vực này. 
+          Có vẻ như đường dẫn bạn truy cập không đúng hoặc bạn không có quyền truy cập vào khu vực này.
           Vui lòng quay lại trang chủ hoặc liên hệ quản trị viên.
         </p>
 
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button 
-            asChild
-            variant="outline" 
+          <Button
+            variant="outline"
             className="h-12 px-8 rounded-xl font-bold border-slate-200 hover:bg-slate-50 gap-2 transition-all"
+            onClick={() => navigate(-1)}
           >
-            <Link to={-1}>
-              <ArrowLeft className="w-4 h-4" />
-              Quay lại
-            </Link>
+            <ArrowLeft className="w-4 h-4" />
+            Quay lại
           </Button>
-          <Button 
+          <Button
             asChild
             className="h-12 px-8 rounded-xl font-bold bg-[#1549B8] hover:bg-[#1E40AF] shadow-lg shadow-blue-200 gap-2 transition-all"
           >
