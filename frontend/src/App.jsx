@@ -40,6 +40,8 @@ import AdminCVScoresPage from "./pages/Admin/AdminCVScoresPage";
 import AdminNotificationsPage from "./pages/Admin/AdminNotificationsPage";
 import AdminReportsPage from "./pages/Admin/AdminReportsPage";
 import AdminSettingsPage from "./pages/Admin/AdminSettingsPage";
+import NotFoundPage from "./pages/NotFoundPage";
+
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
@@ -67,10 +69,11 @@ function ProtectedRoute({ children, requireRole }) {
     );
   }
 
-  // ❌ Nếu yêu cầu Admin nhưng không phải Admin
+  // ❌ Nếu yêu cầu Admin nhưng không phải Admin → ẩn trang, hiển thị 404
   if (requireRole === "admin" && !isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/404" replace />;
   }
+
 
   // ❌ Nếu là Admin nhưng cố truy cập trang của Candidate/Employer
   if (isAdmin && requireRole !== "admin") {
@@ -316,8 +319,10 @@ export default function App() {
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
 
-          {/* ── Fallback ── */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* ── 404 & Fallback ── */}
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+
         </Routes>
       </Router>
     </AuthProvider>
