@@ -125,7 +125,7 @@ export default function LoginPage() {
           <div className="mb-5">
             {DEMO_ACCOUNTS.map(acc => (
               <button key={acc.email} onClick={() => setForm({ email: acc.email, password: acc.password })}
-                className={`text-xs px-3 py-2 rounded-lg border font-medium transition-colors hover:opacity-80 ${acc.color}`}>
+                className={`w-full text-xs px-3 py-2 rounded-lg border font-medium transition-colors hover:opacity-80 ${acc.color}`}>
                 💡 {acc.label}
               </button>
             ))}
