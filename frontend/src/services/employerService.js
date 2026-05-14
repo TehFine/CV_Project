@@ -379,7 +379,7 @@ export const employerService = {
   },
 
   // ── CV Scoring ──
-  async scoreCv(jobId, file) {
+  async scoreCv(jobId, file, candidateId) {
     if (USE_MOCK) {
       await delay(1500);
       return {
@@ -392,9 +392,11 @@ export const employerService = {
     }
     const formData = new FormData();
     formData.append('cv', file);
+    if (candidateId) formData.append('candidateId', candidateId);
+    
     const response = await api.post(`/cv-scoring/score/${jobId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data; // or response depending on how your api wrapper works
+    return response.data;
   },
 };

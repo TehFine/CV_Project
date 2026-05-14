@@ -22,7 +22,7 @@ function ScoreBar({ label, value, color }) {
   )
 }
 
-function ApplicantCard({ app, onStatusChange }) {
+function ApplicantCard({ app, onStatusChange, onScore }) {
   const [expanded, setExpanded] = useState(false)
   const [updating, setUpdating] = useState(false)
   const cfg = STATUS_CONFIG[app.status] || STATUS_CONFIG.pending
@@ -85,6 +85,13 @@ function ApplicantCard({ app, onStatusChange }) {
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button onClick={onScore} style={{
+            padding: '7px 12px', borderRadius: 8, border: '1.5px solid #FBCFE8',
+            background: '#FDF2F8', color: '#DB2777', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+            display: 'flex', alignItems: 'center', gap: 4
+          }}>
+            <span>✨</span> {app.ai_score ? 'Chấm lại' : 'Chấm điểm'}
+          </button>
           {cfg.next && (
             <button onClick={() => handleStatus(cfg.next)} disabled={updating} style={{
               padding: '7px 14px', borderRadius: 8, border: 'none',
@@ -172,6 +179,7 @@ export default function EmployerApplicantsPage() {
   const [scoringLoading, setScoringLoading] = useState(false)
   const [scoringResult, setScoringResult] = useState(null)
   const [scoringError, setScoringError] = useState('')
+  const [scoringTargetApplicant, setScoringTargetApplicant] = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -214,7 +222,8 @@ export default function EmployerApplicantsPage() {
     setScoringResult(null)
     
     try {
-      const res = await employerService.scoreCv(jobId, scoringFile)
+      const candidateId = scoringTargetApplicant?.seeker_id || scoringTargetApplicant?.seeker?.id || scoringTargetApplicant?.seeker?._id;
+      const res = await employerService.scoreCv(jobId, scoringFile, candidateId)
       setScoringResult(res.data)
     } catch (err) {
       setScoringError(err.response?.data?.message || err.message || 'Lỗi khi chấm điểm CV')
@@ -240,9 +249,12 @@ export default function EmployerApplicantsPage() {
           </h1>
           <p style={{ fontSize: 13, color: '#64748B' }}>{applications.length} hồ sơ ứng tuyển</p>
         </div>
-        <button 
-          onClick={() => setShowScoringModal(true)} 
-          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+          <button 
+            onClick={() => {
+              setScoringTargetApplicant(null);
+              setShowScoringModal(true);
+            }} 
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
           style={{
             padding: '14px 28px', borderRadius: 12, border: 'none',
@@ -326,7 +338,15 @@ export default function EmployerApplicantsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {filtered.map(app => (
-            <ApplicantCard key={app.id} app={app} onStatusChange={handleStatusChange} />
+            <ApplicantCard 
+              key={app.id} 
+              app={app} 
+              onStatusChange={handleStatusChange} 
+              onScore={() => {
+                setScoringTargetApplicant(app);
+                setShowScoringModal(true);
+              }}
+            />
           ))}
         </div>
       )}
@@ -353,7 +373,7 @@ export default function EmployerApplicantsPage() {
             
             <div style={{ padding: 24, flex: 1, overflowY: 'auto' }}>
               <p style={{ fontSize: 14, color: '#64748B', marginTop: 0, marginBottom: 16 }}>
-                Tải lên file CV (PDF) để hệ thống AI đánh giá mức độ phù hợp với tin tuyển dụng <b>{jobTitle}</b>.
+                Tải lên file CV (PDF) để hệ thống AI đánh giá mức độ phù hợp {scoringTargetApplicant ? `của ứng viên ${scoringTargetApplicant.seeker.full_name}` : ''} với tin tuyển dụng <b>{jobTitle}</b>.
               </p>
               
               <div style={{ marginBottom: 20 }}>
@@ -380,11 +400,18 @@ export default function EmployerApplicantsPage() {
                   <div style={{ textAlign: 'center', marginBottom: 16 }}>
                     <div style={{ 
                       fontSize: 48, fontWeight: 900, lineHeight: 1,
-                      color: scoringResult.score >= 8 ? '#10B981' : scoringResult.score >= 5 ? '#F59E0B' : '#EF4444' 
+                      color: (scoringResult.score >= 8 || scoringResult.overall >= 80) ? '#10B981' : (scoringResult.score >= 5 || scoringResult.overall >= 60) ? '#F59E0B' : '#EF4444' 
                     }}>
-                      {scoringResult.score}/10
+                      {scoringResult.score || scoringResult.overall}/100
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#64748B', marginTop: 4 }}>ĐIỂM PHÙ HỢP</div>
+                    {scoringResult.reused && (
+                      <div style={{ marginTop: 8 }}>
+                        <span style={{ fontSize: 10, padding: '2px 8px', background: '#DBEAFE', color: '#1E40AF', borderRadius: 4, fontWeight: 700 }}>
+                          ♻️ TÁI SỬ DỤNG ĐIỂM SỐ CỦA ỨNG VIÊN (TIẾT KIỆM TOKEN)
+                        </span>
+                      </div>
+                    )}
                   </div>
                   
                   <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: '#0F172A' }}>📝 Nhận xét chi tiết:</h4>
