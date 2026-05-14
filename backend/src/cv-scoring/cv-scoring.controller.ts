@@ -1,4 +1,4 @@
-import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CvScoringService } from './cv-scoring.service';
 import { JobsService } from '../jobs/jobs.service';
@@ -18,6 +18,7 @@ export class CvScoringController {
   async scoreCv(
     @Param('jobId') jobId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Body('candidateId') candidateId?: string,
   ) {
     if (!file) {
       throw new BadRequestException('Vui lòng tải lên file CV (PDF)');
@@ -31,7 +32,7 @@ export class CvScoringController {
       throw new BadRequestException('Không tìm thấy công việc');
     }
 
-    const result = await this.cvScoringService.scoreCV(file.buffer, job as any);
+    const result = await this.cvScoringService.scoreCV(file.buffer, job as any, candidateId);
     return {
       success: true,
       data: result
@@ -42,6 +43,7 @@ export class CvScoringController {
   @UseInterceptors(FileInterceptor('cv'))
   async scoreCandidateCv(
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
     @Body('target_position') targetPosition?: string,
     @Body('jobId') jobId?: string,
   ) {
@@ -60,7 +62,8 @@ export class CvScoringController {
         if (found) jobContext = found as JobDocument;
       }
 
-      const result = await this.cvScoringService.scoreCandidateCV(file.buffer, file.originalname, targetPosition, jobContext);
+      const userId = req.user?.id || req.user?._id;
+      const result = await this.cvScoringService.scoreCandidateCV(file.buffer, file.originalname, targetPosition, jobContext, userId);
       return result;
     } catch (error) {
       throw new BadRequestException(error.message || 'Lỗi khi phân tích CV');
