@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Eye, EyeOff, Sparkles, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,6 @@ export default function LoginPage() {
 
   const DEMO_ACCOUNTS = [
     { label: 'Demo ứng viên', email: 'demo@nexcv.vn', password: 'demo123', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-    { label: 'Demo Admin', email: 'admin@nexcv.vn', password: 'admin123', color: 'bg-amber-50 text-amber-700 border-amber-200' },
   ]
 
   return (
@@ -123,10 +122,10 @@ export default function LoginPage() {
           </div>
 
           {/* Demo shortcuts */}
-          <div className="grid grid-cols-2 gap-2 mb-5">
+          <div className="mb-5">
             {DEMO_ACCOUNTS.map(acc => (
               <button key={acc.email} onClick={() => setForm({ email: acc.email, password: acc.password })}
-                className={`text-xs px-3 py-2 rounded-lg border font-medium transition-colors hover:opacity-80 ${acc.color}`}>
+                className={`w-full text-xs px-3 py-2 rounded-lg border font-medium transition-colors hover:opacity-80 ${acc.color}`}>
                 💡 {acc.label}
               </button>
             ))}

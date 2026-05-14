@@ -14,7 +14,7 @@ export class User {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true, enum: ['candidate', 'employer'], default: 'candidate' })
+  @Prop({ required: true, enum: ['candidate', 'employer', 'admin'], default: 'candidate' })
   role: string;
 
   // General fields

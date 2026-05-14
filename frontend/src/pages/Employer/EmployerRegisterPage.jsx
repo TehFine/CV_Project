@@ -50,8 +50,21 @@ export default function EmployerRegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
 
+  // Đọc dữ liệu prefill từ sessionStorage (do HomePage lưu trước khi logout)
+  const prefill = (() => {
+    try {
+      const raw = sessionStorage.getItem('employer_register_prefill')
+      if (raw) {
+        sessionStorage.removeItem('employer_register_prefill') // Xóa sau khi đọc
+        return JSON.parse(raw)
+      }
+    } catch {}
+    return {}
+  })()
+
   const [form, setForm] = useState({
-    name: '', email: '', phone: '', password: '', confirmPassword: '',
+    name: prefill.name || '', email: prefill.email || '', phone: prefill.phone || '',
+    password: '', confirmPassword: '',
     companyName: '', companyWebsite: '', industry: '',
   })
   const [errors, setErrors] = useState({})
@@ -153,6 +166,14 @@ export default function EmployerRegisterPage() {
 
           {errors.submit && (
             <div className="employer-auth-error" style={{ marginBottom: 16 }}>⚠️ {errors.submit}</div>
+          )}
+
+          {/* Thông báo nếu được điền sẵn từ trang chủ */}
+          {(prefill.name || prefill.email) && (
+            <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#3730A3', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>ℹ️</span>
+              <span>Thông tin cá nhân đã được điền sẵn từ tài khoản ứng viên của bạn. Vui lòng kiểm tra lại trước khi gửi.</span>
+            </div>
           )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

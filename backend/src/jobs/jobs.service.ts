@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Job, JobDocument } from './schemas/job.schema';
@@ -77,21 +77,28 @@ export class JobsService {
     return newJob.save();
   }
 
-  async update(id: string, jobData: any) {
-    const updatedJob = await this.jobModel
-      .findByIdAndUpdate(id, jobData, { new: true })
-      .exec();
-    if (!updatedJob) {
+  async update(id: string, jobData: any, requesterId: string, requesterRole: string) {
+    const job = await this.jobModel.findById(id).exec();
+    if (!job) {
       throw new NotFoundException('Không tìm thấy công việc để cập nhật');
     }
-    return updatedJob;
+    // Chỉ admin hoặc chủ sở hữu mới được cập nhật
+    if (requesterRole !== 'admin' && job.employerId?.toString() !== requesterId) {
+      throw new ForbiddenException('Bạn không có quyền chỉnh sửa tin tuyển dụng này');
+    }
+    return this.jobModel.findByIdAndUpdate(id, jobData, { new: true }).exec();
   }
 
-  async remove(id: string) {
-    const result = await this.jobModel.findByIdAndDelete(id).exec();
-    if (!result) {
+  async remove(id: string, requesterId: string, requesterRole: string) {
+    const job = await this.jobModel.findById(id).exec();
+    if (!job) {
       throw new NotFoundException('Không tìm thấy công việc để xóa');
     }
+    // Chỉ admin hoặc chủ sở hữu mới được xóa
+    if (requesterRole !== 'admin' && job.employerId?.toString() !== requesterId) {
+      throw new ForbiddenException('Bạn không có quyền xóa tin tuyển dụng này');
+    }
+    await this.jobModel.findByIdAndDelete(id).exec();
     return { message: 'Đã xóa công việc thành công' };
   }
 

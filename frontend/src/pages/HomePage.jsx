@@ -53,7 +53,7 @@ const HOW_IT_WORKS = [
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [keyword, setKeyword] = useState("");
   const [location, setLocation] = useState("");
 
@@ -96,6 +96,21 @@ export default function HomePage() {
     navigate(isAuthenticated ? "/cv-builder" : "/login", {
       state: { from: "/cv-builder" },
     });
+
+  // Điều hướng đến trang đăng ký nhà tuyển dụng
+  // Nếu đang đăng nhập với role candidate: lưu prefill, đăng xuất, rồi mới chuyển trang
+  const handleEmployerRegister = async () => {
+    if (isAuthenticated && user?.role === 'candidate') {
+      // Lưu thông tin vào sessionStorage để giữ qua lần navigate mới sau khi logout
+      sessionStorage.setItem('employer_register_prefill', JSON.stringify({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      }));
+      await logout();
+    }
+    navigate('/employer/register');
+  };
 
   return (
     <>
@@ -440,16 +455,13 @@ export default function HomePage() {
                 Đăng tin tuyển dụng, tìm kiếm ứng viên phù hợp và quản lý toàn
                 bộ quy trình tuyển dụng với AI.
               </p>
-              {/* ← dùng thẻ <a> để mở tab mới, không dùng Link */}
-              <a
-                href="/employer"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold border border-white/30 text-white bg-transparent hover:bg-white hover:text-[#0F172A] transition-colors"
-                style={{ textDecoration: "none" }}
+              {/* Button điều hướng thông minh đến /employer/register */}
+              <button
+                onClick={handleEmployerRegister}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold border border-white/30 text-white bg-transparent hover:bg-white hover:text-[#0F172A] transition-colors cursor-pointer"
               >
                 Tìm hiểu & đăng ký <ArrowRight className="h-4 w-4" />
-              </a>
+              </button>
             </div>
           </div>
         </div>

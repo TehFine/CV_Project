@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
@@ -40,6 +41,7 @@ import AdminCVScoresPage from "./pages/Admin/AdminCVScoresPage";
 import AdminNotificationsPage from "./pages/Admin/AdminNotificationsPage";
 import AdminReportsPage from "./pages/Admin/AdminReportsPage";
 import AdminSettingsPage from "./pages/Admin/AdminSettingsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 // ── Spinner ───────────────────────────────────────────────────────────────────
 function Spinner() {
@@ -67,9 +69,9 @@ function ProtectedRoute({ children, requireRole }) {
     );
   }
 
-  // ❌ Nếu yêu cầu Admin nhưng không phải Admin
+  // ❌ Nếu yêu cầu Admin nhưng không phải Admin → ẩn trang, hiển thị 404
   if (requireRole === "admin" && !isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/404" replace />;
   }
 
   // ❌ Nếu là Admin nhưng cố truy cập trang của Candidate/Employer
@@ -85,6 +87,21 @@ function ProtectedRoute({ children, requireRole }) {
   // ❌ Nếu yêu cầu Candidate nhưng là Employer
   if (requireRole === "candidate" && isEmployer) {
     return <Navigate to="/employer/dashboard" replace />;
+  }
+
+  return children;
+}
+
+// ── Guest Route (Chỉ cho phép khi chưa đăng nhập) ─────────────────────────────
+function GuestRoute({ children }) {
+  const { isAuthenticated, isEmployer, isAdmin, loading } = useAuth();
+
+  if (loading) return <Spinner />;
+
+  if (isAuthenticated) {
+    if (isAdmin) return <Navigate to="/admin" replace />;
+    if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -106,9 +123,11 @@ function SeekerLayout({ children }) {
     </div>
   );
 }
+
 function HomeRoute() {
-  const { isEmployer, loading } = useAuth();
+  const { isEmployer, isAdmin, loading } = useAuth();
   if (loading) return <Spinner />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
   if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
   return (
     <SeekerLayout>
@@ -116,26 +135,59 @@ function HomeRoute() {
     </SeekerLayout>
   );
 }
-// ── App ───────────────────────────────────────────────────────────────────────
-function EmployerLoginRoute() {
-  const { isAuthenticated, isEmployer, loading } = useAuth();
+
+function EmployerHomeRoute() {
+  const { isEmployer, isAdmin, loading } = useAuth();
   if (loading) return <Spinner />;
-  if (isAuthenticated) {
-    return isEmployer ? <Navigate to="/employer/dashboard" replace /> : <Navigate to="/" replace />;
-  }
+  if (isAdmin) return <Navigate to="/admin" replace />;
+  if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
   return (
     <EmployerLayout>
-      <EmployerLoginPage />
+      <EmployerHomePage />
     </EmployerLayout>
   );
 }
 
+// ── App ───────────────────────────────────────────────────────────────────────
+function EmployerLoginRoute() {
+  return (
+    <GuestRoute>
+      <EmployerLayout>
+        <EmployerLoginPage />
+      </EmployerLayout>
+    </GuestRoute>
+  );
+}
+
 function EmployerRegisterRoute() {
-  const { isAuthenticated, isEmployer, loading } = useAuth();
+  const { isAuthenticated, isEmployer, isAdmin, loading, user, logout } = useAuth();
+
+  useEffect(() => {
+    // Chỉ thực hiện logout cho candidate muốn đăng ký employer
+    // KHÔNG logout admin
+    if (!loading && isAuthenticated && !isEmployer && !isAdmin) {
+      sessionStorage.setItem('employer_register_prefill', JSON.stringify({
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
+      }));
+      logout();
+    }
+  }, [isAuthenticated, isEmployer, isAdmin, loading, user, logout]);
+
   if (loading) return <Spinner />;
-  if (isAuthenticated) {
-    return isEmployer ? <Navigate to="/employer/dashboard" replace /> : <Navigate to="/" replace />;
+
+  // Admin -> về admin portal
+  if (isAdmin) return <Navigate to="/admin" replace />;
+
+  // Employer -> về dashboard
+  if (isAuthenticated && isEmployer) {
+    return <Navigate to="/employer/dashboard" replace />;
   }
+
+  // Nếu là candidate đang trong quá trình logout
+  if (isAuthenticated && !isEmployer) return <Spinner />;
+
   return (
     <EmployerLayout>
       <EmployerRegisterPage />
@@ -153,17 +205,21 @@ export default function App() {
           <Route
             path="/login"
             element={
-              <SeekerLayout>
-                <LoginPage />
-              </SeekerLayout>
+              <GuestRoute>
+                <SeekerLayout>
+                  <LoginPage />
+                </SeekerLayout>
+              </GuestRoute>
             }
           />
           <Route
             path="/register"
             element={
-              <SeekerLayout>
-                <RegisterPage />
-              </SeekerLayout>
+              <GuestRoute>
+                <SeekerLayout>
+                  <RegisterPage />
+                </SeekerLayout>
+              </GuestRoute>
             }
           />
           <Route
@@ -228,11 +284,7 @@ export default function App() {
           {/* ── Nhà tuyển dụng — EmployerLayout (header riêng) ── */}
           <Route
             path="/employer"
-            element={
-              <EmployerLayout>
-                <EmployerHomePage />
-              </EmployerLayout>
-            }
+            element={<EmployerHomeRoute />}
           />
           <Route
             path="/employer/dashboard"
@@ -296,7 +348,14 @@ export default function App() {
           />
 
           {/* ── Quản trị viên (Admin) ── */}
-          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route
+            path="/admin/login"
+            element={
+              <GuestRoute>
+                <AdminLoginPage />
+              </GuestRoute>
+            }
+          />
           <Route
             path="/admin"
             element={
@@ -307,7 +366,6 @@ export default function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsersPage />} />
-            {/* Các trang khác có thể thêm sau */}
             <Route path="jobs" element={<AdminJobsPage />} />
             <Route path="jobs/:id" element={<AdminJobDetailsPage />} />
             <Route path="cv-scores" element={<AdminCVScoresPage />} />
@@ -316,8 +374,9 @@ export default function App() {
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
 
-          {/* ── Fallback ── */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* ── 404 & Fallback ── */}
+          <Route path="/404" element={<NotFoundPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
     </AuthProvider>

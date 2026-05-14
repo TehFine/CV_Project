@@ -1,10 +1,12 @@
-import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body } from '@nestjs/common';
+import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CvScoringService } from './cv-scoring.service';
 import { JobsService } from '../jobs/jobs.service';
 import { JobDocument } from '../jobs/schemas/job.schema';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('cv-scoring')
+@UseGuards(JwtAuthGuard)
 export class CvScoringController {
   constructor(
     private readonly cvScoringService: CvScoringService,
