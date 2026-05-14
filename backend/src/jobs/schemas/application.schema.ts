@@ -19,6 +19,9 @@ export class Application {
 
   @Prop({ default: 'pending', enum: ['pending', 'reviewing', 'interview', 'offered', 'rejected'] })
   status: string;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'CvScore' })
+  aiScoreId: MongooseSchema.Types.ObjectId;
 }
 
 export const ApplicationSchema = SchemaFactory.createForClass(Application);
