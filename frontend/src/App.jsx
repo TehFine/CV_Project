@@ -125,13 +125,26 @@ function SeekerLayout({ children }) {
 }
 
 function HomeRoute() {
-  const { isEmployer, loading } = useAuth();
+  const { isEmployer, isAdmin, loading } = useAuth();
   if (loading) return <Spinner />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
   if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
   return (
     <SeekerLayout>
       <HomePage />
     </SeekerLayout>
+  );
+}
+
+function EmployerHomeRoute() {
+  const { isEmployer, isAdmin, loading } = useAuth();
+  if (loading) return <Spinner />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
+  if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
+  return (
+    <EmployerLayout>
+      <EmployerHomePage />
+    </EmployerLayout>
   );
 }
 
@@ -147,11 +160,12 @@ function EmployerLoginRoute() {
 }
 
 function EmployerRegisterRoute() {
-  const { isAuthenticated, isEmployer, loading, user, logout } = useAuth();
+  const { isAuthenticated, isEmployer, isAdmin, loading, user, logout } = useAuth();
 
   useEffect(() => {
-    // Nếu truy cập trực tiếp bằng URL khi đang là candidate
-    if (!loading && isAuthenticated && !isEmployer) {
+    // Chỉ thực hiện logout cho candidate muốn đăng ký employer
+    // KHÔNG logout admin
+    if (!loading && isAuthenticated && !isEmployer && !isAdmin) {
       sessionStorage.setItem('employer_register_prefill', JSON.stringify({
         name: user?.name || '',
         email: user?.email || '',
@@ -159,14 +173,21 @@ function EmployerRegisterRoute() {
       }));
       logout();
     }
-  }, [isAuthenticated, isEmployer, loading, user, logout]);
+  }, [isAuthenticated, isEmployer, isAdmin, loading, user, logout]);
 
-  if (loading || (isAuthenticated && !isEmployer)) return <Spinner />;
+  if (loading) return <Spinner />;
 
-  // Nếu đã là employer rồi thì vào dashboard
+  // Admin -> về admin portal
+  if (isAdmin) return <Navigate to="/admin" replace />;
+
+  // Employer -> về dashboard
   if (isAuthenticated && isEmployer) {
     return <Navigate to="/employer/dashboard" replace />;
   }
+
+  // Nếu là candidate đang trong quá trình logout
+  if (isAuthenticated && !isEmployer) return <Spinner />;
+
   return (
     <EmployerLayout>
       <EmployerRegisterPage />
@@ -263,11 +284,7 @@ export default function App() {
           {/* ── Nhà tuyển dụng — EmployerLayout (header riêng) ── */}
           <Route
             path="/employer"
-            element={
-              <EmployerLayout>
-                <EmployerHomePage />
-              </EmployerLayout>
-            }
+            element={<EmployerHomeRoute />}
           />
           <Route
             path="/employer/dashboard"
@@ -331,7 +348,14 @@ export default function App() {
           />
 
           {/* ── Quản trị viên (Admin) ── */}
-          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route
+            path="/admin/login"
+            element={
+              <GuestRoute>
+                <AdminLoginPage />
+              </GuestRoute>
+            }
+          />
           <Route
             path="/admin"
             element={
