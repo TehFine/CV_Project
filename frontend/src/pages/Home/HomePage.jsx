@@ -7,7 +7,7 @@ import { AIPromoSection, HowItWorksSection, CTASplitSection } from "./sections/B
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { isAuthenticated, user, logout, isEmployer } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [featuredJobs, setFeaturedJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [categories, setCategories] = useState(JOB_CATEGORIES);
@@ -32,21 +32,6 @@ export default function HomePage() {
   const handleCreateCV = () =>
     navigate(isAuthenticated ? "/cv-builder" : "/login", { state: { from: "/cv-builder" } });
 
-  // Điều hướng đến trang đăng ký nhà tuyển dụng
-  // Nếu đang đăng nhập với role candidate: lưu prefill, đăng xuất, rồi mới chuyển trang
-  const handleEmployerRegister = async () => {
-    if (isAuthenticated && !isEmployer) {
-      // Lưu thông tin vào sessionStorage để giữ qua lần navigate mới sau khi logout
-      sessionStorage.setItem('employer_register_prefill', JSON.stringify({
-        name: user?.name || '',
-        email: user?.email || '',
-        phone: user?.phone || '',
-      }));
-      await logout();
-    }
-    navigate('/employer/register');
-  };
-
   return (
     <>
       <HeroSection />
@@ -57,7 +42,7 @@ export default function HomePage() {
       <FeaturedJobsSection jobs={featuredJobs} loading={loadingJobs} />
       <AIPromoSection />
       <HowItWorksSection />
-      <CTASplitSection onCreateCV={handleCreateCV} onEmployerRegister={handleEmployerRegister} />
+      <CTASplitSection onCreateCV={handleCreateCV} />
     </>
   );
 }

@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
@@ -91,6 +92,21 @@ function ProtectedRoute({ children, requireRole }) {
   return children;
 }
 
+// ── Guest Route (Chỉ cho phép khi chưa đăng nhập) ─────────────────────────────
+function GuestRoute({ children }) {
+  const { isAuthenticated, isEmployer, isAdmin, loading } = useAuth();
+
+  if (loading) return <Spinner />;
+
+  if (isAuthenticated) {
+    if (isAdmin) return <Navigate to="/admin" replace />;
+    if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
 // ── Layout ứng viên — dùng Header/Footer cũ ──────────────────────────────────
 function SeekerLayout({ children }) {
   return (
@@ -121,21 +137,32 @@ function HomeRoute() {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 function EmployerLoginRoute() {
-  const { isAuthenticated, isEmployer, loading } = useAuth();
-  if (loading) return <Spinner />;
-  if (isAuthenticated) {
-    return isEmployer ? <Navigate to="/employer/dashboard" replace /> : <Navigate to="/" replace />;
-  }
   return (
-    <EmployerLayout>
-      <EmployerLoginPage />
-    </EmployerLayout>
+    <GuestRoute>
+      <EmployerLayout>
+        <EmployerLoginPage />
+      </EmployerLayout>
+    </GuestRoute>
   );
 }
 
 function EmployerRegisterRoute() {
-  const { isAuthenticated, isEmployer, loading } = useAuth();
-  if (loading) return <Spinner />;
+  const { isAuthenticated, isEmployer, loading, user, logout } = useAuth();
+
+  useEffect(() => {
+    // Nếu truy cập trực tiếp bằng URL khi đang là candidate
+    if (!loading && isAuthenticated && !isEmployer) {
+      sessionStorage.setItem('employer_register_prefill', JSON.stringify({
+        name: user?.name || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
+      }));
+      logout();
+    }
+  }, [isAuthenticated, isEmployer, loading, user, logout]);
+
+  if (loading || (isAuthenticated && !isEmployer)) return <Spinner />;
+
   // Nếu đã là employer rồi thì vào dashboard
   if (isAuthenticated && isEmployer) {
     return <Navigate to="/employer/dashboard" replace />;
@@ -157,17 +184,21 @@ export default function App() {
           <Route
             path="/login"
             element={
-              <SeekerLayout>
-                <LoginPage />
-              </SeekerLayout>
+              <GuestRoute>
+                <SeekerLayout>
+                  <LoginPage />
+                </SeekerLayout>
+              </GuestRoute>
             }
           />
           <Route
             path="/register"
             element={
-              <SeekerLayout>
-                <RegisterPage />
-              </SeekerLayout>
+              <GuestRoute>
+                <SeekerLayout>
+                  <RegisterPage />
+                </SeekerLayout>
+              </GuestRoute>
             }
           />
           <Route

@@ -91,7 +91,7 @@ export function HowItWorksSection() {
   );
 }
 
-export function CTASplitSection({ onCreateCV, onEmployerRegister }) {
+export function CTASplitSection({ onCreateCV }) {
   return (
     <section className="section bg-white border-t border-[#F1F5F9]">
       <div className="container-app">
@@ -118,12 +118,12 @@ export function CTASplitSection({ onCreateCV, onEmployerRegister }) {
             <p className="text-slate-300 text-sm leading-relaxed mb-5">
               Đăng tin tuyển dụng, tìm kiếm ứng viên phù hợp và quản lý toàn bộ quy trình tuyển dụng với AI.
             </p>
-            <button
-              onClick={onEmployerRegister}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold border border-white/30 text-white bg-transparent hover:bg-white hover:text-[#0F172A] transition-colors cursor-pointer"
+            <Link
+              to="/employer/register"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold border border-white/30 text-white bg-transparent hover:bg-white hover:text-[#0F172A] transition-colors"
             >
               Tìm hiểu & đăng ký <ArrowRight className="h-4 w-4" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
