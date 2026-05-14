@@ -4,13 +4,19 @@ const pdfParse = require('pdf-parse');
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { JobDocument } from '../jobs/schemas/job.schema';
 import { ROLE_KNOWLEDGE_BASE, ROLE_MAPPING } from './constants/knowledge-base';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { CvScore, CvScoreDocument } from './schemas/cv-score.schema';
 
 @Injectable()
 export class CvScoringService {
   private readonly logger = new Logger(CvScoringService.name);
   private genAI: GoogleGenerativeAI | null = null;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
+  ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (apiKey) {
       this.genAI = new GoogleGenerativeAI(apiKey);
@@ -27,6 +33,27 @@ export class CvScoringService {
       this.logger.error('Failed to parse PDF', error);
       throw new Error('Failed to parse PDF file. Ensure it is a valid PDF.');
     }
+  }
+
+  async findExistingScore(userId: string, jobId?: string, cvUrl?: string): Promise<CvScoreDocument | null> {
+    const query: any = { userId };
+    if (jobId) query.jobId = jobId;
+    if (cvUrl) query.cvUrl = cvUrl;
+    
+    // Find the most recent score for this user/job/cv
+    return this.cvScoreModel.findOne(query).sort({ createdAt: -1 }).exec();
+  }
+
+  async saveScore(userId: string, result: any, type: string, jobId?: string, cvUrl?: string): Promise<CvScoreDocument> {
+    const newScore = new this.cvScoreModel({
+      userId,
+      jobId,
+      cvUrl: cvUrl || 'default_cv',
+      score: result.overall || result.score || 0,
+      analysis: result,
+      type
+    });
+    return newScore.save();
   }
 
   private scoreByKeywords(cvText: string, job: JobDocument): number {
@@ -50,7 +77,26 @@ export class CvScoringService {
     return Math.max(1, Math.min(10, Math.round(rawScore)));
   }
 
-  async scoreCV(pdfBuffer: Buffer, job: JobDocument): Promise<{ score: number; review: string }> {
+  async scoreCV(pdfBuffer: Buffer, job: JobDocument, candidateId?: string): Promise<{ score: number; review: string; reused?: boolean }> {
+    const fileName = 'uploaded_cv.pdf'; // Default or from file if available
+
+    // 1. Check for existing score from candidate for this job
+    if (candidateId) {
+      const existing = await this.findExistingScore(candidateId, (job as any)._id.toString());
+      if (existing) {
+        this.logger.log(`Employer reusing candidate score for user ${candidateId} and job ${job.title}`);
+        
+        // Generate contextual evaluation based on existing analysis
+        const employerReview = await this.generateEmployerContext(existing.analysis, job);
+        
+        return {
+          score: existing.score,
+          review: employerReview,
+          reused: true
+        };
+      }
+    }
+
     const cvText = await this.parsePdf(pdfBuffer);
     
     // Step 1: Local Knowledge Base match
@@ -112,6 +158,37 @@ KHÔNG trả về markdown, KHÔNG có \`\`\`json. CHỈ TRẢ VỀ CHUỖI JSON
       score: localScore,
       review: `Đánh giá tự động: CV của ứng viên khớp khoảng ${matchPercentage}% từ khóa yêu cầu của công việc.`
     };
+  }
+
+  async generateEmployerContext(existingAnalysis: any, job: JobDocument): Promise<string> {
+    if (!this.genAI) {
+      return 'AI không sẵn sàng để tạo đánh giá ngữ cảnh.';
+    }
+
+    try {
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      
+      const prompt = `
+Bạn là một chuyên gia tuyển dụng. Dưới đây là kết quả phân tích CV của một ứng viên cho vị trí: ${job.title}.
+
+Dữ liệu phân tích hiện có:
+- Điểm tổng quát: ${existingAnalysis.overall || existingAnalysis.score}/100
+- Điểm mạnh: ${existingAnalysis.strengths?.join(', ') || 'Không có dữ liệu'}
+- Cần cải thiện: ${existingAnalysis.improvements?.join(', ') || 'Không có dữ liệu'}
+- Nhận xét chi tiết: ${existingAnalysis.categories?.map(c => c.feedback).join('; ') || 'Không có dữ liệu'}
+
+Hãy viết một bản đánh giá ngắn gọn (khoảng 3-4 câu, tiếng Việt) dành riêng cho Nhà tuyển dụng. 
+Tập trung vào việc: Tại sao ứng viên này phù hợp (hoặc không phù hợp) với vị trí này và điều gì nhà tuyển dụng nên lưu ý khi phỏng vấn.
+
+Chỉ trả về đoạn văn bản đánh giá, không kèm tiêu đề hay markdown.
+      `;
+      
+      const result = await model.generateContent(prompt);
+      return result.response.text().trim();
+    } catch (error) {
+      this.logger.error('Failed to generate employer context', error);
+      return 'Lỗi khi tạo đánh giá ngữ cảnh cho nhà tuyển dụng.';
+    }
   }
 
   private evaluateCandidateLocalScore(cvText: string, targetPosition: string, fileName: string, jobContext?: JobDocument) {
@@ -258,7 +335,20 @@ KHÔNG trả về markdown, KHÔNG có \`\`\`json. CHỈ TRẢ VỀ CHUỖI JSON
     };
   }
 
-  async scoreCandidateCV(pdfBuffer: Buffer, fileName: string, targetPosition: string = 'Vị trí ứng tuyển chung', jobContext?: JobDocument): Promise<any> {
+  async scoreCandidateCV(pdfBuffer: Buffer, fileName: string, targetPosition: string = 'Vị trí ứng tuyển chung', jobContext?: JobDocument, userId?: string): Promise<any> {
+    // 1. Check for existing score if userId and jobId are present
+    if (userId && jobContext) {
+      const existing = await this.findExistingScore(userId, (jobContext as any)._id.toString(), fileName);
+      if (existing) {
+        this.logger.log(`Reusing existing score for user ${userId} and job ${jobContext.title}`);
+        return {
+          ...existing.analysis,
+          id: existing._id,
+          reused: true
+        };
+      }
+    }
+
     const cvText = await this.parsePdf(pdfBuffer);
     
     if (this.genAI) {
@@ -291,13 +381,25 @@ Kết quả trả về phải là một JSON object tiếng Việt, không kèm 
           
         try {
            const parsed = JSON.parse(responseText);
-           return {
-             id: 'cv_score_' + Date.now(),
-             fileName,
-             scoredAt: new Date().toISOString(),
-             ...parsed
-           };
-        } catch (parseError) {
+            const finalResult = {
+              id: 'cv_score_' + Date.now(),
+              fileName,
+              scoredAt: new Date().toISOString(),
+              ...parsed
+            };
+
+            if (userId) {
+              await this.saveScore(
+                userId, 
+                finalResult, 
+                jobContext ? 'candidate_self_score' : 'general_analysis',
+                jobContext ? (jobContext as any)._id.toString() : undefined,
+                fileName
+              );
+            }
+
+            return finalResult;
+         } catch (parseError) {
            this.logger.error('Failed to parse Gemini candidate JSON response', parseError);
         }
       } catch (aiError) {
