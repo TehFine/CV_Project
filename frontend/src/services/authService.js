@@ -13,6 +13,7 @@ const MOCK_USER = {
   skills: ["React", "TypeScript", "Node.js", "TailwindCSS"],
   savedJobs: [1, 3],
   cvCount: 2,
+  role: "candidate",
   createdAt: "2024-01-15",
 };
 // Mock data cho employer

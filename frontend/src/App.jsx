@@ -136,8 +136,9 @@ function EmployerLoginRoute() {
 function EmployerRegisterRoute() {
   const { isAuthenticated, isEmployer, loading } = useAuth();
   if (loading) return <Spinner />;
-  if (isAuthenticated) {
-    return isEmployer ? <Navigate to="/employer/dashboard" replace /> : <Navigate to="/" replace />;
+  // Nếu đã là employer rồi thì vào dashboard
+  if (isAuthenticated && isEmployer) {
+    return <Navigate to="/employer/dashboard" replace />;
   }
   return (
     <EmployerLayout>
