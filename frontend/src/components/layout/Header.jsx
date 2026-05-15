@@ -7,6 +7,7 @@ import {
   User,
   Bookmark,
   ChevronDown,
+  History,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -30,6 +31,7 @@ const DROPDOWN_ITEMS = [
   { href: "/profile",       icon: <User size={14} />,     label: "Hồ sơ của tôi" },
   { href: "/cv-builder",    icon: <FileEdit size={14} />,  label: "Tạo CV" },
   { href: "/cv-upload",     icon: <Sparkles size={14} />,  label: "Chấm điểm CV" },
+  { href: "/cv-history",    icon: <History size={14} />,   label: "Lịch sử CV" },
   { href: "/profile?tab=saved", icon: <Bookmark size={14} />, label: "Việc đã lưu" },
 ];
 

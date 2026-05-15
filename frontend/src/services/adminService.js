@@ -1,6 +1,6 @@
 import api from './api'
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || !import.meta.env.VITE_API_URL
+const USE_MOCK = true; // Forced to true for Admin UI until Backend Admin APIs are implemented
 const delay = ms => new Promise(r => setTimeout(r, ms))
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -230,12 +230,6 @@ export const MOCK_SETTINGS = {
 // ─── Admin Service ─────────────────────────────────────────────────────────────
 export const adminService = {
     async login(email, password) {
-        if (USE_MOCK) {
-            await delay(800)
-            if (email === 'admin@nexcv.vn' && password === 'admin123')
-                return { token: 'mock_admin_token', user: { id: 0, role: 'admin', name: 'Admin NexCV', email: 'admin@nexcv.vn' } }
-            throw { message: 'Sai email hoặc mật khẩu admin' }
-        }
         return api.post('/auth/login', { email, password })
     },
 
