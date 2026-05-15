@@ -164,6 +164,19 @@ export const cvService = {
   },
 
   /**
+   * Lấy lịch sử chấm điểm CV của ứng viên
+   */
+  async getScoreHistory() {
+    if (USE_MOCK) {
+      await delay(500)
+      return [generateMockScore('My_Resume_v2.pdf'), generateMockScore('Backend_Dev_CV.docx')]
+    }
+    const res = await api.get('/cv-scoring/history')
+    // Ensure we handle both {data: [...]} and direct array responses
+    return res.data?.data || res.data || res
+  },
+
+  /**
    * Tạo CV bằng Reactive Resume
    */
   async saveResume(data) {

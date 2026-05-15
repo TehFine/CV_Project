@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { JobDocument } from '../jobs/schemas/job.schema';
+import { CvScore } from './schemas/cv-score.schema';
 import { ROLE_KNOWLEDGE_BASE, ROLE_MAPPING } from './constants/knowledge-base';
 
 @Injectable()
@@ -10,7 +14,10 @@ export class CvScoringService {
   private readonly logger = new Logger(CvScoringService.name);
   private genAI: GoogleGenerativeAI | null = null;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @InjectModel(CvScore.name) private cvScoreModel: Model<CvScore>
+  ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (apiKey) {
       this.genAI = new GoogleGenerativeAI(apiKey);
@@ -19,13 +26,25 @@ export class CvScoringService {
     }
   }
 
-  async parsePdf(buffer: Buffer): Promise<string> {
+  async parseDocument(file: Express.Multer.File): Promise<string> {
     try {
-      const data = await pdfParse(buffer);
-      return data.text;
+      if (file.mimetype === 'application/pdf') {
+        const data = await pdfParse(file.buffer);
+        return data.text;
+      } else if (
+        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+        file.mimetype === 'application/msword' ||
+        file.originalname.endsWith('.docx') || 
+        file.originalname.endsWith('.doc')
+      ) {
+        const result = await mammoth.extractRawText({ buffer: file.buffer });
+        return result.value;
+      } else {
+        throw new Error('Unsupported file type');
+      }
     } catch (error) {
-      this.logger.error('Failed to parse PDF', error);
-      throw new Error('Failed to parse PDF file. Ensure it is a valid PDF.');
+      this.logger.error('Failed to parse document', error);
+      throw new Error('Failed to parse document. Ensure it is a valid PDF or Word file.');
     }
   }
 
@@ -50,8 +69,8 @@ export class CvScoringService {
     return Math.max(1, Math.min(10, Math.round(rawScore)));
   }
 
-  async scoreCV(pdfBuffer: Buffer, job: JobDocument): Promise<{ score: number; review: string }> {
-    const cvText = await this.parsePdf(pdfBuffer);
+  async scoreCV(file: Express.Multer.File, job: JobDocument): Promise<{ score: number; review: string }> {
+    const cvText = await this.parseDocument(file);
     
     // Step 1: Local Knowledge Base match
     const localScore = this.scoreByKeywords(cvText, job);
@@ -258,8 +277,8 @@ KHÔNG trả về markdown, KHÔNG có \`\`\`json. CHỈ TRẢ VỀ CHUỖI JSON
     };
   }
 
-  async scoreCandidateCV(pdfBuffer: Buffer, fileName: string, targetPosition: string = 'Vị trí ứng tuyển chung', jobContext?: JobDocument): Promise<any> {
-    const cvText = await this.parsePdf(pdfBuffer);
+  async scoreCandidateCV(file: Express.Multer.File, targetPosition: string = 'Vị trí ứng tuyển chung', jobContext?: JobDocument, user?: any): Promise<any> {
+    const cvText = await this.parseDocument(file);
     
     if (this.genAI) {
       try {
@@ -350,12 +369,33 @@ Cấu trúc JSON bắt buộc phải chính xác như sau (dùng tiếng Việt)
           .replace(/\s*```$/i, '');
           
         try {
-           const parsed = JSON.parse(responseText);
+           const parsedJson = JSON.parse(responseText);
+           
+           // --- LƯU KẾT QUẢ VÀO DATABASE ---
+           const finalScore = {
+             userId: user ? user._id : null,
+             fileName: file.originalname,
+             targetPosition: targetPosition,
+             overall: parsedJson.overall,
+             grade: parsedJson.grade,
+             gradeLabel: parsedJson.gradeLabel,
+             level_assessment: parsedJson.level_assessment,
+             extracted_experience_years: parsedJson.extracted_experience_years,
+             project_quality: parsedJson.project_quality,
+             recommended_roles: parsedJson.recommended_roles || [],
+             skill_analysis: parsedJson.skill_analysis || { advanced: [], familiar: [] },
+             categories: parsedJson.categories || [],
+             strengths: parsedJson.strengths || [],
+             improvements: parsedJson.improvements || [],
+           };
+           
+           const savedScore = await this.cvScoreModel.create(finalScore);
+
            return {
-             id: 'cv_score_' + Date.now(),
-             fileName,
-             scoredAt: new Date().toISOString(),
-             ...parsed
+             id: savedScore._id,
+             fileName: file.originalname,
+             scoredAt: (savedScore as any).createdAt,
+             ...parsedJson
            };
         } catch (parseError) {
            this.logger.error('Failed to parse Gemini candidate JSON response', parseError);
@@ -366,6 +406,21 @@ Cấu trúc JSON bắt buộc phải chính xác như sau (dùng tiếng Việt)
     }
     
     // Fallback: Local Knowledge Base Analysis if AI fails
-    return this.evaluateCandidateLocalScore(cvText, targetPosition, fileName, jobContext);
+    const fallback = this.evaluateCandidateLocalScore(cvText, targetPosition, file.originalname, jobContext);
+    const savedScore = await this.cvScoreModel.create({
+      userId: user ? user._id : null,
+      targetPosition: targetPosition,
+      ...fallback,
+      level_assessment: 'Chưa rõ',
+      extracted_experience_years: 0,
+      project_quality: 'Đánh giá cơ bản',
+      skill_analysis: { advanced: [], familiar: [] },
+      recommended_roles: []
+    });
+    return { ...fallback, id: savedScore._id };
+  }
+
+  async getHistory(userId: string) {
+    return this.cvScoreModel.find({ userId }).sort({ createdAt: -1 }).exec();
   }
 }
