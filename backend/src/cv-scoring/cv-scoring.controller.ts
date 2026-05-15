@@ -6,7 +6,6 @@ import { JobDocument } from '../jobs/schemas/job.schema';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('cv-scoring')
-@UseGuards(JwtAuthGuard)
 export class CvScoringController {
   constructor(
     private readonly cvScoringService: CvScoringService,
@@ -14,6 +13,7 @@ export class CvScoringController {
   ) {}
 
   @Post('score/:jobId')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('cv'))
   async scoreCv(
     @Param('jobId') jobId: string,

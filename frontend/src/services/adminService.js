@@ -236,7 +236,7 @@ export const adminService = {
                 return { token: 'mock_admin_token', user: { id: 0, role: 'admin', name: 'Admin NexCV', email: 'admin@nexcv.vn' } }
             throw { message: 'Sai email hoặc mật khẩu admin' }
         }
-        return api.post('/admin/login', { email, password })
+        return api.post('/auth/login', { email, password })
     },
 
     // ── Dashboard ──────────────────────────────────────────────────────────────

@@ -56,6 +56,14 @@ function generateMockScore(fileName) {
     overall,
     grade: overall >= 85 ? 'A' : overall >= 75 ? 'B' : overall >= 65 ? 'C' : 'D',
     gradeLabel: overall >= 85 ? 'Xuất sắc' : overall >= 75 ? 'Tốt' : overall >= 65 ? 'Khá' : 'Cần cải thiện',
+    level_assessment: overall >= 80 ? 'Senior' : overall >= 65 ? 'Middle' : 'Junior',
+    extracted_experience_years: overall >= 80 ? 5.5 : overall >= 65 ? 2.5 : 1.0,
+    project_quality: 'Dự án thực tế tốt, có áp dụng công nghệ hiện đại. Cần nêu rõ hơn vai trò cá nhân.',
+    skill_analysis: {
+      advanced: ['React', 'JavaScript', 'Tailwind CSS', 'Node.js'],
+      familiar: ['Docker', 'AWS', 'MongoDB']
+    },
+    recommended_roles: ['Frontend Developer', 'Fullstack Developer', 'UI Engineer'],
     categories,
     strengths: ['Trình bày cấu trúc mạch lạc', 'Kỹ năng kỹ thuật đa dạng', 'Kinh nghiệm thực tế phù hợp'],
     improvements: ['Cần thêm số liệu cụ thể', 'Bổ sung keywords quan trọng', 'Tối ưu cho ATS scanning'],

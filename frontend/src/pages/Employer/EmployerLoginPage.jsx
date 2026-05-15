@@ -129,7 +129,7 @@ export default function EmployerLoginPage() {
           {/* Demo account hint */}
           <div
             onClick={() =>
-              setForm({ email: "employer@nexcv.vn", password: "demo123" })
+              setForm({ email: "employer_demo@nexcv.vn", password: "demo123" })
             }
             style={{
               background:
@@ -165,7 +165,7 @@ export default function EmployerLoginPage() {
                 🧪 Tài khoản demo
               </div>
               <div style={{ fontSize: 12, color: "#64748B" }}>
-                employer@nexcv.vn · demo123
+                employer_demo@nexcv.vn · demo123
               </div>
             </div>
             <div

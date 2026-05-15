@@ -58,8 +58,85 @@ function ScoreResult({ result, onReset }) {
               </div>
             </div>
           </div>
+          {result.recommended_roles && result.recommended_roles.length > 0 && (
+            <div className="bg-white/5 border-t border-white/10 p-4 px-7 flex flex-wrap items-center gap-3">
+              <span className="text-violet-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Gợi ý vị trí phù hợp:</span>
+              <div className="flex flex-wrap gap-2">
+                {result.recommended_roles.map(r => (
+                  <Badge key={r} variant="outline" className="text-white border-white/20 bg-white/5 text-xs hover:bg-white/10 transition-colors">{r}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </Card>
+
+      {/* Deep Analysis Section */}
+      {(result.level_assessment || result.project_quality) && (
+        <Card className="border-violet-100 bg-violet-50/30 overflow-hidden">
+          <CardContent className="p-6">
+            <h3 className="font-bold text-violet-900 mb-5 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-violet-500" />
+              Đánh giá năng lực thực tế
+            </h3>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="bg-white rounded-xl p-4 border border-violet-100 shadow-xs">
+                  <div className="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">Level ước tính</div>
+                  <div className="text-lg font-black text-violet-700">{result.level_assessment || 'Chưa rõ'}</div>
+                  <div className="text-xs text-slate-400 mt-1">Dựa trên độ phức tạp của dự án & nhiệm vụ</div>
+                </div>
+                
+                <div className="bg-white rounded-xl p-4 border border-violet-100 shadow-xs">
+                  <div className="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">Kinh nghiệm thực chất</div>
+                  <div className="text-lg font-black text-violet-700">{result.extracted_experience_years ? `${result.extracted_experience_years} năm` : 'Chưa rõ'}</div>
+                  <div className="text-xs text-slate-400 mt-1">Tổng thời gian làm việc thực tế được trích xuất</div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-4 border border-violet-100 shadow-xs flex flex-col">
+                <div className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">Chất lượng dự án & Đóng góp</div>
+                <p className="text-sm text-slate-700 leading-relaxed flex-1">
+                  {result.project_quality || 'Không có nhận xét chi tiết về dự án.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Skill Depth Analysis */}
+            {result.skill_analysis && (
+              <div className="mt-6 bg-white rounded-xl p-5 border border-violet-100 shadow-xs">
+                <div className="text-xs text-slate-500 font-semibold mb-4 uppercase tracking-wider">Phân tích mức độ thành thạo Kỹ năng</div>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="text-sm font-bold text-slate-700">Kỹ năng chuyên sâu (Có dẫn chứng áp dụng)</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pl-4">
+                      {result.skill_analysis.advanced?.length ? result.skill_analysis.advanced.map(s => (
+                        <Badge key={s} variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200">{s}</Badge>
+                      )) : <span className="text-xs text-slate-400">Không tìm thấy</span>}
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-amber-400" />
+                      <span className="text-sm font-bold text-slate-700">Kỹ năng cơ bản (Chỉ liệt kê)</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pl-4">
+                      {result.skill_analysis.familiar?.length ? result.skill_analysis.familiar.map(s => (
+                        <Badge key={s} variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200">{s}</Badge>
+                      )) : <span className="text-xs text-slate-400">Không có</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Category breakdown */}
       <Card>
