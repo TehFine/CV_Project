@@ -194,8 +194,12 @@ export default function EmployerApplicantsPage() {
     .filter(a => {
         if (!search) return true
         const term = search.toLowerCase()
-        return a.candidate_name?.toLowerCase().includes(term) || 
-               a.candidate_email?.toLowerCase().includes(term)
+        return (
+          a.seeker?.full_name?.toLowerCase().includes(term) || 
+          a.seeker?.email?.toLowerCase().includes(term) ||
+          a.resume?.title?.toLowerCase().includes(term) ||
+          a.cover_letter?.toLowerCase().includes(term)
+        )
     })
     .sort((a, b) => {
       if (sortBy === 'score') return (b.ai_score?.overall_score || 0) - (a.ai_score?.overall_score || 0)

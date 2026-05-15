@@ -88,17 +88,27 @@ export default function JobsPage() {
     location: searchParams.get('location') || '',
   })
 
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, keyword: searchInput }))
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
   const fetchJobs = useCallback(async () => {
     setLoading(true)
     try {
       const res = await jobService.getJobs(filters)
       setJobs(res.data); setTotal(res.total)
+    } catch (err) {
+      console.error('Fetch error:', err)
     } finally { setLoading(false) }
   }, [filters])
 
   useEffect(() => { fetchJobs() }, [fetchJobs])
 
-  const handleSearch = e => { e.preventDefault(); setFilters(p => ({ ...p, keyword: searchInput })) }
+  const handleSearch = e => { e.preventDefault() }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">

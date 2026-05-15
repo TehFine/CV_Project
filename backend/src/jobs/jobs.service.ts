@@ -18,7 +18,19 @@ export class JobsService {
     const filter: any = { status: 'active' };
 
     if (keyword) {
-      filter.$text = { $search: keyword };
+      const searchRegex = { $regex: keyword, $options: 'i' };
+      filter.$or = [
+        { title: searchRegex },
+        { companyName: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+        { location: searchRegex },
+        { tags: searchRegex },
+        { requirements: searchRegex },
+        { benefits: searchRegex },
+        { level: searchRegex },
+        { type: searchRegex },
+      ];
     }
 
     if (category) {
