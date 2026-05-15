@@ -62,7 +62,7 @@ export class CvScoringService {
         const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         
         const prompt = `
-Bạn là một chuyên gia tuyển dụng nhân sự. Hãy đánh giá CV của ứng viên so với yêu cầu công việc.
+Bạn là một chuyên gia tuyển dụng nhân sự (Head of Talent Acquisition). Hãy đánh giá mức độ phù hợp của CV ứng viên so với công việc cụ thể sau đây. Yêu cầu đọc hiểu sâu, không chỉ đếm từ khóa mà phải đánh giá thực chất năng lực.
 
 Mô tả công việc:
 ${job.description || 'Không có mô tả chi tiết'}
@@ -75,8 +75,8 @@ ${cvText}
 
 Hãy phân tích mức độ phù hợp của ứng viên.
 Chỉ trả về ĐÚNG MỘT object JSON chứa 2 trường:
-- "score": Một số nguyên từ 1 đến 10 đánh giá mức độ phù hợp.
-- "review": Một đoạn văn ngắn (tiếng Việt) nhận xét điểm mạnh, điểm yếu và lý do cho số điểm trên.
+- "score": Một số nguyên từ 1 đến 10 đánh giá độ phù hợp sâu (có tính toán đến kinh nghiệm thực tế, không chỉ là đếm từ khóa).
+- "review": Một đoạn văn ngắn (tiếng Việt) nhận xét cụ thể điểm mạnh, điểm yếu, chất lượng dự án ứng viên đã làm và lý do cho số điểm trên.
 
 KHÔNG trả về markdown, KHÔNG có \`\`\`json. CHỈ TRẢ VỀ CHUỖI JSON.
         `;
@@ -266,23 +266,83 @@ KHÔNG trả về markdown, KHÔNG có \`\`\`json. CHỈ TRẢ VỀ CHUỖI JSON
         const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         
         const prompt = `
-Bạn là một hệ thống ATS và chuyên gia tuyển dụng. Hãy chấm điểm CV của ứng viên sau.
+Bạn là một chuyên gia tuyển dụng cấp cao (Head of Talent Acquisition) và là một hệ thống ATS thông minh.
+Nhiệm vụ của bạn là đọc hiểu sâu (contextual analysis) CV của ứng viên, không chỉ đếm từ khóa mà phải phân tích chất lượng kinh nghiệm, mức độ đóng góp trong dự án và mức độ thành thạo kỹ năng.
+
 ${jobContext ? `
 Mục tiêu: Đánh giá độ phù hợp (1:1) với Job Description sau:
 - Tên công việc: ${jobContext.title}
 - Mô tả: ${jobContext.description}
 - Yêu cầu: ${jobContext.requirements?.join(', ')}
+- Kỹ năng (Tags): ${jobContext.tags?.join(', ')}
 ` : `
-Vị trí ứng tuyển mục tiêu: "${targetPosition}"
+Mục tiêu: Đánh giá năng lực tổng quan dựa trên Vị trí ứng tuyển mục tiêu: "${targetPosition}"
 `}
 
-CV Content:
+Nội dung CV ứng viên:
 ${cvText}
 
-Yêu cầu: Đánh giá chi tiết CV này và trả về kết quả định dạng JSON.
-Hãy chú trọng vào các tiêu chí: Kỹ năng chuyên môn, Kinh nghiệm (số năm, dự án), Chứng chỉ, Dự án cá nhân, và chuẩn ATS.
-Kết quả trả về phải là một JSON object tiếng Việt, không kèm markdown.
-        `;
+--- YÊU CẦU TRẢ VỀ ---
+Hãy phân tích cực kỳ chi tiết và trả về kết quả định dạng JSON. KHÔNG kèm markdown, KHÔNG kèm \`\`\`json. CHỈ CÓ CHUỖI JSON.
+Cấu trúc JSON bắt buộc phải chính xác như sau (dùng tiếng Việt):
+{
+  "overall": <số nguyên 1-100 đánh giá tổng quan>,
+  "grade": "<một trong các ký tự: A, B, C, D>",
+  "gradeLabel": "<Đánh giá ngắn gọn: Xuất sắc / Tốt / Khá / Cần cải thiện>",
+  "level_assessment": "<Đánh giá level thực tế dựa trên độ phức tạp của công việc đã làm: Intern, Fresher, Junior, Middle, Senior, Lead...>",
+  "extracted_experience_years": <số thực, ví dụ 1.5, 3.0, tính tổng thời gian làm việc thực tế>,
+  "project_quality": "<Nhận xét về chất lượng dự án: Quy mô, công nghệ sử dụng, vai trò đóng góp của ứng viên có rõ ràng không>",
+  "skill_analysis": {
+    "advanced": ["<Tên kỹ năng 1>", "<Tên kỹ năng 2>"], // Các kỹ năng có dẫn chứng áp dụng trong dự án/kinh nghiệm
+    "familiar": ["<Tên kỹ năng 3>", "<Tên kỹ năng 4>"]  // Các kỹ năng chỉ thấy liệt kê, chưa thấy rõ bối cảnh sử dụng
+  },
+  "recommended_roles": ["<Tên Vị trí 1>", "<Tên Vị trí 2>", "<Tên Vị trí 3>"], // Phân tích tổng thể năng lực và đề xuất 3 vị trí công việc mà ứng viên sẽ làm tốt nhất hiện tại
+  "strengths": ["<Điểm mạnh 1>", "<Điểm mạnh 2>"],
+  "improvements": ["<Điểm yếu 1>", "<Điểm yếu 2>"],
+  "categories": [
+    {
+      "key": "skills_match",
+      "label": "Kỹ năng thực tế",
+      "score": <1-100>,
+      "icon": "🎯",
+      "feedback": "<Nhận xét: Kỹ năng có đáp ứng yêu cầu công việc/thị trường không>",
+      "suggestions": ["<Gợi ý học thêm 1>", "<Gợi ý 2>"]
+    },
+    {
+      "key": "experience",
+      "label": "Độ sâu kinh nghiệm",
+      "score": <1-100>,
+      "icon": "💼",
+      "feedback": "<Nhận xét: Kinh nghiệm có thực chất, có số liệu đo lường không>",
+      "suggestions": ["<Gợi ý 1>"]
+    },
+    {
+      "key": "education",
+      "label": "Học vấn & Chứng chỉ",
+      "score": <1-100>,
+      "icon": "🎓",
+      "feedback": "<Nhận xét>",
+      "suggestions": ["<Gợi ý>"]
+    },
+    {
+      "key": "format",
+      "label": "Cấu trúc & Trình bày",
+      "score": <1-100>,
+      "icon": "📄",
+      "feedback": "<Nhận xét cấu trúc CV, độ dài, thông tin liên hệ>",
+      "suggestions": ["<Gợi ý>"]
+    },
+    {
+      "key": "keywords",
+      "label": "Chuẩn ATS",
+      "score": <1-100>,
+      "icon": "🔍",
+      "feedback": "<Nhận xét về độ thân thiện với hệ thống ATS, từ khóa ngành>",
+      "suggestions": ["<Gợi ý>"]
+    }
+  ]
+}
+`;
         
         const result = await model.generateContent(prompt);
         let responseText = result.response.text().trim()

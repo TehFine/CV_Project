@@ -40,6 +40,34 @@ async function bootstrap() {
     });
   }
 
+  // 2.5 Create Candidate
+  const candidateEmail = 'demo@nexcv.vn';
+  let candidate = await usersService.findByEmail(candidateEmail);
+  if (!candidate) {
+    console.log('Creating demo candidate...');
+    const hashedPassword = await bcrypt.hash('demo123', 10);
+    candidate = await usersService.create({
+      email: candidateEmail,
+      password: hashedPassword,
+      name: 'Nguyễn Văn A (Ứng viên)',
+      role: 'candidate',
+    });
+  }
+
+  // 2.7 Create Admin
+  const adminEmail = 'admin@nexcv.vn';
+  let admin = await usersService.findByEmail(adminEmail);
+  if (!admin) {
+    console.log('Creating demo admin...');
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    admin = await usersService.create({
+      email: adminEmail,
+      password: hashedPassword,
+      name: 'System Admin',
+      role: 'admin',
+    });
+  }
+
   // 3. Create Sample Jobs
   const mockJobs = [
     {
