@@ -1,6 +1,6 @@
 // Base API configuration
 // Set VITE_API_URL in .env to your backend URL, e.g. http://localhost:8000/api
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 class ApiError extends Error {
   constructor(message, status, data) {

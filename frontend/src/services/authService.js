@@ -29,8 +29,7 @@ const MOCK_EMPLOYER_USER = {
   industry: "Công nghệ thông tin",
   createdAt: "2024-01-01",
 };
-const USE_MOCK =
-  import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 // ─── Mock delay helper ────────────────────────────────────────────────────────
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
