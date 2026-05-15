@@ -7,7 +7,7 @@ export const jobService = {
    * @param {{ keyword?, location?, category?, level?, type?, page?, limit? }} params
    */
   async getJobs(params = {}) {
-    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
     if (USE_MOCK) {
       const localStr = localStorage.getItem("nexcv_mock_jobs");
       let jobs = localStr ? JSON.parse(localStr) : [];
@@ -66,7 +66,7 @@ export const jobService = {
    * @param {string|number} id
    */
   async getJob(id) {
-    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
     if (USE_MOCK) {
       const localStr = localStorage.getItem("nexcv_mock_jobs");
       const jobs = localStr ? JSON.parse(localStr) : [];
@@ -103,7 +103,7 @@ export const jobService = {
    * @param {{ cvId?, coverLetter? }} data
    */
   async applyJob(jobId, data = {}) {
-    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
     if (USE_MOCK) {
       await new Promise(r => setTimeout(r, 600));
       const localAppsStr = localStorage.getItem("nexcv_mock_applications");
@@ -165,7 +165,7 @@ export const jobService = {
    * Lấy danh sách công việc đã ứng tuyển
    */
   async getAppliedJobs() {
-    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
     if (USE_MOCK) {
       await new Promise(r => setTimeout(r, 400));
       const appsStr = localStorage.getItem("nexcv_mock_applications");

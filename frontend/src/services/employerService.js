@@ -1,7 +1,6 @@
 import api from "./api";
 
-const USE_MOCK =
-  import.meta.env.VITE_USE_MOCK === "true" || !import.meta.env.VITE_API_URL;
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
