@@ -20,9 +20,22 @@ export default function HomePage() {
 
     jobService.getCategories().then(res => {
       if (res && res.length > 0) {
+        // Hàm chuẩn hóa tiếng Việt: loại bỏ dấu và chuyển về chữ thường
+        const normalize = (str) => 
+          str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
         const mapped = res.map(c => {
-          const iconMatch = JOB_CATEGORIES.find(jc => jc.name === c.name);
-          return { ...c, id: c.name, icon: iconMatch ? iconMatch.icon : "📁" };
+          const catNameNorm = normalize(c.name);
+          const iconMatch = JOB_CATEGORIES.find(jc => 
+            normalize(jc.name) === catNameNorm || 
+            jc.id.toLowerCase() === catNameNorm
+          );
+          return { 
+            ...c, 
+            id: c.name, 
+            name: iconMatch ? iconMatch.name : c.name, // Ưu tiên dùng tên có dấu từ frontend
+            icon: iconMatch ? iconMatch.icon : "📁" 
+          };
         });
         setCategories(mapped);
       }
