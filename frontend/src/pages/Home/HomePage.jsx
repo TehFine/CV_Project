@@ -22,7 +22,10 @@ export default function HomePage() {
       if (res && res.length > 0) {
         // Hàm chuẩn hóa tiếng Việt: loại bỏ dấu và chuyển về chữ thường
         const normalize = (str) => 
-          str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+          str.normalize("NFD")
+             .replace(/[\u0300-\u036f]/g, "")
+             .replace(/&/g, "va")
+             .toLowerCase();
 
         const mapped = res.map(c => {
           const catNameNorm = normalize(c.name);

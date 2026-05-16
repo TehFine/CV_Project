@@ -67,7 +67,7 @@ function Sidebar({ filters, onChange }) {
         </div>
         <Separator className="mb-4" />
         <Group title="Địa điểm"  items={LOCATIONS}               fkey="location" />
-        <Group title="Ngành nghề" items={JOB_CATEGORIES.slice(0,5)} fkey="category" />
+        <Group title="Ngành nghề" items={JOB_CATEGORIES} fkey="category" />
         <Group title="Cấp bậc"   items={LEVELS}                  fkey="level" />
         <Group title="Hình thức" items={JOB_TYPES}               fkey="type" />
       </div>

@@ -17,8 +17,17 @@ export class JobsService {
     
     const filter: any = { status: 'active' };
 
+    // Helper: Tạo regex khớp cả có dấu và không dấu
+    const getLenientRegex = (val: string) => {
+      if (!val) return null;
+      const unaccented = val.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/&/g, "va");
+      const escaped = val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedUnaccented = unaccented.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return { $regex: `${escaped}|${escapedUnaccented}`, $options: 'i' };
+    };
+
     if (keyword) {
-      const searchRegex = { $regex: keyword, $options: 'i' };
+      const searchRegex = getLenientRegex(keyword);
       filter.$or = [
         { title: searchRegex },
         { companyName: searchRegex },
@@ -34,11 +43,11 @@ export class JobsService {
     }
 
     if (category) {
-      filter.category = category;
+      filter.category = getLenientRegex(category);
     }
 
     if (location) {
-      filter.location = { $regex: location, $options: 'i' };
+      filter.location = getLenientRegex(location);
     }
 
     if (level) {
@@ -46,7 +55,7 @@ export class JobsService {
     }
 
     if (type) {
-      filter.type = type;
+      filter.type = getLenientRegex(type);
     }
 
     const skip = (page - 1) * limit;
