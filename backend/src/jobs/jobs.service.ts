@@ -4,12 +4,14 @@ import { Model } from 'mongoose';
 import { Job, JobDocument } from './schemas/job.schema';
 import { Application, ApplicationDocument } from './schemas/application.schema';
 import { SEED_JOBS } from './jobs-seed.data';
+import { CvScore, CvScoreDocument } from '../cv-scoring/schemas/cv-score.schema';
 
 @Injectable()
 export class JobsService {
   constructor(
     @InjectModel(Job.name) private jobModel: Model<JobDocument>,
     @InjectModel('Application') private applicationModel: Model<ApplicationDocument>,
+    @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
   ) {}
 
   async findAll(query: any) {
@@ -108,11 +110,34 @@ export class JobsService {
       throw new NotFoundException('Không tìm thấy công việc');
     }
 
+    // Automatically check for previous AI scores matching this job, or candidate's latest general CV
+    let cvId = data.cvId || 'uploaded_cv.pdf';
+    let aiScoreId: any = undefined;
+
+    const specificScore = await this.cvScoreModel.findOne({
+      userId: candidateId as any,
+      jobId: jobId as any,
+    }).sort({ createdAt: -1 }).exec();
+
+    if (specificScore) {
+      cvId = specificScore.cvUrl || cvId;
+      aiScoreId = specificScore._id;
+    } else {
+      const generalScore = await this.cvScoreModel.findOne({
+        userId: candidateId as any,
+      }).sort({ createdAt: -1 }).exec();
+
+      if (generalScore) {
+        cvId = generalScore.cvUrl || cvId;
+      }
+    }
+
     const application = new this.applicationModel({
       jobId,
       candidateId,
       coverLetter: data.coverLetter,
-      cvId: data.cvId,
+      cvId,
+      aiScoreId,
     });
 
     await application.save();

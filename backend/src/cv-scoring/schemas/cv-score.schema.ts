@@ -25,6 +25,9 @@ export class CvScore {
     enum: ['candidate_self_score', 'employer_match', 'general_analysis'] 
   })
   type: string;
+
+  @Prop({ type: Buffer })
+  pdfBuffer: Buffer;
 }
 
 export const CvScoreSchema = SchemaFactory.createForClass(CvScore);

@@ -31,6 +31,14 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
 
   const initials = app.seeker.full_name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase()
 
+  const getCvUrl = (path) => {
+    if (!path || path === '#') return '#';
+    if (path.startsWith('http')) return path;
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    const host = baseUrl.replace(/\/api\/?$/, ''); // Remove trailing /api
+    return `${host}${path}`;
+  };
+
   const handleStatus = async (newStatus) => {
     setUpdating(true)
     await onStatusChange(app.id, newStatus)
@@ -148,7 +156,7 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
           </div>
 
           <div style={{ marginTop: 16, display: 'flex', gap: 10 }}>
-            <a href={app.resume.pdf_url} target="_blank" rel="noopener noreferrer" style={{
+            <a href={getCvUrl(app.resume.pdf_url)} target="_blank" rel="noopener noreferrer" style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
               background: '#EFF6FF', color: '#2563EB', border: '1.5px solid #BFDBFE',

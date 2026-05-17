@@ -6,6 +6,9 @@ import { ROLE_KNOWLEDGE_BASE, ROLE_MAPPING } from './constants/knowledge-base';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CvScore, CvScoreDocument } from './schemas/cv-score.schema';
+import { ApplicationDocument } from '../jobs/schemas/application.schema';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class CvScoringService {
@@ -17,6 +20,7 @@ export class CvScoringService {
   constructor(
     private configService: ConfigService,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
+    @InjectModel('Application') private applicationModel: Model<ApplicationDocument>,
   ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (apiKey) {
@@ -24,6 +28,22 @@ export class CvScoringService {
       this.logger.log('Gemini AI configured successfully.');
     } else {
       this.logger.warn('GEMINI_API_KEY is not configured. AI fallback will not work.');
+    }
+  }
+
+  async findScoreById(id: string): Promise<CvScoreDocument | null> {
+    try {
+      return await this.cvScoreModel.findById(id).exec();
+    } catch {
+      return null;
+    }
+  }
+
+  async findScoreByCvUrl(cvUrl: string): Promise<CvScoreDocument | null> {
+    try {
+      return await this.cvScoreModel.findOne({ cvUrl }).sort({ createdAt: -1 }).exec();
+    } catch {
+      return null;
     }
   }
 
@@ -74,14 +94,15 @@ export class CvScoringService {
     return this.cvScoreModel.findOne(query).sort({ createdAt: -1 }).exec();
   }
 
-  async saveScore(userId: string, result: any, type: string, jobId?: string, cvUrl?: string): Promise<CvScoreDocument> {
+  async saveScore(userId: string, result: any, type: string, jobId?: string, cvUrl?: string, pdfBuffer?: Buffer): Promise<CvScoreDocument> {
     const newScore = new this.cvScoreModel({
       userId,
       jobId,
       cvUrl: cvUrl || 'default_cv',
       score: result.overall || result.score || 0,
       analysis: result,
-      type
+      type,
+      pdfBuffer
     });
     return newScore.save();
   }
@@ -119,6 +140,12 @@ export class CvScoringService {
         // Generate contextual evaluation based on existing analysis
         const employerReview = await this.generateEmployerContext(existing.analysis, job);
 
+        // Make sure it is linked to the Application
+        await this.applicationModel.updateOne(
+          { jobId: (job as any)._id as any, candidateId: candidateId as any },
+          { aiScoreId: existing._id }
+        );
+
         return {
           score: existing.score,
           review: employerReview,
@@ -152,22 +179,77 @@ Trả về JSON theo cấu trúc sau:
           const cleaned = responseText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
           const parsed = JSON.parse(cleaned);
           const aiScore = parsed.score ? Number(parsed.score) : localScore;
+          
+          const finalScore = Math.max(1, Math.min(10, Math.round(aiScore)));
+          const review = parsed.review || 'Không có nhận xét chi tiết từ AI.';
+
+          if (candidateId) {
+            const overall = finalScore * 10;
+            const mockAnalysis = {
+              overall,
+              grade: overall >= 85 ? 'A' : overall >= 75 ? 'B' : overall >= 65 ? 'C' : 'D',
+              gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : 'Trung bình',
+              strengths: ['Đáp ứng yêu cầu kỹ năng', 'Có kinh nghiệm tương đương'],
+              improvements: [review],
+              categories: [
+                { key: 'skills_match', label: 'Kỹ năng', score: overall },
+                { key: 'experience', label: 'Kinh nghiệm', score: overall },
+                { key: 'education', label: 'Học vấn', score: overall },
+                { key: 'format', label: 'Trình bày', score: overall },
+                { key: 'keywords', label: 'Từ khóa ATS', score: overall }
+              ]
+            };
+
+            const saved = await this.saveScore(candidateId, mockAnalysis, 'employer_match', (job as any)._id.toString(), 'employer_uploaded.pdf', pdfBuffer);
+
+            await this.applicationModel.updateOne(
+              { jobId: (job as any)._id as any, candidateId: candidateId as any },
+              { aiScoreId: saved._id, cvId: saved._id.toString() }
+            );
+          }
+
           return {
-            score: Math.max(1, Math.min(10, Math.round(aiScore))),
-            review: parsed.review || 'Không có nhận xét chi tiết từ AI.'
+            score: finalScore,
+            review
           };
         } catch (parseError) {
           this.logger.error('Failed to parse Gemini JSON response', parseError);
-          return { score: localScore, review: responseText };
         }
       }
     }
 
     // Fallback if Gemini is not configured or failed
     const matchPercentage = Math.round((localScore / 10) * 100);
+    const fallbackReview = `Đánh giá tự động: CV của ứng viên khớp khoảng ${matchPercentage}% từ khóa yêu cầu của công việc.`;
+
+    if (candidateId) {
+      const overall = localScore * 10;
+      const mockAnalysis = {
+        overall,
+        grade: overall >= 85 ? 'A' : overall >= 75 ? 'B' : overall >= 65 ? 'C' : 'D',
+        gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : 'Trung bình',
+        strengths: ['Khớp từ khóa tốt'],
+        improvements: [fallbackReview],
+        categories: [
+          { key: 'skills_match', label: 'Kỹ năng', score: overall },
+          { key: 'experience', label: 'Kinh nghiệm', score: overall },
+          { key: 'education', label: 'Học vấn', score: overall },
+          { key: 'format', label: 'Trình bày', score: overall },
+          { key: 'keywords', label: 'Từ khóa ATS', score: overall }
+        ]
+      };
+
+      const saved = await this.saveScore(candidateId, mockAnalysis, 'employer_match', (job as any)._id.toString(), 'employer_uploaded.pdf', pdfBuffer);
+
+      await this.applicationModel.updateOne(
+        { jobId: (job as any)._id as any, candidateId: candidateId as any },
+        { aiScoreId: saved._id, cvId: saved._id.toString() }
+      );
+    }
+
     return {
       score: localScore,
-      review: `Đánh giá tự động: CV của ứng viên khớp khoảng ${matchPercentage}% từ khóa yêu cầu của công việc.`
+      review: fallbackReview
     };
   }
 
@@ -352,7 +434,11 @@ Chỉ trả về đoạn văn bản đánh giá, không kèm tiêu đề hay mar
 
     if (this.geminiApiKey) {
       const prompt = `
-Bạn là một hệ thống ATS chuyên nghiệp. Hãy phân tích mức độ phù hợp của CV ứng viên.
+Bạn là một hệ thống ATS chuyên nghiệp. Trước tiên, hãy kiểm tra xem nội dung văn bản dưới đây có THỰC SỰ là một bản Sơ yếu lý lịch (CV/Resume) hay không.
+Nếu nội dung là rác, spam, sách, báo, bài viết ngẫu nhiên, hoặc tài liệu không liên quan đến xin việc:
+- Hãy trả về JSON có trường "isValidCv": false, "spamReason": "Lý do ngắn gọn". Không cần chấm điểm các trường khác.
+
+Nếu nội dung là CV/Resume hợp lệ, hãy phân tích mức độ phù hợp của CV đó.
 Vị trí: ${jobContext ? jobContext.title : targetPosition}
 ${jobContext ? `Mô tả công việc (JD): ${jobContext.description}` : ''}
 ${jobContext && jobContext.requirements && jobContext.requirements.length > 0 ? `Yêu cầu công việc:\n- ${jobContext.requirements.join('\n- ')}` : ''}
@@ -361,8 +447,10 @@ ${jobContext && jobContext.tags && jobContext.tags.length > 0 ? `Từ khóa/Kỹ
 Nội dung CV ứng viên:
 ${cvText}
 
-Hãy trả về JSON chứa các trường sau:
+Hãy trả về JSON theo định dạng sau:
 {
+  "isValidCv": true/false,
+  "spamReason": "Lý do nếu không phải CV (có thể rỗng)",
   "overall": (số 1-100),
   "grade": "A/B/C/D",
   "gradeLabel": "Tốt/Khá/Trung bình/Yếu",
@@ -382,6 +470,11 @@ Hãy trả về JSON chứa các trường sau:
         try {
           const cleaned = responseText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
           const parsed = JSON.parse(cleaned);
+
+          if (parsed.isValidCv === false) {
+            throw new Error(`SPAM_CV:${parsed.spamReason || 'Tài liệu tải lên không giống một bản CV hợp lệ. Vui lòng kiểm tra lại.'}`);
+          }
+
           const finalResult = {
             id: 'cv_score_' + Date.now(),
             fileName,
@@ -389,22 +482,39 @@ Hãy trả về JSON chứa các trường sau:
             ...parsed
           };
           if (userId) {
-            await this.saveScore(
+            const savedScore = await this.saveScore(
               userId,
               finalResult,
               jobContext ? 'candidate_self_score' : 'general_analysis',
               jobContext ? (jobContext as any)._id.toString() : undefined,
-              fileName
+              fileName,
+              pdfBuffer
             );
+            finalResult.id = savedScore._id.toString();
           }
           return finalResult;
         } catch (parseError) {
+          if (parseError.message && parseError.message.startsWith('SPAM_CV:')) {
+            throw new Error(parseError.message.replace('SPAM_CV:', ''));
+          }
           this.logger.error('Failed to parse Gemini candidate JSON response', parseError);
         }
       }
     }
 
     // Fallback: Local Knowledge Base Analysis if AI fails
-    return this.evaluateCandidateLocalScore(cvText, targetPosition, fileName, jobContext);
+    const fallbackResult = this.evaluateCandidateLocalScore(cvText, targetPosition, fileName, jobContext);
+    if (userId) {
+      const savedScore = await this.saveScore(
+        userId,
+        fallbackResult,
+        jobContext ? 'candidate_self_score' : 'general_analysis',
+        jobContext ? (jobContext as any)._id.toString() : undefined,
+        fileName,
+        pdfBuffer
+      );
+      fallbackResult.id = savedScore._id.toString();
+    }
+    return fallbackResult;
   }
 }
