@@ -352,10 +352,14 @@ Chỉ trả về đoạn văn bản đánh giá, không kèm tiêu đề hay mar
 
     if (this.geminiApiKey) {
       const prompt = `
-Bạn là một hệ thống ATS chuyên nghiệp. Hãy phân tích CV ứng viên.
+Bạn là một hệ thống ATS chuyên nghiệp. Hãy phân tích mức độ phù hợp của CV ứng viên.
 Vị trí: ${jobContext ? jobContext.title : targetPosition}
-${jobContext ? `JD: ${jobContext.description}` : ''}
-CV Content: ${cvText}
+${jobContext ? `Mô tả công việc (JD): ${jobContext.description}` : ''}
+${jobContext && jobContext.requirements && jobContext.requirements.length > 0 ? `Yêu cầu công việc:\n- ${jobContext.requirements.join('\n- ')}` : ''}
+${jobContext && jobContext.tags && jobContext.tags.length > 0 ? `Từ khóa/Kỹ năng yêu cầu: ${jobContext.tags.join(', ')}` : ''}
+
+Nội dung CV ứng viên:
+${cvText}
 
 Hãy trả về JSON chứa các trường sau:
 {

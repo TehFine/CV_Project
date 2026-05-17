@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
 import { Upload, Sparkles, FileText, X, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,9 +36,14 @@ function ScoreResult({ result, onReset }) {
   const gradeColor = { A: 'success', B: 'new', C: 'warning', D: 'destructive' }[result.grade] || 'secondary'
   const catColor = pct => pct >= 80 ? '#10B981' : pct >= 65 ? '#3B82F6' : pct >= 50 ? '#F59E0B' : '#EF4444'
 
+  const chartData = result.categories.map(c => ({
+    subject: c.label,
+    A: c.score,
+    fullMark: 100
+  }))
+
   return (
-    <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fade-in-up">
-      {/* Left Column - Sticky Overall Score */}
+    <div className="w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fade-in-up">
       <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
         <Card className="overflow-hidden shadow-lg">
           <div className="bg-linear-to-br from-slate-900 via-blue-950 to-indigo-900 p-7 flex flex-col items-center text-center">
@@ -51,7 +57,7 @@ function ScoreResult({ result, onReset }) {
                 {result.overall >= 85 ? '🎉 CV rất ấn tượng!' : result.overall >= 70 ? '👍 CV tốt, còn cải thiện được' : '💪 CV cần được cải thiện thêm'}
               </h2>
               <p className="text-slate-400 text-sm mb-5 truncate px-2">{result.fileName}</p>
-              
+
               <div className="flex flex-col gap-2">
                 {result.strengths.map(s => (
                   <span key={s} className="text-xs px-3 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 whitespace-normal text-left leading-relaxed">
@@ -75,6 +81,26 @@ function ScoreResult({ result, onReset }) {
 
       {/* Right Column - Scrollable Details */}
       <div className="lg:col-span-7 space-y-5">
+        {/* Visual Chart */}
+        <Card className="shadow-md">
+          <CardContent className="p-6 md:p-8">
+            <h3 className="font-bold text-foreground mb-4 flex items-center gap-2 text-lg border-b pb-4">
+              🕸️ Phân tích tổng quan
+            </h3>
+            <div className="h-[320px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
+                  <PolarGrid stroke="#e2e8f0" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 13, fontWeight: 600 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="Điểm số" dataKey="A" stroke="#8b5cf6" strokeWidth={2} fill="#8b5cf6" fillOpacity={0.4} />
+                  <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Category breakdown */}
         <Card className="shadow-md">
           <CardContent className="p-6 md:p-8">
@@ -169,7 +195,7 @@ export default function CVUploadPage() {
     <div className="min-h-screen bg-muted/30 pb-16">
       {/* Hero */}
       <div className="bg-linear-to-br from-slate-900 via-indigo-950 to-violet-900 pt-12 pb-10 mb-8">
-        <div className="max-w-300 mx-auto px-6 text-center">
+        <div className="max-w-[1400px] mx-auto px-6 text-center">
           <Badge variant="ai" className="mb-4 gap-1.5 text-white"><Sparkles className="h-3.5 w-3.5 " />AI-Powered Analysis</Badge>
           <h1 className="text-4xl font-black text-white mb-3">
             {jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV bằng AI'}
@@ -188,7 +214,7 @@ export default function CVUploadPage() {
         </div>
       </div>
 
-      <div className="max-w-300 mx-auto px-6">
+      <div className="max-w-[1400px] mx-auto px-6">
         {status === 'result' ? (
           <ScoreResult result={result} onReset={reset} />
         ) : (
