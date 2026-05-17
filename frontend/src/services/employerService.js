@@ -391,8 +391,12 @@ export const employerService = {
       };
     }
     const formData = new FormData();
-    formData.append('cv', file);
-    if (candidateId) formData.append('candidateId', candidateId);
+    if (file) {
+      formData.append('cv', file);
+    }
+    if (candidateId) {
+      formData.append('candidateId', candidateId);
+    }
     
     const response = await api.post(`/cv-scoring/score/${jobId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

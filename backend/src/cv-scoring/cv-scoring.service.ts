@@ -14,7 +14,7 @@ import * as path from 'path';
 export class CvScoringService {
   private readonly logger = new Logger(CvScoringService.name);
   private geminiApiKey: string | null = null;
-  private readonly GEMINI_MODEL = 'gemini-2.5-flash';
+  private readonly GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
   private readonly GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models`;
 
   constructor(
@@ -140,6 +140,16 @@ export class CvScoringService {
         // Generate contextual evaluation based on existing analysis
         const employerReview = await this.generateEmployerContext(existing.analysis, job);
 
+        // Save generated recruiter review back into the score model
+        existing.analysis = {
+          ...(existing.analysis || {}),
+          review: employerReview,
+          feedback: employerReview
+        };
+        existing.markModified('analysis');
+        existing.type = 'employer_match';
+        await existing.save();
+
         // Make sure it is linked to the Application
         await this.applicationModel.updateOne(
           { jobId: (job as any)._id as any, candidateId: candidateId as any },
@@ -179,7 +189,7 @@ Trả về JSON theo cấu trúc sau:
           const cleaned = responseText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
           const parsed = JSON.parse(cleaned);
           const aiScore = parsed.score ? Number(parsed.score) : localScore;
-          
+
           const finalScore = Math.max(1, Math.min(10, Math.round(aiScore)));
           const review = parsed.review || 'Không có nhận xét chi tiết từ AI.';
 
@@ -189,8 +199,10 @@ Trả về JSON theo cấu trúc sau:
               overall,
               grade: overall >= 85 ? 'A' : overall >= 75 ? 'B' : overall >= 65 ? 'C' : 'D',
               gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : 'Trung bình',
-              strengths: ['Đáp ứng yêu cầu kỹ năng', 'Có kinh nghiệm tương đương'],
-              improvements: [review],
+              strengths: ['Đáp ứng tốt yêu cầu kỹ năng công việc', 'Có kinh nghiệm chuyên môn tương đương'],
+              improvements: ['Cần rà soát và bổ sung chi tiết theo yêu cầu tuyển dụng'],
+              review,
+              feedback: review,
               categories: [
                 { key: 'skills_match', label: 'Kỹ năng', score: overall },
                 { key: 'experience', label: 'Kinh nghiệm', score: overall },
@@ -229,7 +241,9 @@ Trả về JSON theo cấu trúc sau:
         grade: overall >= 85 ? 'A' : overall >= 75 ? 'B' : overall >= 65 ? 'C' : 'D',
         gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : 'Trung bình',
         strengths: ['Khớp từ khóa tốt'],
-        improvements: [fallbackReview],
+        improvements: ['Cần rà soát và bổ sung chi tiết theo yêu cầu tuyển dụng'],
+        review: fallbackReview,
+        feedback: fallbackReview,
         categories: [
           { key: 'skills_match', label: 'Kỹ năng', score: overall },
           { key: 'experience', label: 'Kinh nghiệm', score: overall },
@@ -516,5 +530,33 @@ Hãy trả về JSON theo định dạng sau:
       fallbackResult.id = savedScore._id.toString();
     }
     return fallbackResult;
+  }
+
+  async getCandidatePdfBuffer(jobId: string, candidateId: string): Promise<Buffer | null> {
+    try {
+      const app = await this.applicationModel.findOne({
+        jobId: jobId as any,
+        candidateId: candidateId as any
+      }).exec();
+
+      if (app) {
+        // 1. Try finding by cvId as ObjectId
+        try {
+          const score = await this.cvScoreModel.findById(app.cvId).exec();
+          if (score && score.pdfBuffer) return score.pdfBuffer;
+        } catch { }
+
+        // 2. Try by cvUrl string matching app.cvId
+        const scoreByUrl = await this.cvScoreModel.findOne({ cvUrl: app.cvId }).sort({ createdAt: -1 }).exec();
+        if (scoreByUrl && scoreByUrl.pdfBuffer) return scoreByUrl.pdfBuffer;
+
+        // 3. Try latest general score of this user
+        const latestScore = await this.cvScoreModel.findOne({ userId: candidateId as any }).sort({ createdAt: -1 }).exec();
+        if (latestScore && latestScore.pdfBuffer) return latestScore.pdfBuffer;
+      }
+      return null;
+    } catch {
+      return null;
+    }
   }
 }

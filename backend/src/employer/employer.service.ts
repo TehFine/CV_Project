@@ -137,7 +137,9 @@ export class EmployerService {
         },
         ai_score: aiScore ? {
           overall_score: aiScore.analysis?.overall || (aiScore.score * 10) || 0,
-          breakdown
+          breakdown,
+          analysis: aiScore.analysis || {},
+          review: aiScore.analysis?.review || aiScore.analysis?.feedback || ''
         } : null
       };
     });

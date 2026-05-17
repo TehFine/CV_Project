@@ -38,11 +38,20 @@ export class CvScoringController {
     @UploadedFile() file: Express.Multer.File,
     @Body('candidateId') candidateId?: string,
   ) {
-    if (!file) {
-      throw new BadRequestException('Vui lòng tải lên file CV (PDF)');
+    let pdfBuffer: Buffer | undefined = undefined;
+
+    if (file) {
+      if (file.mimetype !== 'application/pdf') {
+        throw new BadRequestException('Chỉ hỗ trợ file PDF');
+      }
+      pdfBuffer = file.buffer;
+    } else if (candidateId) {
+      const dbBuffer = await this.cvScoringService.getCandidatePdfBuffer(jobId, candidateId);
+      if (dbBuffer) pdfBuffer = dbBuffer;
     }
-    if (file.mimetype !== 'application/pdf') {
-      throw new BadRequestException('Chỉ hỗ trợ file PDF');
+
+    if (!pdfBuffer) {
+      throw new BadRequestException('Không tìm thấy file CV hiện tại của ứng viên. Vui lòng tải lên file CV (PDF) mới.');
     }
 
     const job = await this.jobsService.findOne(jobId);
@@ -50,7 +59,7 @@ export class CvScoringController {
       throw new BadRequestException('Không tìm thấy công việc');
     }
 
-    const result = await this.cvScoringService.scoreCV(file.buffer, job as any, candidateId);
+    const result = await this.cvScoringService.scoreCV(pdfBuffer, job as any, candidateId);
     return {
       success: true,
       data: result
