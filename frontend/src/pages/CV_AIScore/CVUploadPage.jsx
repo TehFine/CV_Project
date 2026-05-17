@@ -291,7 +291,7 @@ export default function CVUploadPage() {
                 )}
 
                 <Button variant="ai" size="xl" className="w-full gap-2" onClick={handleSubmit} disabled={!file}>
-                  <Sparkles className="h-5 w-5" />{jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV ngay — Miễn phí'}
+                  <Sparkles className="h-5 w-5" /><span>{jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV ngay — Miễn phí'}</span>
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground">🔒 File được bảo mật và không lưu trữ lâu dài</p>
