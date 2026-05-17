@@ -12,7 +12,7 @@ export class CvScoringService {
   private readonly logger = new Logger(CvScoringService.name);
   private geminiApiKey: string | null = null;
   private readonly GEMINI_MODEL = 'gemini-2.5-flash';
-  private readonly GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models`;
+  private readonly GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models`;
 
   constructor(
     private configService: ConfigService,
@@ -36,10 +36,9 @@ export class CvScoringService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { 
+          generationConfig: {
             temperature: 0.2,
-            maxOutputTokens: 2048,
-            responseMimeType: "application/json" 
+            responseMimeType: "application/json"
           },
         }),
       });
