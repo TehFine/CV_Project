@@ -577,19 +577,6 @@ export default function EmployerApplicantsPage() {
         </button>
       </div>
 
-      {/* Status summary */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-          <div key={key} style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
-            borderRadius: 20, background: cfg.bg, border: `1.5px solid ${cfg.color}33`,
-          }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>{cfg.label}</span>
-            <span style={{ fontSize: 13, fontWeight: 900, color: cfg.color }}>{countByStatus(key)}</span>
-          </div>
-        ))}
-      </div>
-
       {/* Filter + Sort */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 300 }}>
