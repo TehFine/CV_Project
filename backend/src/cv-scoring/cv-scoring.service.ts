@@ -559,4 +559,48 @@ Hãy trả về JSON theo định dạng sau:
       return null;
     }
   }
+
+  async checkCvAccessPermission(score: CvScoreDocument, user: any): Promise<boolean> {
+    if (!user) return false;
+    const userId = (user._id || user.id)?.toString();
+    const userRole = user.role;
+
+    // 1. Admin has absolute access
+    if (userRole === 'admin') {
+      return true;
+    }
+
+    // 2. Candidate who owns this CV has access
+    if (score.userId && score.userId.toString() === userId) {
+      return true;
+    }
+
+    // 3. Employer has access ONLY if the candidate applied to one of their jobs with this CV
+    if (userRole === 'employer') {
+      // Find all applications submitted by this CV's owner
+      // where the CV matches this score's ID or URL
+      const applications = await this.applicationModel
+        .find({
+          candidateId: score.userId,
+          $or: [
+            { aiScoreId: score._id },
+            { cvId: score.cvUrl },
+            { cvId: score._id.toString() },
+          ],
+        } as any)
+        .populate('jobId')
+        .exec();
+
+      for (const app of applications) {
+        const job = app.jobId as any;
+        // Check if the job was posted by this employer
+        if (job && job.employerId && job.employerId.toString() === userId) {
+          return true; // Relationship match found! Access allowed.
+        }
+      }
+    }
+
+    return false;
+  }
 }
+

@@ -163,7 +163,9 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
     if (path.startsWith('http')) return path;
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const host = baseUrl.replace(/\/api\/?$/, ''); // Remove trailing /api
-    return `${host}${path}`;
+    const token = localStorage.getItem('nexcv_token');
+    const separator = path.includes('?') ? '&' : '?';
+    return `${host}${path}${token ? `${separator}token=${token}` : ''}`;
   };
 
   const handleStatus = async (newStatus) => {

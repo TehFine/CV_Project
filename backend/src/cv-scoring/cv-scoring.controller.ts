@@ -1,4 +1,4 @@
-import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards, Req, Get, Res, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards, Req, Get, Res, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CvScoringService } from './cv-scoring.service';
 import { JobsService } from '../jobs/jobs.service';
@@ -16,7 +16,8 @@ export class CvScoringController {
   ) {}
 
   @Get('view/:id')
-  async viewCv(@Param('id') id: string, @Res() res: any) {
+  @UseGuards(JwtAuthGuard)
+  async viewCv(@Param('id') id: string, @Req() req: any, @Res() res: any) {
     let score = await this.cvScoringService.findScoreById(id);
     if (!score || !score.pdfBuffer) {
       score = await this.cvScoringService.findScoreByCvUrl(id);
@@ -26,9 +27,15 @@ export class CvScoringController {
       throw new NotFoundException('Không tìm thấy file CV của ứng viên trong cơ sở dữ liệu.');
     }
 
+    const hasAccess = await this.cvScoringService.checkCvAccessPermission(score, req.user);
+    if (!hasAccess) {
+      throw new ForbiddenException('Bạn không có quyền truy cập file CV này.');
+    }
+
     res.setHeader('Content-Type', 'application/pdf');
     res.send(score.pdfBuffer);
   }
+
 
   @Post('score/:jobId')
   @UseGuards(JwtAuthGuard)
