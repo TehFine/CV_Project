@@ -280,10 +280,23 @@ Dữ liệu phân tích hiện có:
 Hãy viết một bản đánh giá ngắn gọn (khoảng 3-4 câu, tiếng Việt) dành riêng cho Nhà tuyển dụng. 
 Tập trung vào việc: Tại sao ứng viên này phù hợp (hoặc không phù hợp) với vị trí này và điều gì nhà tuyển dụng nên lưu ý khi phỏng vấn.
 
-Chỉ trả về đoạn văn bản đánh giá, không kèm tiêu đề hay markdown.
+Hãy trả về JSON theo định dạng chính xác sau:
+{
+  "evaluation": "nội dung đánh giá cụ thể"
+}
     `;
     const result = await this.callGemini(prompt);
-    return result || 'Không thể tạo đánh giá ngữ cảnh. Vui lòng xem xét điểm số gốc của ứng viên.';
+    if (result) {
+      try {
+        const cleaned = result.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
+        const parsed = JSON.parse(cleaned);
+        return parsed.evaluation || parsed.review || parsed.text || cleaned;
+      } catch (err) {
+        this.logger.error('Failed to parse employer context JSON', err);
+        return result;
+      }
+    }
+    return 'Không thể tạo đánh giá ngữ cảnh. Vui lòng xem xét điểm số gốc của ứng viên.';
   }
 
   private evaluateCandidateLocalScore(cvText: string, targetPosition: string, fileName: string, jobContext?: JobDocument) {

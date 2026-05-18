@@ -12,20 +12,20 @@ const STATUS_CONFIG = {
 
 function ScoreBar({ label, value, color }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-      <span style={{ fontSize: 11, color: '#64748B', width: 80, flexShrink: 0 }}>{label}</span>
-      <div style={{ flex: 1, height: 5, backgroundColor: '#F1F5F9', borderRadius: 4, overflow: 'hidden' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+      <span style={{ fontSize: 12.5, color: '#64748B', width: 90, flexShrink: 0 }}>{label}</span>
+      <div style={{ flex: 1, height: 6, backgroundColor: '#F1F5F9', borderRadius: 4, overflow: 'hidden' }}>
         <div style={{ width: `${value}%`, height: '100%', backgroundColor: color, borderRadius: 4, transition: 'width 0.8s ease' }} />
       </div>
-      <span style={{ fontSize: 11, fontWeight: 700, color: '#0F172A', width: 28, textAlign: 'right' }}>{value}</span>
+      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0F172A', width: 28, textAlign: 'right' }}>{value}</span>
     </div>
   )
 }
 
 function RadarChart({ skills, experience, education, keywords }) {
-  const size = 180;
+  const size = 260;
   const center = size / 2;
-  const rMax = size * 0.32;
+  const rMax = size * 0.34;
 
   const categories = [
     { label: 'Kỹ năng', value: skills || 0 },
@@ -61,8 +61,8 @@ function RadarChart({ skills, experience, education, keywords }) {
   }).join(' ') + ' Z';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#F8FAFC', borderRadius: 12, padding: 12, border: '1px dashed #E2E8F0' }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#F8FAFC', borderRadius: 12, padding: '20px 28px', border: '1.5px solid #E2E8F0', width: '100%', maxWidth: 340 }}>
+      <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} style={{ maxWidth: size, maxHeight: size }}>
         {/* Draw background grids */}
         {gridLevels.map(level => (
           <path
@@ -95,17 +95,29 @@ function RadarChart({ skills, experience, education, keywords }) {
         {/* Draw labels */}
         {categories.map((cat, i) => {
           const angle = angles[i];
-          const labelDist = rMax + 14;
+          const labelDist = rMax + 20;
           const x = center + labelDist * Math.cos(angle);
           const y = center + labelDist * Math.sin(angle);
 
           let textAnchor = "middle";
-          if (Math.cos(angle) > 0.1) textAnchor = "start";
-          else if (Math.cos(angle) < -0.1) textAnchor = "end";
-
+          let transform = undefined;
           let dy = "0.3em";
-          if (Math.sin(angle) > 0.5) dy = "1em";
-          else if (Math.sin(angle) < -0.5) dy = "-0.3em";
+
+          if (i === 1) { // Kinh nghiệm (right)
+            textAnchor = "middle";
+            transform = `rotate(-90, ${x}, ${y})`;
+            dy = "0.3em";
+          } else if (i === 3) { // Từ khóa (left)
+            textAnchor = "middle";
+            transform = `rotate(-90, ${x}, ${y})`;
+            dy = "0.3em";
+          } else { // Top (Kỹ năng) & Bottom (Học vấn)
+            if (Math.cos(angle) > 0.1) textAnchor = "start";
+            else if (Math.cos(angle) < -0.1) textAnchor = "end";
+
+            if (Math.sin(angle) > 0.5) dy = "1em";
+            else if (Math.sin(angle) < -0.5) dy = "-0.3em";
+          }
 
           return (
             <text
@@ -114,7 +126,8 @@ function RadarChart({ skills, experience, education, keywords }) {
               y={y}
               textAnchor={textAnchor}
               dy={dy}
-              style={{ fontSize: 9, fontWeight: 700, fill: '#475569' }}
+              transform={transform}
+              style={{ fontSize: 11.5, fontWeight: 700, fill: '#475569' }}
             >
               {cat.label} ({cat.value})
             </text>
@@ -137,10 +150,10 @@ function RadarChart({ skills, experience, education, keywords }) {
               key={i}
               cx={x}
               cy={y}
-              r="3.5"
+              r="4"
               fill="#3B82F6"
               stroke="white"
-              strokeWidth="1.5"
+              strokeWidth="2"
             />
           );
         })}
@@ -149,14 +162,14 @@ function RadarChart({ skills, experience, education, keywords }) {
   );
 }
 
-function ApplicantCard({ app, onStatusChange, onScore }) {
+function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onDelete }) {
   const [expanded, setExpanded] = useState(false)
   const [updating, setUpdating] = useState(false)
   const cfg = STATUS_CONFIG[app.status] || STATUS_CONFIG.pending
   const score = app.ai_score?.overall_score || 0
   const scoreColor = score >= 85 ? '#10B981' : score >= 70 ? '#3B82F6' : score >= 55 ? '#F59E0B' : '#EF4444'
 
-  const initials = app.seeker.full_name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase()
+  const initials = app.seeker?.full_name ? app.seeker.full_name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() : 'CV'
 
   const getCvUrl = (path) => {
     if (!path || path === '#') return '#';
@@ -185,6 +198,13 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
     >
       {/* Main row */}
       <div style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        {/* Bulk Action Checkbox */}
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onSelect}
+          style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#3B82F6', marginRight: 4 }}
+        />
         {/* Avatar */}
         <div style={{
           width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
@@ -247,6 +267,18 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
               Từ chối
             </button>
           )}
+          {/* Delete Button */}
+          <button onClick={onDelete} style={{
+            padding: '7px 10px', borderRadius: 8, border: '1.5px solid #FCA5A5',
+            background: '#FEF2F2', color: '#EF4444', cursor: 'pointer', fontSize: 13,
+            transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = 'white' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#FEF2F2'; e.currentTarget.style.color = '#EF4444' }}
+            title="Xóa hồ sơ này"
+          >
+            🗑️
+          </button>
           <button onClick={() => setExpanded(e => !e)} style={{
             padding: '7px 12px', borderRadius: 8, border: '1.5px solid #E2E8F0',
             background: expanded ? '#F1F5F9' : 'white', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit',
@@ -258,46 +290,47 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
 
       {/* Expanded detail */}
       {expanded && (
-        <div style={{ borderTop: '1.5px solid #F1F5F9', padding: '20px 24px', background: '#FAFAFA' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: app.ai_score ? '1.2fr 1fr 1.3fr' : '1fr', gap: 24, alignItems: 'start' }}>
-            {/* 1. Score bars */}
+        <div style={{ borderTop: '1.5px solid #F1F5F9', padding: '24px 28px', background: '#FAFAFA' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: app.ai_score ? '1.1fr 2fr' : '1fr', gap: 32, alignItems: 'start' }}>
+            {/* Left Column: Scores & Radar Chart */}
             {app.ai_score && (
-              <div>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>📊</span> Điểm chi tiết
-                </h4>
-                <ScoreBar label="Kỹ năng" value={app.ai_score.breakdown.skills} color="#3B82F6" />
-                <ScoreBar label="Kinh nghiệm" value={app.ai_score.breakdown.experience} color="#8B5CF6" />
-                <ScoreBar label="Học vấn" value={app.ai_score.breakdown.education} color="#10B981" />
-                <ScoreBar label="Từ khóa" value={app.ai_score.breakdown.keywords} color="#F59E0B" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24, background: '#F8FAFC', padding: 20, borderRadius: 12, border: '1.5px solid #E2E8F0' }}>
+                {/* 1. Score bars */}
+                <div>
+                  <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>📊</span> Điểm chi tiết
+                  </h4>
+                  <ScoreBar label="Kỹ năng" value={app.ai_score.breakdown.skills} color="#3B82F6" />
+                  <ScoreBar label="Kinh nghiệm" value={app.ai_score.breakdown.experience} color="#8B5CF6" />
+                  <ScoreBar label="Học vấn" value={app.ai_score.breakdown.education} color="#10B981" />
+                  <ScoreBar label="Từ khóa" value={app.ai_score.breakdown.keywords} color="#F59E0B" />
+                </div>
+
+                {/* 2. Spider Chart */}
+                <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 12, width: '100%', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>🕸️</span> Biểu đồ năng lực
+                  </h4>
+                  <RadarChart
+                    skills={app.ai_score.breakdown.skills}
+                    experience={app.ai_score.breakdown.experience}
+                    education={app.ai_score.breakdown.education}
+                    keywords={app.ai_score.breakdown.keywords}
+                  />
+                </div>
               </div>
             )}
 
-            {/* 2. Spider Chart */}
-            {app.ai_score && (
-              <div>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>🕸️</span> Biểu đồ
-                </h4>
-                <RadarChart
-                  skills={app.ai_score.breakdown.skills}
-                  experience={app.ai_score.breakdown.experience}
-                  education={app.ai_score.breakdown.education}
-                  keywords={app.ai_score.breakdown.keywords}
-                />
-              </div>
-            )}
-
-            {/* 3. Cover letter & Recruiter Review */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Right Column: Cover letter & Recruiter Review */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {/* Recruiter Review or Placeholder */}
               <div>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span>✨</span> Đánh giá góc nhìn tuyển dụng (AI):
                 </h4>
                 {app.ai_score?.review ? (
                   <p style={{
-                    fontSize: 12.5, color: '#B45309', lineHeight: 1.6, margin: 0, padding: '12px 14px',
+                    fontSize: 14, color: '#B45309', lineHeight: 1.6, margin: 0, padding: '14px 16px',
                     background: '#FFFBEB', borderRadius: 10, border: '1.5px solid #FDE68A',
                     fontStyle: 'italic', whiteSpace: 'pre-wrap'
                   }}>
@@ -305,7 +338,7 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
                   </p>
                 ) : (
                   <div style={{
-                    fontSize: 12, color: '#475569', lineHeight: 1.6, padding: '12px 14px',
+                    fontSize: 13, color: '#475569', lineHeight: 1.6, padding: '14px 16px',
                     background: '#F1F5F9', borderRadius: 10, border: '1.5px solid #E2E8F0',
                     display: 'flex', gap: 8, alignItems: 'center'
                   }}>
@@ -318,12 +351,12 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
               {/* Strengths & Improvements */}
               {app.ai_score?.analysis?.strengths?.length > 0 && (
                 <div style={{
-                  background: '#ECFDF5', border: '1.5px solid #A7F3D0', borderRadius: 10, padding: '12px 14px'
+                  background: '#ECFDF5', border: '1.5px solid #A7F3D0', borderRadius: 10, padding: '14px 16px'
                 }}>
-                  <h5 style={{ margin: '0 0 6px 0', fontSize: 12, fontWeight: 700, color: '#065F46', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <h5 style={{ margin: '0 0 8px 0', fontSize: 13.5, fontWeight: 700, color: '#065F46', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span>✅</span> Ưu điểm nổi bật (ATS):
                   </h5>
-                  <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: '#065F46', lineHeight: 1.5 }}>
+                  <ul style={{ margin: 0, paddingLeft: 16, fontSize: 13, color: '#065F46', lineHeight: 1.6 }}>
                     {app.ai_score.analysis.strengths.map((str, idx) => (
                       <li key={idx} style={{ marginBottom: 4 }}>{str}</li>
                     ))}
@@ -333,12 +366,12 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
 
               {app.ai_score?.analysis?.improvements?.length > 0 && (
                 <div style={{
-                  background: '#FFF5F5', border: '1.5px solid #FED7D7', borderRadius: 10, padding: '12px 14px'
+                  background: '#FFF5F5', border: '1.5px solid #FED7D7', borderRadius: 10, padding: '14px 16px'
                 }}>
-                  <h5 style={{ margin: '0 0 6px 0', fontSize: 12, fontWeight: 700, color: '#9B2C2C', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <h5 style={{ margin: '0 0 8px 0', fontSize: 13.5, fontWeight: 700, color: '#9B2C2C', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span>⚠️</span> Điểm cần cải thiện (ATS):
                   </h5>
-                  <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: '#9B2C2C', lineHeight: 1.5 }}>
+                  <ul style={{ margin: 0, paddingLeft: 16, fontSize: 13, color: '#9B2C2C', lineHeight: 1.6 }}>
                     {app.ai_score.analysis.improvements.map((imp, idx) => (
                       <li key={idx} style={{ marginBottom: 4 }}>{imp}</li>
                     ))}
@@ -347,33 +380,33 @@ function ApplicantCard({ app, onStatusChange, onScore }) {
               )}
 
               <div>
-                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span>💬</span> Thư giới thiệu
                 </h4>
                 {app.cover_letter ? (
                   <p style={{
-                    fontSize: 12.5, color: '#475569', lineHeight: 1.6, margin: 0,
-                    padding: '12px 14px', background: 'white', borderRadius: 10,
+                    fontSize: 14, color: '#475569', lineHeight: 1.6, margin: 0,
+                    padding: '14px 16px', background: 'white', borderRadius: 10,
                     border: '1.5px solid #E2E8F0', whiteSpace: 'pre-wrap'
                   }}>
                     {app.cover_letter}
                   </p>
                 ) : (
-                  <p style={{ fontSize: 13, color: '#94A3B8', fontStyle: 'italic', margin: 0 }}>Không có thư giới thiệu</p>
+                  <p style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', margin: 0 }}>Không có thư giới thiệu</p>
                 )}
               </div>
-            </div>
-          </div>
 
-          <div style={{ marginTop: 20, display: 'flex', gap: 10, borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
-            <a href={getCvUrl(app.resume.pdf_url)} target="_blank" rel="noopener noreferrer" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-              background: '#EFF6FF', color: '#2563EB', border: '1.5px solid #BFDBFE',
-              textDecoration: 'none',
-            }}>
-              📄 Xem CV ứng viên
-            </a>
+              <div style={{ marginTop: 8, display: 'flex', gap: 10, borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
+                <a href={getCvUrl(app.resume.pdf_url)} target="_blank" rel="noopener noreferrer" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '9px 18px', borderRadius: 8, fontSize: 13.5, fontWeight: 600,
+                  background: '#EFF6FF', color: '#2563EB', border: '1.5px solid #BFDBFE',
+                  textDecoration: 'none',
+                }}>
+                  📄 Xem CV ứng viên
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -399,6 +432,50 @@ export default function EmployerApplicantsPage() {
   const [scoringError, setScoringError] = useState('')
   const [scoringTargetApplicant, setScoringTargetApplicant] = useState(null)
 
+  // Selection & deletion states
+  const [selectedIds, setSelectedIds] = useState([])
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(filtered.map(app => app.id))
+    } else {
+      setSelectedIds([])
+    }
+  }
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
+  }
+
+  const handleDeleteOne = async (appId, candidateName) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa hồ sơ ứng tuyển của "${candidateName || 'Ứng viên'}" không?`)) {
+      return
+    }
+    try {
+      await employerService.deleteApplication(appId)
+      setApplications(prev => prev.filter(app => app.id !== appId))
+      setSelectedIds(prev => prev.filter(id => id !== appId))
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || 'Lỗi khi xóa hồ sơ')
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa ${selectedIds.length} hồ sơ đã chọn không?`)) {
+      return
+    }
+    try {
+      await employerService.bulkDeleteApplications(selectedIds)
+      setApplications(prev => prev.filter(app => !selectedIds.includes(app.id)))
+      setSelectedIds([])
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || 'Lỗi khi xóa hàng loạt hồ sơ')
+    }
+  }
+
   useEffect(() => {
     Promise.all([
       employerService.getApplications(jobId),
@@ -421,7 +498,9 @@ export default function EmployerApplicantsPage() {
       if (!search) return true
       const term = search.toLowerCase()
       return a.candidate_name?.toLowerCase().includes(term) ||
-        a.candidate_email?.toLowerCase().includes(term)
+        a.candidate_email?.toLowerCase().includes(term) ||
+        a.seeker?.full_name?.toLowerCase().includes(term) ||
+        a.seeker?.email?.toLowerCase().includes(term)
     })
     .sort((a, b) => {
       if (sortBy === 'score') return (b.ai_score?.overall_score || 0) - (a.ai_score?.overall_score || 0)
@@ -458,7 +537,7 @@ export default function EmployerApplicantsPage() {
   }
 
   return (
-    <div style={{ padding: '32px 0', maxWidth: 960, margin: '0 auto' }}>
+    <div style={{ padding: '32px 0', maxWidth: 1200, margin: '0 auto' }}>
       {/* Header */}
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
@@ -562,10 +641,45 @@ export default function EmployerApplicantsPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Bulk Selection Header Bar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '12px 18px', background: '#F8FAFC', borderRadius: 12,
+            border: '1.5px solid #E2E8F0', marginBottom: 4, boxSizing: 'border-box'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <input
+                type="checkbox"
+                checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                onChange={handleSelectAll}
+                style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#3B82F6' }}
+              />
+              <span style={{ fontSize: 13.5, color: '#475569', fontWeight: 700 }}>
+                Chọn tất cả ({filtered.length} hồ sơ)
+              </span>
+            </div>
+            {selectedIds.length > 0 && (
+              <button onClick={handleBulkDelete} style={{
+                padding: '6px 14px', borderRadius: 8, border: 'none',
+                background: '#EF4444', color: 'white', cursor: 'pointer',
+                fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
+                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)', transition: 'background 0.2s'
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = '#DC2626'}
+                onMouseLeave={e => e.currentTarget.style.background = '#EF4444'}
+              >
+                🗑️ Xóa đã chọn ({selectedIds.length})
+              </button>
+            )}
+          </div>
+
           {filtered.map(app => (
             <ApplicantCard
               key={app.id}
               app={app}
+              isSelected={selectedIds.includes(app.id)}
+              onSelect={() => handleSelectOne(app.id)}
+              onDelete={() => handleDeleteOne(app.id, app.seeker?.full_name || app.candidate_name)}
               onStatusChange={handleStatusChange}
               onScore={() => {
                 setScoringTargetApplicant(app);
