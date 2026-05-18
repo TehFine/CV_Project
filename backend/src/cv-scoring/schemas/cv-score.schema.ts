@@ -26,8 +26,8 @@ export class CvScore {
   })
   type: string;
 
-  @Prop({ type: Buffer })
-  pdfBuffer: Buffer;
+  @Prop({ type: Buffer, required: false })
+  pdfBuffer?: Buffer;
 }
 
 export const CvScoreSchema = SchemaFactory.createForClass(CvScore);
