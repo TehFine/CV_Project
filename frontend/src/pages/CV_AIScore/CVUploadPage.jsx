@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
 import { Upload, Sparkles, FileText, X, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,14 +19,14 @@ function ScoreRing({ score, size = 120 }) {
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#E2E8F0" strokeWidth="7" />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="7"
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="7" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="7"
           strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)' }} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-black text-foreground" style={{ fontSize: size * 0.27 }}>{score}</span>
-        <span className="text-muted-foreground" style={{ fontSize: size * 0.1 }}>/100</span>
+        <span className="font-black text-white" style={{ fontSize: size * 0.27 }}>{score}</span>
+        <span className="text-white/70" style={{ fontSize: size * 0.1 }}>/100</span>
       </div>
     </div>
   )
@@ -35,155 +36,121 @@ function ScoreResult({ result, onReset }) {
   const gradeColor = { A: 'success', B: 'new', C: 'warning', D: 'destructive' }[result.grade] || 'secondary'
   const catColor = pct => pct >= 80 ? '#10B981' : pct >= 65 ? '#3B82F6' : pct >= 50 ? '#F59E0B' : '#EF4444'
 
+  const chartData = result.categories.map(c => ({
+    subject: c.label,
+    A: c.score,
+    fullMark: 100
+  }))
+
   return (
-    <div className="max-w-2xl mx-auto space-y-4 animate-fade-in-up">
-      {/* Overall */}
-      <Card className="overflow-hidden">
-        <div className="bg-linear-to-br from-slate-900 via-blue-950 to-indigo-900 p-7">
-          <div className="flex gap-6 items-center flex-wrap">
-            <div className="text-center">
-              <ScoreRing score={result.overall} size={120} />
-              <Badge variant={gradeColor} className="mt-2">Loại {result.grade} — {result.gradeLabel}</Badge>
+    <div className="w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fade-in-up">
+      <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
+        <Card className="overflow-hidden shadow-lg">
+          <div className="bg-linear-to-br from-slate-900 via-blue-950 to-indigo-900 p-7 flex flex-col items-center text-center">
+            <div className="text-center text-white mb-6">
+              <ScoreRing score={result.overall} size={140} />
+              <Badge variant={gradeColor} className="mt-4 text-sm px-3 py-1">Loại {result.grade} — {result.gradeLabel}</Badge>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-violet-300 text-xs font-bold uppercase tracking-wide mb-1">Kết quả phân tích AI</p>
-              <h2 className="text-white text-xl font-black mb-2 leading-snug">
+            <div className="w-full">
+              <p className="text-violet-300 text-xs font-bold uppercase tracking-wide mb-2">Kết quả phân tích AI</p>
+              <h2 className="text-white text-2xl font-black mb-3 leading-snug">
                 {result.overall >= 85 ? '🎉 CV rất ấn tượng!' : result.overall >= 70 ? '👍 CV tốt, còn cải thiện được' : '💪 CV cần được cải thiện thêm'}
               </h2>
-              <p className="text-slate-400 text-xs mb-3">{result.fileName}</p>
-              <div className="flex flex-wrap gap-1.5">
+              <p className="text-slate-400 text-sm mb-5 truncate px-2">{result.fileName}</p>
+
+              <div className="flex flex-col gap-2">
                 {result.strengths.map(s => (
-                  <span key={s} className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">✓ {s}</span>
+                  <span key={s} className="text-xs px-3 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 whitespace-normal text-left leading-relaxed">
+                    ✓ {s}
+                  </span>
                 ))}
               </div>
             </div>
           </div>
-          {result.recommended_roles && result.recommended_roles.length > 0 && (
-            <div className="bg-white/5 border-t border-white/10 p-4 px-7 flex flex-wrap items-center gap-3">
-              <span className="text-violet-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Gợi ý vị trí phù hợp:</span>
-              <div className="flex flex-wrap gap-2">
-                {result.recommended_roles.map(r => (
-                  <Badge key={r} variant="outline" className="text-white border-white/20 bg-white/5 text-xs hover:bg-white/10 transition-colors">{r}</Badge>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
+        </Card>
 
-      {/* Deep Analysis Section */}
-      {(result.level_assessment || result.project_quality) && (
-        <Card className="border-violet-100 bg-violet-50/30 overflow-hidden">
-          <CardContent className="p-6">
-            <h3 className="font-bold text-violet-900 mb-5 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-violet-500" />
-              Đánh giá năng lực thực tế
+        <div className="flex flex-col gap-3">
+          <Button variant="outline" size="lg" onClick={onReset} className="w-full gap-2 justify-center">
+            <Upload className="h-4 w-4" />Upload CV khác
+          </Button>
+          <Button size="lg" asChild className="w-full gap-2 justify-center">
+            <Link to="/jobs">💼 Tìm việc phù hợp <ArrowRight className="h-4 w-4" /></Link>
+          </Button>
+        </div >
+      </div >
+
+      {/* Right Column - Scrollable Details */}
+      <div className="lg:col-span-7 space-y-5">
+        {/* Visual Chart */}
+        <Card className="shadow-md">
+          <CardContent className="p-6 md:p-8">
+            <h3 className="font-bold text-foreground mb-4 flex items-center gap-2 text-lg border-b pb-4">
+              🕸️ Phân tích tổng quan
             </h3>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="bg-white rounded-xl p-4 border border-violet-100 shadow-xs">
-                  <div className="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">Level ước tính</div>
-                  <div className="text-lg font-black text-violet-700">{result.level_assessment || 'Chưa rõ'}</div>
-                  <div className="text-xs text-slate-400 mt-1">Dựa trên độ phức tạp của dự án & nhiệm vụ</div>
-                </div>
-                
-                <div className="bg-white rounded-xl p-4 border border-violet-100 shadow-xs">
-                  <div className="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">Kinh nghiệm thực chất</div>
-                  <div className="text-lg font-black text-violet-700">{result.extracted_experience_years ? `${result.extracted_experience_years} năm` : 'Chưa rõ'}</div>
-                  <div className="text-xs text-slate-400 mt-1">Tổng thời gian làm việc thực tế được trích xuất</div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-4 border border-violet-100 shadow-xs flex flex-col">
-                <div className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wider">Chất lượng dự án & Đóng góp</div>
-                <p className="text-sm text-slate-700 leading-relaxed flex-1">
-                  {result.project_quality || 'Không có nhận xét chi tiết về dự án.'}
-                </p>
-              </div>
+            <div className="h-[320px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
+                  <PolarGrid stroke="#e2e8f0" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 13, fontWeight: 600 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="Điểm số" dataKey="A" stroke="#8b5cf6" strokeWidth={2} fill="#8b5cf6" fillOpacity={0.4} />
+                  <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                </RadarChart>
+              </ResponsiveContainer>
             </div>
-
-            {/* Skill Depth Analysis */}
-            {result.skill_analysis && (
-              <div className="mt-6 bg-white rounded-xl p-5 border border-violet-100 shadow-xs">
-                <div className="text-xs text-slate-500 font-semibold mb-4 uppercase tracking-wider">Phân tích mức độ thành thạo Kỹ năng</div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="text-sm font-bold text-slate-700">Kỹ năng chuyên sâu (Có dẫn chứng áp dụng)</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 pl-4">
-                      {result.skill_analysis.advanced?.length ? result.skill_analysis.advanced.map(s => (
-                        <Badge key={s} variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200">{s}</Badge>
-                      )) : <span className="text-xs text-slate-400">Không tìm thấy</span>}
-                    </div>
-                  </div>
-                  
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 rounded-full bg-amber-400" />
-                      <span className="text-sm font-bold text-slate-700">Kỹ năng cơ bản (Chỉ liệt kê)</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2 pl-4">
-                      {result.skill_analysis.familiar?.length ? result.skill_analysis.familiar.map(s => (
-                        <Badge key={s} variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200">{s}</Badge>
-                      )) : <span className="text-xs text-slate-400">Không có</span>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
-      )}
 
-      {/* Category breakdown */}
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="font-bold text-foreground mb-5 flex items-center gap-2">📊 Chi tiết theo tiêu chí</h3>
-          <div className="space-y-5">
-            {result.categories.map(cat => (
-              <div key={cat.key}>
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="flex items-center gap-2 text-sm font-semibold"><span>{cat.icon}</span>{cat.label}</span>
-                  <span className="font-black text-base" style={{ color: catColor(cat.score) }}>{cat.score}/100</span>
+        {/* Category breakdown */}
+        <Card className="shadow-md">
+          <CardContent className="p-6 md:p-8">
+            <h3 className="font-bold text-foreground mb-6 flex items-center gap-2 text-lg border-b pb-4">
+              📊 Chi tiết theo tiêu chí
+            </h3>
+            <div className="space-y-6">
+              {result.categories.map(cat => (
+                <div key={cat.key}>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="flex items-center gap-2 font-semibold">
+                      <span className="text-xl">{cat.icon}</span>{cat.label}
+                    </span>
+                    <span className="font-black text-lg" style={{ color: catColor(cat.score) }}>{cat.score}/100</span>
+                  </div>
+                  <div className="h-2.5 bg-muted rounded-full overflow-hidden mb-3">
+                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${cat.score}%`, backgroundColor: catColor(cat.score) }} />
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">{cat.feedback}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {cat.suggestions.map(s => (
+                      <Badge key={s} variant="ai" className="text-xs font-normal whitespace-normal text-left h-auto py-1.5 px-3 leading-relaxed">
+                        💡 {s}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
-                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${cat.score}%`, backgroundColor: catColor(cat.score) }} />
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-2">{cat.feedback}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {cat.suggestions.map(s => (
-                    <Badge key={s} variant="ai" className="text-[11px] font-normal">💡 {s}</Badge>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Improvements */}
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="font-bold text-foreground mb-4">🚀 Cần cải thiện ngay</h3>
-          <div className="space-y-3">
-            {result.improvements.map((imp, i) => (
-              <div key={i} className="flex gap-3 items-start py-2.5 border-b last:border-0">
-                <div className="w-6 h-6 rounded-full bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-xs font-black text-amber-700 shrink-0 mt-0.5">{i + 1}</div>
-                <p className="text-sm text-muted-foreground leading-relaxed">{imp}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex gap-3 flex-wrap">
-        <Button variant="outline" onClick={onReset} className="gap-2"><Upload className="h-4 w-4" />Upload CV khác</Button>
-        <Button asChild className="gap-2"><Link to="/jobs">💼 Tìm việc phù hợp <ArrowRight className="h-4 w-4" /></Link></Button>
-      </div>
-    </div>
+        {/* Improvements */}
+        <Card className="shadow-md">
+          <CardContent className="p-6 md:p-8">
+            <h3 className="font-bold text-foreground mb-5 text-lg border-b pb-4">🚀 Cần cải thiện ngay</h3>
+            <div className="space-y-4">
+              {result.improvements.map((imp, i) => (
+                <div key={i} className="flex gap-4 items-start py-3 border-b last:border-0">
+                  <div className="w-7 h-7 rounded-full bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-sm font-black text-amber-700 shrink-0 mt-0.5">
+                    {i + 1}
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{imp}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div >
+    </div >
   )
 }
 
@@ -228,7 +195,7 @@ export default function CVUploadPage() {
     <div className="min-h-screen bg-muted/30 pb-16">
       {/* Hero */}
       <div className="bg-linear-to-br from-slate-900 via-indigo-950 to-violet-900 pt-12 pb-10 mb-8">
-        <div className="max-w-300 mx-auto px-6 text-center">
+        <div className="max-w-[1400px] mx-auto px-6 text-center">
           <Badge variant="ai" className="mb-4 gap-1.5 text-white"><Sparkles className="h-3.5 w-3.5 " />AI-Powered Analysis</Badge>
           <h1 className="text-4xl font-black text-white mb-3">
             {jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV bằng AI'}
@@ -237,7 +204,7 @@ export default function CVUploadPage() {
             {jobId ? `So sánh 1:1 CV của bạn với công việc: ${paramJobTitle}` : 'Upload CV và nhận phân tích chi tiết trong 30 giây — Hoàn toàn miễn phí'}
           </p>
           <div className="flex justify-center gap-8 mt-6">
-            {[['50K+','CV đã chấm'],['30s','Tốc độ AI'],['5','Tiêu chí'],['100%','Miễn phí']].map(([v,l]) => (
+            {[['50K+', 'CV đã chấm'], ['30s', 'Tốc độ AI'], ['5', 'Tiêu chí'], ['100%', 'Miễn phí']].map(([v, l]) => (
               <div key={l} className="text-center">
                 <div className="text-xl font-black text-white">{v}</div>
                 <div className="text-xs text-slate-400">{l}</div>
@@ -247,7 +214,7 @@ export default function CVUploadPage() {
         </div>
       </div>
 
-      <div className="max-w-300 mx-auto px-6">
+      <div className="max-w-[1400px] mx-auto px-6">
         {status === 'result' ? (
           <ScoreResult result={result} onReset={reset} />
         ) : (
@@ -286,7 +253,7 @@ export default function CVUploadPage() {
                           <FileText className="h-5 w-5 text-emerald-600 shrink-0" />
                           <div className="text-left flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground truncate">{file.name}</p>
-                            <p className="text-xs text-muted-foreground">{(file.size/1024).toFixed(1)} KB</p>
+                            <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
                           </div>
                           <button onClick={e => { e.stopPropagation(); setFile(null) }} className="text-muted-foreground hover:text-foreground">
                             <X className="h-4 w-4" />
@@ -300,7 +267,7 @@ export default function CVUploadPage() {
                           <p className="font-bold text-foreground mb-1">{dragging ? 'Thả file vào đây!' : 'Kéo thả CV vào đây'}</p>
                           <p className="text-sm text-muted-foreground mb-3">Hoặc nhấn để chọn từ máy tính</p>
                           <div className="flex justify-center gap-2">
-                            {['PDF','DOC','DOCX'].map(f => <Badge key={f} variant="outline" className="text-xs">{f}</Badge>)}
+                            {['PDF', 'DOC', 'DOCX'].map(f => <Badge key={f} variant="outline" className="text-xs">{f}</Badge>)}
                             <span className="text-xs text-muted-foreground self-center">· Tối đa 10MB</span>
                           </div>
                         </>
@@ -324,7 +291,7 @@ export default function CVUploadPage() {
                 )}
 
                 <Button variant="ai" size="xl" className="w-full gap-2" onClick={handleSubmit} disabled={!file}>
-                  <Sparkles className="h-5 w-5" />{jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV ngay — Miễn phí'}
+                  <Sparkles className="h-5 w-5" /><span>{jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV ngay — Miễn phí'}</span>
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground">🔒 File được bảo mật và không lưu trữ lâu dài</p>

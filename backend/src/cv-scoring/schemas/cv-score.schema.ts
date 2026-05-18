@@ -1,52 +1,76 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
+
+export type CvScoreDocument = CvScore & Document;
 
 @Schema({ timestamps: true })
-export class CvScore extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: false })
-  userId: string; // Có thể null nếu ứng viên chưa đăng nhập
+export class CvScore {
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: false })
+  userId: MongooseSchema.Types.ObjectId;
 
-  @Prop({ required: true })
-  fileName: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Job', required: false })
+  jobId: MongooseSchema.Types.ObjectId;
 
   @Prop({ required: false })
-  targetPosition: string;
+  cvUrl?: string;
 
-  @Prop({ required: true })
-  overall: number;
+  @Prop({ required: false })
+  score?: number;
 
-  @Prop({ required: true })
-  grade: string;
+  @Prop({ type: Object, required: false })
+  analysis?: any;
 
-  @Prop({ required: true })
-  gradeLabel: string;
+  @Prop({ 
+    required: false, 
+    enum: ['candidate_self_score', 'employer_match', 'general_analysis'] 
+  })
+  type?: string;
 
-  @Prop({ required: true })
-  level_assessment: string;
+  @Prop({ type: Buffer, required: false })
+  pdfBuffer?: Buffer;
 
-  @Prop({ required: true })
-  extracted_experience_years: number;
+  // Additional fields for compatibility
+  @Prop({ required: false })
+  fileName?: string;
 
-  @Prop({ required: true })
-  project_quality: string;
+  @Prop({ required: false })
+  targetPosition?: string;
+
+  @Prop({ required: false })
+  overall?: number;
+
+  @Prop({ required: false })
+  grade?: string;
+
+  @Prop({ required: false })
+  gradeLabel?: string;
+
+  @Prop({ required: false })
+  level_assessment?: string;
+
+  @Prop({ required: false })
+  extracted_experience_years?: number;
+
+  @Prop({ required: false })
+  project_quality?: string;
 
   @Prop({ type: [String], default: [] })
-  recommended_roles: string[];
+  recommended_roles?: string[];
 
   @Prop({ type: Object, default: { advanced: [], familiar: [] } })
-  skill_analysis: {
+  skill_analysis?: {
     advanced: string[];
     familiar: string[];
   };
 
-  @Prop({ type: Object, required: true })
-  categories: any[];
+  @Prop({ type: Object, required: false })
+  categories?: any[];
 
   @Prop({ type: [String], default: [] })
-  strengths: string[];
+  strengths?: string[];
 
   @Prop({ type: [String], default: [] })
-  improvements: string[];
+  improvements?: string[];
 }
 
 export const CvScoreSchema = SchemaFactory.createForClass(CvScore);

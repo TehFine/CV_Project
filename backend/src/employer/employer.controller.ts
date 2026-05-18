@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Param, Body, Patch } from '@nestjs/common';
+import { Controller, Get, UseGuards, Param, Body, Patch, Request, Delete, Post } from '@nestjs/common';
 import { EmployerService } from './employer.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -11,13 +11,15 @@ export class EmployerController {
   constructor(private readonly employerService: EmployerService) {}
 
   @Get('dashboard/stats')
-  getDashboardStats() {
-    return this.employerService.getDashboardStats();
+  getDashboardStats(@Request() req) {
+    const userId = req.user?._id || req.user?.id;
+    return this.employerService.getDashboardStats(userId);
   }
 
   @Get('jobs')
-  getJobs() {
-    return this.employerService.getJobs();
+  getJobs(@Request() req) {
+    const userId = req.user?._id || req.user?.id;
+    return this.employerService.getJobs(userId);
   }
 
   @Get('jobs/:id')
@@ -33,5 +35,15 @@ export class EmployerController {
   @Patch('applications/:id/status')
   updateStatus(@Param('id') id: string, @Body('status') status: string) {
     return this.employerService.updateApplicationStatus(id, status);
+  }
+
+  @Delete('applications/:id')
+  deleteApplication(@Param('id') id: string) {
+    return this.employerService.deleteApplication(id);
+  }
+
+  @Post('applications/bulk-delete')
+  bulkDeleteApplications(@Body('ids') ids: string[]) {
+    return this.employerService.bulkDeleteApplications(ids);
   }
 }

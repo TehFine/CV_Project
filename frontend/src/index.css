@@ -63,6 +63,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+button, [type="button"], [type="reset"], [type="submit"], [role="button"] {
+  cursor: pointer;
+}
+button:disabled, [role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 /* ── Scrollbar ───────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: #F1F5F9; }

@@ -378,7 +378,7 @@ export const employerService = {
   },
 
   // ── CV Scoring ──
-  async scoreCv(jobId, file) {
+  async scoreCv(jobId, file, candidateId) {
     if (USE_MOCK) {
       await delay(1500);
       return {
@@ -390,10 +390,38 @@ export const employerService = {
       };
     }
     const formData = new FormData();
-    formData.append('cv', file);
+    if (file) {
+      formData.append('cv', file);
+    }
+    if (candidateId) {
+      formData.append('candidateId', candidateId);
+    }
+    
     const response = await api.post(`/cv-scoring/score/${jobId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data; // or response depending on how your api wrapper works
+    return response.data;
+  },
+
+  async deleteApplication(applicationId) {
+    if (USE_MOCK) {
+      await delay(300);
+      const idx = mockApplications.findIndex((a) => a.id === applicationId);
+      if (idx !== -1) mockApplications.splice(idx, 1);
+      syncAppsToStorage(mockApplications);
+      return { success: true };
+    }
+    return api.delete(`/employer/applications/${applicationId}`);
+  },
+
+  async bulkDeleteApplications(ids) {
+    if (USE_MOCK) {
+      await delay(500);
+      const newApps = mockApplications.filter((a) => !ids.includes(a.id));
+      mockApplications.splice(0, mockApplications.length, ...newApps);
+      syncAppsToStorage(mockApplications);
+      return { success: true };
+    }
+    return api.post('/employer/applications/bulk-delete', { ids });
   },
 };

@@ -1,16 +1,41 @@
-import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards, Get, Req } from '@nestjs/common';
+import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards, Req, Get, Res, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CvScoringService } from './cv-scoring.service';
 import { JobsService } from '../jobs/jobs.service';
 import { JobDocument } from '../jobs/schemas/job.schema';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Response } from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Controller('cv-scoring')
 export class CvScoringController {
   constructor(
     private readonly cvScoringService: CvScoringService,
     private readonly jobsService: JobsService,
-  ) {}
+  ) { }
+
+  @Get('view/:id')
+  @UseGuards(JwtAuthGuard)
+  async viewCv(@Param('id') id: string, @Req() req: any, @Res() res: any) {
+    let score = await this.cvScoringService.findScoreById(id);
+    if (!score || !score.pdfBuffer) {
+      score = await this.cvScoringService.findScoreByCvUrl(id);
+    }
+
+    if (!score || !score.pdfBuffer) {
+      throw new NotFoundException('Không tìm thấy file CV của ứng viên trong cơ sở dữ liệu.');
+    }
+
+    const hasAccess = await this.cvScoringService.checkCvAccessPermission(score, req.user);
+    if (!hasAccess) {
+      throw new ForbiddenException('Bạn không có quyền truy cập file CV này.');
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(score.pdfBuffer);
+  }
+
 
   @Post('score/:jobId')
   @UseGuards(JwtAuthGuard)
@@ -18,12 +43,22 @@ export class CvScoringController {
   async scoreCv(
     @Param('jobId') jobId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Body('candidateId') candidateId?: string,
   ) {
-    if (!file) {
-      throw new BadRequestException('Vui lòng tải lên file CV (PDF)');
+    let pdfBuffer: Buffer | undefined = undefined;
+
+    if (file) {
+      if (file.mimetype !== 'application/pdf') {
+        throw new BadRequestException('Chỉ hỗ trợ file PDF');
+      }
+      pdfBuffer = file.buffer;
+    } else if (candidateId) {
+      const dbBuffer = await this.cvScoringService.getCandidatePdfBuffer(jobId, candidateId);
+      if (dbBuffer) pdfBuffer = dbBuffer;
     }
-    if (file.mimetype !== 'application/pdf' && !file.mimetype.includes('word') && !file.originalname.match(/\.(pdf|doc|docx)$/i)) {
-      throw new BadRequestException('Chỉ hỗ trợ file PDF và Word (DOC/DOCX)');
+
+    if (!pdfBuffer) {
+      throw new BadRequestException('Không tìm thấy file CV hiện tại của ứng viên. Vui lòng tải lên file CV (PDF) mới.');
     }
 
     const job = await this.jobsService.findOne(jobId);
@@ -31,7 +66,7 @@ export class CvScoringController {
       throw new BadRequestException('Không tìm thấy công việc');
     }
 
-    const result = await this.cvScoringService.scoreCV(file, job as any);
+    const result = await this.cvScoringService.scoreCV(pdfBuffer, job as any, candidateId);
     return {
       success: true,
       data: result
@@ -39,9 +74,11 @@ export class CvScoringController {
   }
 
   @Post('candidate-score')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('cv'))
   async scoreCandidateCv(
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
     @Body('target_position') targetPosition?: string,
     @Body('jobId') jobId?: string,
     @Req() req?: any
@@ -60,21 +97,8 @@ export class CvScoringController {
         if (found) jobContext = found as JobDocument;
       }
 
-      // Cố gắng giải mã user từ token nếu có (để lưu lịch sử)
-      let user: any = null;
-      if (req && req.headers && req.headers.authorization) {
-        try {
-          const token = req.headers.authorization.split(' ')[1];
-          // Simple payload decode without full verification just for attaching userId to history
-          // In production, you would use a proper optional guard.
-          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-          user = { _id: payload.sub };
-        } catch (e) {
-          // ignore
-        }
-      }
-
-      const result = await this.cvScoringService.scoreCandidateCV(file, targetPosition, jobContext, user);
+      const userId = req.user?.id || req.user?._id;
+      const result = await this.cvScoringService.scoreCandidateCV(file.buffer, file.originalname, targetPosition, jobContext, userId);
       return result;
     } catch (error) {
       throw new BadRequestException(error.message || 'Lỗi khi phân tích CV');
