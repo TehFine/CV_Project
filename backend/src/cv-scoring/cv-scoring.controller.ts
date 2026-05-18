@@ -81,7 +81,6 @@ export class CvScoringController {
     @Req() req: any,
     @Body('target_position') targetPosition?: string,
     @Body('jobId') jobId?: string,
-    @Req() req?: any
   ) {
     try {
       if (!file) {
