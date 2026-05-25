@@ -42,8 +42,7 @@
 
 Hệ thống sử dụng chiến lược **2 lớp (Dual-layer Evaluation)**:
 
-1. **Google Gemini AI (Chính)**: 
-   - Sử dụng model `gemini-3.1-flash-lite-preview` để phân tích ngữ nghĩa tự nhiên.
+1. **Google Gemini AI (Chính)**:    - Sử dụng model `gemini-3.1-flash-lite` để phân tích ngữ nghĩa tự nhiên.
    - Đối chiếu nội dung văn bản trích xuất từ CV với Mô tả công việc (JD) và Yêu cầu kỹ năng.
    - Phát hiện các CV không hợp lệ (Spam/Rác/Tài liệu sai lệch) và từ chối xử lý kèm lý do rõ ràng.
    - Phân tích và chấm điểm chi tiết (Thang điểm 100), phân loại Grade (A, B, C, D) kèm điểm mạnh, điểm yếu, phản hồi cụ thể cho từng mục.

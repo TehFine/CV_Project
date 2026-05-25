@@ -15,7 +15,7 @@ import * as path from 'path';
 export class CvScoringService {
   private readonly logger = new Logger(CvScoringService.name);
   private geminiApiKey: string | null = null;
-  private readonly GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
+  private readonly GEMINI_MODEL = 'gemini-3.1-flash-lite';
   private readonly GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models`;
 
   constructor(
