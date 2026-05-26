@@ -282,6 +282,51 @@ export const employerService = {
     return api.get(`/employer/jobs/${id}`);
   },
 
+  // Helper: transform frontend job format → backend schema format
+  toBackendFormat(data) {
+    return {
+      title: data.title,
+      description: data.description,
+      location: data.location,
+      type: data.job_type,
+      level: data.level,
+      companyName: data.companyName,
+      category: data.category || 'Công nghệ thông tin',
+      salaryMin: data.salary_min ? Number(data.salary_min) : undefined,
+      salaryMax: data.salary_max ? Number(data.salary_max) : undefined,
+      tags: data.required_skills || [],
+      requirements: data.requirements ? data.requirements.split('\n').filter(Boolean) : [],
+      benefits: data.benefits ? data.benefits.split('\n').filter(Boolean) : [],
+      deadline: data.expired_at || undefined,
+      status: data.status || 'draft',
+    };
+  },
+
+  // Helper: transform backend schema format → frontend job format
+  toFrontendFormat(job) {
+    return {
+      id: job._id || job.id,
+      title: job.title,
+      description: job.description,
+      location: job.location,
+      companyName: job.companyName,
+      category: job.category,
+      job_type: (job.type || 'full-time').toLowerCase(),
+      level: (job.level || 'junior').toLowerCase(),
+      salary_min: job.salaryMin || 0,
+      salary_max: job.salaryMax || 0,
+      required_skills: job.tags || [],
+      requirements: Array.isArray(job.requirements) ? job.requirements.join('\n') : (job.requirements || ''),
+      benefits: Array.isArray(job.benefits) ? job.benefits.join('\n') : (job.benefits || ''),
+      status: job.status || 'active',
+      expired_at: job.deadline ? new Date(job.deadline).toISOString() : '',
+      view_count: job.views || 0,
+      application_count: job.applied || 0,
+      created_at: job.createdAt || job.created_at,
+      updated_at: job.updatedAt || job.updated_at,
+    };
+  },
+
   async createJob(data) {
     if (USE_MOCK) {
       await delay(600);
@@ -316,7 +361,7 @@ export const employerService = {
 
       return newJob;
     }
-    return api.post("/employer/jobs", data);
+    return api.post("/jobs", this.toBackendFormat(data));
   },
 
   async updateJob(id, data) {
@@ -332,7 +377,7 @@ export const employerService = {
       syncPostedJobsToStorage(mockJobs);
       return mockJobs[idx];
     }
-    return api.put(`/employer/jobs/${id}`, data);
+    return api.patch(`/jobs/${id}`, this.toBackendFormat(data));
   },
 
   async deleteJob(id) {
@@ -343,7 +388,7 @@ export const employerService = {
       syncPostedJobsToStorage(mockJobs);
       return { message: "Đã xóa tin tuyển dụng" };
     }
-    return api.delete(`/employer/jobs/${id}`);
+    return api.delete(`/jobs/${id}`);
   },
 
   async updateJobStatus(id, status) {

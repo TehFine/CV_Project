@@ -503,7 +503,11 @@ export default function EmployerApplicantsPage() {
         a.seeker?.email?.toLowerCase().includes(term)
     })
     .sort((a, b) => {
-      if (sortBy === 'score') return (b.ai_score?.overall_score || 0) - (a.ai_score?.overall_score || 0)
+      if (sortBy === 'score') {
+        const scoreDiff = (b.ai_score?.overall_score || 0) - (a.ai_score?.overall_score || 0)
+        if (scoreDiff !== 0) return scoreDiff
+        return new Date(b.applied_at) - new Date(a.applied_at)
+      }
       return new Date(b.applied_at) - new Date(a.applied_at)
     })
 

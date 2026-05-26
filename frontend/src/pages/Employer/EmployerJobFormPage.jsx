@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { employerService } from '../../services/employerService'
+import { useAuth } from '../../context/AuthContext'
 
 const SKILL_SUGGESTIONS = [
   'React', 'Vue', 'Angular', 'Next.js', 'TypeScript', 'JavaScript',
@@ -32,11 +33,14 @@ export default function EmployerJobFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [form, setForm] = useState({
     title: '',
     description: '',
     location: '',
+    companyName: user?.companyName || '',
+    category: 'Công nghệ thông tin',
     job_type: 'full-time',
     level: 'junior',
     salary_min: '',
@@ -59,6 +63,8 @@ export default function EmployerJobFormPage() {
         title: job.title || '',
         description: job.description || '',
         location: job.location || '',
+        companyName: job.companyName || user?.companyName || '',
+        category: job.category || 'Công nghệ thông tin',
         job_type: job.job_type || 'full-time',
         level: job.level || 'junior',
         salary_min: job.salary_min || '',
@@ -99,9 +105,12 @@ export default function EmployerJobFormPage() {
     return Object.keys(e).length === 0
   }
 
+  const [errorMsg, setErrorMsg] = useState('')
+
   const handleSave = async (publish = false) => {
     if (!validate()) return
     setSaving(true)
+    setErrorMsg('')
     try {
       const payload = {
         ...form,
@@ -109,6 +118,7 @@ export default function EmployerJobFormPage() {
         salary_max: form.salary_max ? Number(form.salary_max) : null,
         expired_at: form.expired_at ? new Date(form.expired_at).toISOString() : null,
         status: publish ? 'pending' : form.status,
+        companyName: form.companyName || user?.companyName || '',
       }
       if (isEdit) {
         await employerService.updateJob(id, payload)
@@ -116,6 +126,10 @@ export default function EmployerJobFormPage() {
         await employerService.createJob(payload)
       }
       navigate('/employer/jobs')
+    } catch (err) {
+      const msg = err?.message || err?.data?.message || 'Có lỗi xảy ra khi lưu tin tuyển dụng. Vui lòng thử lại.'
+      setErrorMsg(msg)
+      console.error('Save job error:', err)
     } finally {
       setSaving(false)
     }
@@ -144,6 +158,16 @@ export default function EmployerJobFormPage() {
           📝 Thông tin cơ bản
         </h2>
 
+        {errorMsg && (
+          <div style={{
+            padding: '12px 16px', borderRadius: 10, marginBottom: 20,
+            backgroundColor: '#FEF2F2', border: '1.5px solid #FECACA',
+            color: '#DC2626', fontSize: 13, fontWeight: 600,
+          }}>
+            ❌ {errorMsg}
+          </div>
+        )}
+
         <Field label="Tiêu đề vị trí" required>
           <input value={form.title} onChange={e => set('title', e.target.value)}
             placeholder="VD: Senior Frontend Developer (React)"
@@ -153,6 +177,30 @@ export default function EmployerJobFormPage() {
           />
           {errors.title && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.title}</p>}
         </Field>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <Field label="Tên công ty" required>
+            <input value={form.companyName} onChange={e => set('companyName', e.target.value)}
+              placeholder="VD: VNG Corporation"
+              style={{ ...inputStyle }}
+              onFocus={e => e.target.style.borderColor = '#3B82F6'}
+              onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+            />
+          </Field>
+          <Field label="Ngành nghề" required>
+            <select value={form.category} onChange={e => set('category', e.target.value)} style={{ ...inputStyle }}>
+              <option value="Công nghệ thông tin">Công nghệ thông tin</option>
+              <option value="Dữ liệu & AI">Dữ liệu & AI</option>
+              <option value="Thiết kế">Thiết kế</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Kinh doanh / Sales">Kinh doanh / Sales</option>
+              <option value="Tài chính - Kế toán">Tài chính - Kế toán</option>
+              <option value="Nhân sự">Nhân sự</option>
+              <option value="Sản xuất">Sản xuất</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </Field>
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <Field label="Hình thức làm việc" required>
