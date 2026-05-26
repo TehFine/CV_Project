@@ -46,6 +46,17 @@ export class User {
 
   @Prop()
   industry: string;
+
+  // Password reset fields
+  @Prop()
+  resetPasswordToken?: string;
+
+  @Prop()
+  resetPasswordExpires?: Date;
+
+  // User status (for admin management)
+  @Prop({ default: 'active', enum: ['active', 'banned', 'pending', 'inactive'] })
+  status?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

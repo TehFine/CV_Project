@@ -1,19 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 import { JobDocument } from '../jobs/schemas/job.schema';
 import { CvScore, CvScoreDocument } from './schemas/cv-score.schema';
-import { ROLE_KNOWLEDGE_BASE, ROLE_MAPPING } from './constants/knowledge-base';
+import { ROLE_MAPPING, analyzeCVLocal, CVAnalysisResult } from './constants/knowledge-base';
 import { ApplicationDocument } from '../jobs/schemas/application.schema';
-import * as fs from 'fs';
-import * as path from 'path';
+import { AppLogger } from '../common/logger.service';
 
 @Injectable()
 export class CvScoringService {
-  private readonly logger = new Logger(CvScoringService.name);
+  private readonly logger = AppLogger.forContext(CvScoringService.name);
   private geminiApiKey: string | null = null;
   private readonly GEMINI_MODEL = 'gemini-3.1-flash-lite';
   private readonly GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models`;
@@ -26,9 +24,9 @@ export class CvScoringService {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (apiKey) {
       this.geminiApiKey = apiKey;
-      this.logger.log('Gemini AI configured successfully.');
+      this.logger.success('Gemini AI configured', { action: 'init' });
     } else {
-      this.logger.warn('GEMINI_API_KEY is not configured. AI fallback will not work.');
+      this.logger.warn('GEMINI_API_KEY không được cấu hình. Sẽ dùng local fallback.', { action: 'init' });
     }
   }
 
@@ -82,10 +80,65 @@ export class CvScoringService {
       if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) {
         const result = await mammoth.extractRawText({ buffer });
         return result.value;
-      } else {
-        const data = await pdfParse(buffer);
-        return data.text;
       }
+
+      // Use pdfjs-dist (v5+) for robust PDF text extraction.
+      // Dynamic import because pdfjs-dist v5 is ESM-only.
+      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+      const uint8Array = new Uint8Array(buffer);
+      const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
+      const pdfDocument = await loadingTask.promise;
+
+      const pages: string[] = [];
+      const Y_TOLERANCE = 5; // tolerance in PDF units for items on the same line
+
+      for (let i = 1; i <= pdfDocument.numPages; i++) {
+        const page = await pdfDocument.getPage(i);
+        const content = await page.getTextContent();
+
+        // Get text items only (filter out marked content items)
+        const textItems = (content.items as any[]).filter(
+          (item: any) => item.str !== undefined && item.transform !== undefined
+        );
+
+        // Sort by Y-position (descending = top-to-bottom in PDF coords)
+        // then X-position (ascending = left-to-right)
+        const sortedItems = [...textItems].sort((a: any, b: any) => {
+          const yDiff = b.transform[5] - a.transform[5];
+          if (Math.abs(yDiff) > Y_TOLERANCE) return yDiff; // different line
+          return a.transform[4] - b.transform[4]; // same line, left-to-right
+        });
+
+        // Build text with proper line breaks based on Y-position changes
+        const lineParts: string[] = [];
+        let currentLine: string[] = [];
+        let lastY: number | null = null;
+
+        for (const item of sortedItems) {
+          const y = item.transform[5];
+          const str = item.str || '';
+
+          if (lastY !== null && Math.abs(y - lastY) > Y_TOLERANCE) {
+            // Y changed significantly → new line
+            lineParts.push(currentLine.join(' ').replace(/\s+/g, ' ').trim());
+            currentLine = [];
+          }
+
+          currentLine.push(str);
+          lastY = y;
+        }
+
+        // Don't forget the last line
+        if (currentLine.length > 0) {
+          lineParts.push(currentLine.join(' ').replace(/\s+/g, ' ').trim());
+        }
+
+        const pageText = lineParts.join('\n');
+
+        pages.push(pageText);
+      }
+
+      return pages.join('\n\n');
     } catch (error) {
       this.logger.error('Failed to parse document', error);
       throw new Error('Failed to parse document. Ensure it is a valid PDF or Word file.');
@@ -122,16 +175,32 @@ export class CvScoringService {
     if (allKeywords.length === 0) return 0; // Cannot score by keywords
 
     const cvLower = cvText.toLowerCase();
+    // Also create a fuzzy-normalized version for matching
+    const cvFuzzy = cvLower.replace(/[-._\s]+/g, '');
+
     let matches = 0;
 
     for (const keyword of allKeywords) {
-      if (cvLower.includes(keyword.toLowerCase().trim())) {
+      const kw = keyword.toLowerCase().trim();
+      // Exact match
+      if (cvLower.includes(kw)) {
+        matches++;
+        continue;
+      }
+      // Fuzzy match: strip dots/dashes/spaces (only for multi-char keywords)
+      const kwFuzzy = kw.replace(/[-._\s]+/g, '');
+      if (kwFuzzy.length >= 4 && cvFuzzy.includes(kwFuzzy)) {
         matches++;
       }
     }
 
     const ratio = matches / allKeywords.length;
-    const rawScore = ratio * 10;
+
+    // Use exponential curve so matching ~30% of keywords → ~78% of max score
+    // matching ~15% of keywords → ~53% of max score (still decent)
+    const effectiveRatio = 1 - Math.exp(-5 * ratio);
+    // effectiveRatio is 0..1, scale to 1..10 score
+    const rawScore = effectiveRatio * 10;
     return Math.max(1, Math.min(10, Math.round(rawScore)));
   }
 
@@ -142,7 +211,7 @@ export class CvScoringService {
     if (candidateId) {
       const existing = await this.findExistingScore(candidateId, (job as any)._id.toString());
       if (existing) {
-        this.logger.log(`Employer reusing candidate score for user ${candidateId} and job ${job.title} `);
+        this.logger.log('Tái sử dụng điểm số AI có sẵn', { action: 'reuse_score', userId: candidateId, jobTitle: job.title });
 
         // Generate contextual evaluation based on existing analysis
         const employerReview = await this.generateEmployerContext(existing.analysis, job);
@@ -232,12 +301,13 @@ Trả về JSON theo cấu trúc sau:
             review
           };
         } catch (parseError) {
-          this.logger.error('Failed to parse Gemini JSON response', parseError);
+          this.logger.fail('Parse JSON từ Gemini thất bại', { action: 'score_cv', error: parseError.message });
         }
       }
     }
 
     // Fallback if Gemini is not configured or failed
+    this.logger.warn('Dùng local fallback scoring (không có Gemini)', { action: 'score_cv_fallback' });
     const matchPercentage = Math.round((localScore / 10) * 100);
     const fallbackReview = `Đánh giá tự động: CV của ứng viên khớp khoảng ${matchPercentage}% từ khóa yêu cầu của công việc.`;
 
@@ -307,146 +377,153 @@ Hãy trả về JSON theo định dạng chính xác sau:
   }
 
   private evaluateCandidateLocalScore(cvText: string, targetPosition: string, fileName: string, jobContext?: JobDocument) {
-    const textLower = cvText.toLowerCase();
-
-    // 1. Skills & Keywords
-    let keywords: string[] = [];
-    if (jobContext) {
-      keywords = [...(jobContext.requirements || []), ...(jobContext.tags || [])];
-    } else {
-      const posLower = targetPosition.toLowerCase();
-      const rolesToMatch: string[] = [];
-
-      // Find relevant roles based on targetPosition
-      Object.keys(ROLE_MAPPING).forEach(key => {
-        if (posLower.includes(key)) {
-          const mapped = ROLE_MAPPING[key];
-          if (Array.isArray(mapped)) rolesToMatch.push(...mapped);
-          else rolesToMatch.push(mapped);
-        }
-      });
-
-      // Remove duplicates and get keywords
-      const uniqueRoles = [...new Set(rolesToMatch)];
-      uniqueRoles.forEach(role => {
-        if (ROLE_KNOWLEDGE_BASE[role]) {
-          keywords.push(...ROLE_KNOWLEDGE_BASE[role]);
-        }
-      });
-
-      // If no roles matched, use general soft skills
-      if (keywords.length === 0) {
-        keywords = ROLE_KNOWLEDGE_BASE.soft_skills;
+    // Use the advanced fallback engine from knowledge-base.ts
+    // Try to extract a valid role key from the target position string
+    const posLower = targetPosition.toLowerCase();
+    let targetRole: string | undefined;
+    for (const [key] of Object.entries(ROLE_MAPPING)) {
+      if (posLower.includes(key)) {
+        targetRole = key;
+        break;
       }
-
-      // Always include soft skills for better context
-      keywords = [...new Set([...keywords, ...ROLE_KNOWLEDGE_BASE.soft_skills])];
     }
 
-    const validKeywords = keywords.filter(k => k && k.trim() !== '');
-    let matches = 0;
-    validKeywords.forEach(k => {
-      if (textLower.includes(k.toLowerCase().trim())) matches++;
-    });
-    // Nếu có quá ít từ khóa hợp lệ thì không phạt điểm quá nặng
-    const skillsScore = validKeywords.length > 0 ? Math.round((matches / validKeywords.length) * 100) : 60;
+    const analysisResult = analyzeCVLocal(cvText, targetRole || targetPosition);
 
-    // 2. Experience
-    const expKeywords = ['kinh nghiệm', 'experience', 'dự án', 'project', 'tham gia', 'work history', 'working at', 'làm việc tại'];
-    let expMatches = 0;
-    expKeywords.forEach(k => { if (textLower.includes(k)) expMatches++; });
+    // If jobContext is provided, augment the skills analysis with job-specific requirements/tags
+    if (jobContext && (jobContext.requirements?.length || jobContext.tags?.length)) {
+      const jobKeywords = [...(jobContext.requirements || []), ...(jobContext.tags || [])]
+        .filter(k => k && k.trim() !== '');
+      const textLower = cvText.toLowerCase();
+      let jobMatches = 0;
+      for (const kw of jobKeywords) {
+        if (textLower.includes(kw.toLowerCase())) jobMatches++;
+      }
+      const jobMatchRatio = jobKeywords.length > 0 ? jobMatches / jobKeywords.length : 0.5;
 
-    // Check for specific years of experience if possible
-    const yearMatch = textLower.match(/(\d+)\+?\s*(năm|year)/);
-    let yearBonus = 0;
-    if (yearMatch) {
-      const years = parseInt(yearMatch[1]);
-      if (years >= 5) yearBonus = 20;
-      else if (years >= 2) yearBonus = 10;
+      // Blend the knowledge-base skills score with job-specific match (weighted 70% KB, 30% job-specific)
+      const kbSkillsScore = analysisResult.breakdown.skills.score;
+      const jobSkillsScore = Math.round(jobMatchRatio * analysisResult.breakdown.skills.maxScore);
+      const blendedSkillsScore = Math.round(kbSkillsScore * 0.7 + jobSkillsScore * 0.3);
+      analysisResult.breakdown.skills.score = Math.min(blendedSkillsScore, analysisResult.breakdown.skills.maxScore);
+
+      // Recalculate overall score since skills weight changed
+      const rawTotal =
+        analysisResult.breakdown.skills.score +
+        analysisResult.breakdown.experience.score +
+        analysisResult.breakdown.education.score +
+        analysisResult.breakdown.certifications.score +
+        analysisResult.breakdown.softSkills.score +
+        analysisResult.breakdown.presentation.score;
+      analysisResult.overallScore = Math.min(Math.max(Math.round(rawTotal), 0), 100);
+
+      // Recalculate grade to match the adjusted overall score
+      const g = analysisResult.overallScore;
+      if (g >= 90) analysisResult.grade = 'A+';
+      else if (g >= 80) analysisResult.grade = 'A';
+      else if (g >= 70) analysisResult.grade = 'B+';
+      else if (g >= 60) analysisResult.grade = 'B';
+      else if (g >= 50) analysisResult.grade = 'C+';
+      else if (g >= 40) analysisResult.grade = 'C';
+      else analysisResult.grade = 'D';
     }
 
-    const expScore = Math.min(100, (expMatches >= 2 ? (expMatches >= 4 ? 85 : 70) : 45) + yearBonus);
+    // Transform CVAnalysisResult to the legacy format expected by the frontend
+    return this.transformAnalysisResult(analysisResult, fileName, targetPosition);
+  }
 
-    // 2b. Projects
-    const projectKeywords = ['dự án', 'project', 'sản phẩm', 'product', 'github', 'demo', 'link'];
-    let projectMatches = 0;
-    projectKeywords.forEach(k => { if (textLower.includes(k)) projectMatches++; });
-    const projectScore = projectMatches >= 2 ? 90 : 50;
+  /**
+   * Transform CVAnalysisResult (from analyzeCVLocal) into the format
+   * expected by the frontend (with categories, icons, etc.)
+   */
+  private transformAnalysisResult(
+    result: CVAnalysisResult,
+    fileName: string,
+    targetPosition: string
+  ): any {
+    const { overallScore, grade, breakdown, strengths, improvements } = result;
 
-    // 3. Education & Certifications
-    const eduKeywords = ['học vấn', 'education', 'đại học', 'university', 'bằng', 'chứng chỉ', 'degree', 'gpa', 'scholarship', 'học bổng'];
-    const certKeywords = ['chứng chỉ', 'certificate', 'certified', 'ielts', 'toeic', 'jlpt', 'hsk', 'aws', 'azure', 'google cloud', 'pmp'];
+    // Grade label mapping
+    const gradeLabelMap: Record<string, string> = {
+      'A+': 'Xuất sắc', 'A': 'Xuất sắc', 'B+': 'Tốt', 'B': 'Tốt',
+      'C+': 'Khá', 'C': 'Khá', 'D': 'Cần cải thiện'
+    };
 
-    let eduMatches = 0;
-    eduKeywords.forEach(k => { if (textLower.includes(k)) eduMatches++; });
+    // Simplify grade: A+ → A, B+ → B, C+ → C (frontend uses simple grades)
+    const simpleGrade = (grade || 'D').replace('+', '');
 
-    let certMatches = 0;
-    certKeywords.forEach(k => { if (textLower.includes(k)) certMatches++; });
-
-    const eduScore = Math.min(100, (eduMatches >= 2 ? 70 : 40) + (certMatches > 0 ? 20 : 0));
-
-    // 4. Format & Length
-    let formatScore = 80;
-    if (cvText.length < 500) formatScore = 30;
-    else if (cvText.length < 1000) formatScore = 60;
-    else if (cvText.length > 5000) formatScore = 70; // Quá dài
-    else formatScore = 95;
-
-    // Check contact info
-    const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(textLower);
-    const hasPhone = /(0[3|5|7|8|9])+([0-9]{8})\b/.test(textLower) || /\+?[0-9]{9,15}/.test(textLower);
-    if (!hasEmail) formatScore -= 20;
-    if (!hasPhone) formatScore -= 10;
-
-    // 5. Keywords (ATS standard terms)
-    const atsScore = Math.max(0, Math.min(100, skillsScore + (formatScore > 80 ? 10 : -10)));
-
-    // Calculate overall (Weighting)
-    const overall = Math.round(
-      (skillsScore * 0.35) +
-      (expScore * 0.25) +
-      (projectScore * 0.15) +
-      (eduScore * 0.1) +
-      (formatScore * 0.05) +
-      (atsScore * 0.1)
-    );
-    let grade = 'D'; let gradeLabel = 'Cần cải thiện';
-    if (overall >= 85) { grade = 'A'; gradeLabel = 'Xuất sắc'; }
-    else if (overall >= 70) { grade = 'B'; gradeLabel = 'Tốt'; }
-    else if (overall >= 55) { grade = 'C'; gradeLabel = 'Khá'; }
-
-    // Dynamic strings
-    const strengths: string[] = [];
-    const improvements: string[] = [];
-
-    if (skillsScore >= 70) strengths.push('Kỹ năng khá sát với yêu cầu');
-    else improvements.push('Cần bổ sung thêm từ khóa kỹ năng chuyên môn');
-
-    if (expScore >= 75) strengths.push('Có mô tả kinh nghiệm làm việc rõ ràng');
-    else improvements.push('Phần kinh nghiệm còn sơ sài, nên thêm số liệu cụ thể');
-
-    if (formatScore >= 80) strengths.push('Định dạng CV tốt, độ dài phù hợp');
-    else improvements.push('CV cần chuẩn hóa lại định dạng và bổ sung thông tin liên hệ');
-
-    if (strengths.length === 0) strengths.push('Bố cục cơ bản');
-    if (improvements.length === 0) improvements.push('Nên làm nổi bật hơn các thành tựu cá nhân');
+    // Build 5 categories from the advanced breakdown
+    const categories = [
+      {
+        key: 'skills_match',
+        label: 'Kỹ năng phù hợp',
+        score: breakdown.skills?.score ?? 50,
+        icon: '🎯',
+        feedback: (breakdown.skills?.matchedKeywords?.length ?? 0) > 0
+          ? `Đáp ứng ${breakdown.skills.matchedKeywords.length} kỹ năng phù hợp`
+          : (breakdown.skills?.missingKeywords?.length ?? 0) > 0
+            ? `Thiếu kỹ năng quan trọng: ${breakdown.skills.missingKeywords.slice(0, 4).join(', ')}`
+            : 'Cần bổ sung thêm kỹ năng chuyên môn',
+        suggestions: (breakdown.skills?.missingKeywords?.length ?? 0) > 0
+          ? breakdown.skills.missingKeywords.slice(0, 3).map(k => `Bổ sung: ${k}`)
+          : ['Duy trì cập nhật kỹ năng mới']
+      },
+      {
+        key: 'experience',
+        label: 'Kinh nghiệm làm việc',
+        score: breakdown.experience?.score ?? 50,
+        icon: '💼',
+        feedback: breakdown.experience?.details?.length > 0
+          ? breakdown.experience.details.join('. ')
+          : 'Kinh nghiệm cần được mô tả chi tiết hơn',
+        suggestions: ['Thêm kết quả đạt được (số liệu cụ thể)', 'Mô tả rõ vai trò trong từng dự án']
+      },
+      {
+        key: 'education',
+        label: 'Học vấn & Chứng chỉ',
+        score: Math.min(100, (breakdown.education?.score ?? 0) + ((breakdown.certifications?.found?.length ?? 0) > 0 ? 15 : 0)),
+        icon: '🎓',
+        feedback: breakdown.education?.detected && breakdown.education.detected !== 'Không phát hiện'
+          ? `Phát hiện: ${breakdown.education.detected}${(breakdown.certifications?.found?.length ?? 0) > 0 ? '. Chứng chỉ: ' + breakdown.certifications.found.join(', ') : ''}`
+          : 'Thiếu thông tin học vấn',
+        suggestions: (breakdown.certifications?.found?.length ?? 0) === 0
+          ? ['Cân nhắc lấy chứng chỉ chuyên ngành (AWS, GCP, PMP...)']
+          : ['Duy trì và cập nhật chứng chỉ']
+      },
+      {
+        key: 'format',
+        label: 'Định dạng & Trình bày',
+        score: breakdown.presentation?.score ?? 50,
+        icon: '📄',
+        feedback: (breakdown.presentation?.sectionsFound?.length ?? 0) > 0
+          ? `Phát hiện các phần: ${breakdown.presentation.sectionsFound.join(', ')}`
+          : 'Bố cục chưa rõ ràng',
+        suggestions: (breakdown.presentation?.sectionsMissing?.length ?? 0) > 0
+          ? [`Bổ sung: ${breakdown.presentation.sectionsMissing.join(', ')}`]
+          : ['Giữ CV trong 1-2 trang', 'Sử dụng font chuẩn']
+      },
+      {
+        key: 'keywords',
+        label: 'Từ khóa & ATS',
+        score: Math.min(100, Math.round(((breakdown.skills?.score ?? 0) + (breakdown.presentation?.score ?? 0)) / 2)),
+        icon: '🔍',
+        feedback: (breakdown.skills?.matchedKeywords?.length ?? 0) > 0
+          ? `CV chứa ${breakdown.skills.matchedKeywords.length} từ khóa phù hợp`
+          : 'CV thiếu nhiều từ khóa quan trọng',
+        suggestions: ['Sử dụng từ khóa đúng như JD yêu cầu', 'Bổ sung thuật ngữ ngành phổ biến']
+      }
+    ];
 
     return {
       id: 'cv_score_' + Date.now(),
       fileName,
       scoredAt: new Date().toISOString(),
-      overall,
-      grade,
-      gradeLabel,
-      categories: [
-        { key: 'skills_match', label: 'Kỹ năng phù hợp', score: Math.max(0, Math.min(100, skillsScore)), icon: '🎯', feedback: skillsScore >= 70 ? 'Đáp ứng tốt từ khóa yêu cầu' : 'Thiếu nhiều từ khóa quan trọng', suggestions: ['Bổ sung thêm kỹ năng chuyên môn'] },
-        { key: 'experience', label: 'Kinh nghiệm làm việc', score: expScore, icon: '💼', feedback: expScore >= 75 ? 'Mô tả kinh nghiệm rõ ràng' : 'Cần trình bày rõ số năm và dự án', suggestions: ['Thêm kết quả đạt được (số liệu)'] },
-        { key: 'education', label: 'Học vấn & Chứng chỉ', score: eduScore, icon: '🎓', feedback: eduScore >= 70 ? 'Có đủ thông tin học vấn cơ bản' : 'Thiếu thông tin bằng cấp/trường học', suggestions: ['Liệt kê rõ chuyên ngành và GPA'] },
-        { key: 'format', label: 'Định dạng & Trình bày', score: Math.max(0, Math.min(100, formatScore)), icon: '📄', feedback: formatScore >= 80 ? 'Bố cục sạch sẽ, đủ thông tin liên hệ' : 'Bố cục chưa tốt hoặc thiếu thông tin', suggestions: ['Sử dụng font chữ phổ thông', 'Kiểm tra lại email/SĐT'] },
-        { key: 'keywords', label: 'Từ khóa & ATS', score: atsScore, icon: '🔍', feedback: atsScore >= 70 ? 'CV có chứa từ khóa chuẩn' : 'Ít từ khóa chuẩn ATS', suggestions: ['Sử dụng từ khóa đúng như JD yêu cầu'] }
-      ],
-      strengths,
-      improvements
+      overall: overallScore ?? 50,
+      grade: simpleGrade,
+      gradeLabel: gradeLabelMap[grade] || 'N/A',
+      categories,
+      strengths: strengths ?? [],
+      improvements: improvements ?? []
     };
   }
 
@@ -455,7 +532,7 @@ Hãy trả về JSON theo định dạng chính xác sau:
     if (userId && jobContext) {
       const existing = await this.findExistingScore(userId, (jobContext as any)._id.toString(), fileName);
       if (existing) {
-        this.logger.log(`Reusing existing score for user ${userId} and job ${jobContext.title}`);
+        this.logger.log('Tái sử dụng điểm số có sẵn cho ứng viên', { action: 'reuse_candidate_score', userId, jobTitle: jobContext.title });
         return {
           ...existing.analysis,
           id: existing._id,
@@ -531,7 +608,7 @@ Hãy trả về JSON theo định dạng sau:
           if (parseError.message && parseError.message.startsWith('SPAM_CV:')) {
             throw new Error(parseError.message.replace('SPAM_CV:', ''));
           }
-          this.logger.error('Failed to parse Gemini candidate JSON response', parseError);
+          this.logger.fail('Parse Gemini response thất bại (candidate)', { action: 'score_candidate_cv', error: parseError.message });
         }
       }
     }
@@ -625,6 +702,20 @@ Hãy trả về JSON theo định dạng sau:
 
   async getHistory(userId: string) {
     return this.cvScoreModel.find({ userId: userId as any }).sort({ createdAt: -1 }).exec();
+  }
+
+  async getScoreById(id: string): Promise<CvScoreDocument | null> {
+    return this.cvScoreModel.findById(id).exec();
+  }
+
+  async deleteScoreById(id: string): Promise<boolean> {
+    const result = await this.cvScoreModel.findByIdAndDelete(id).exec();
+    if (result) {
+      this.logger.success('Xóa điểm số CV', { action: 'delete_score', scoreId: id });
+    } else {
+      this.logger.fail('Xóa điểm số CV thất bại - không tìm thấy', { action: 'delete_score', scoreId: id });
+    }
+    return !!result;
   }
 }
 

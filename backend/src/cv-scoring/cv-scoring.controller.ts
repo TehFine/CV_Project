@@ -1,4 +1,4 @@
-import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards, Req, Get, Res, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards, Req, Get, Res, Delete, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CvScoringService } from './cv-scoring.service';
 import { JobsService } from '../jobs/jobs.service';
@@ -108,5 +108,21 @@ export class CvScoringController {
   @UseGuards(JwtAuthGuard)
   async getHistory(@Req() req: any) {
     return this.cvScoringService.getHistory(req.user._id);
+  }
+
+  @Get('scores/:id')
+  @UseGuards(JwtAuthGuard)
+  async getScoreById(@Param('id') id: string) {
+    const score = await this.cvScoringService.getScoreById(id);
+    if (!score) throw new NotFoundException('Không tìm thấy kết quả chấm điểm CV');
+    return score;
+  }
+
+  @Delete('scores/:id')
+  @UseGuards(JwtAuthGuard)
+  async deleteScoreById(@Param('id') id: string) {
+    const deleted = await this.cvScoringService.deleteScoreById(id);
+    if (!deleted) throw new NotFoundException('Không tìm thấy kết quả chấm điểm CV');
+    return { message: 'Đã xóa kết quả chấm điểm CV thành công' };
   }
 }
