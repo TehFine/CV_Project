@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { adminService } from '@/services/adminService'
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
 import {
@@ -83,9 +83,10 @@ const MOCK_NOTIFICATIONS = [
 
 function NotificationDropdown({ notifications, setNotifications, onSelect, onClose }) {
     const navigate = useNavigate()
-    const markAllRead = () => {
+    const markAllRead = async () => {
         const updated = notifications.map(n => ({ ...n, unread: false }))
         setNotifications(updated)
+        try { await adminService.markAllNotificationsRead() } catch(e) { /* silent */ }
         localStorage.setItem("nexcv_mock_notifications", JSON.stringify(updated))
     }
 
@@ -278,32 +279,68 @@ export default function AdminLayout() {
     const [notifications, setNotifications] = useState([])
     const [selectedNotif, setSelectedNotif] = useState(null)
 
-    // Load notifications from localStorage
-    useEffect(() => {
-        const stored = localStorage.getItem("nexcv_mock_notifications")
-        if (stored) {
-            setNotifications(JSON.parse(stored))
-        } else {
-            // Khởi tạo mặc định nếu chưa có
-            setNotifications(MOCK_NOTIFICATIONS)
-            localStorage.setItem("nexcv_mock_notifications", JSON.stringify(MOCK_NOTIFICATIONS))
-        }
-
-        // Lắng nghe thay đổi từ tab khác (như Employer đăng bài)
-        const handleStorage = (e) => {
-            if (e.key === "nexcv_mock_notifications") {
-                setNotifications(JSON.parse(e.newValue))
+    // Fetch notifications từ API + fallback localStorage
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const res = await adminService.getNotifications();
+            if (res?.data) {
+                setNotifications(res.data);
+            }
+        } catch (e) {
+            const stored = localStorage.getItem("nexcv_mock_notifications");
+            if (stored) {
+                setNotifications(JSON.parse(stored));
             }
         }
-        window.addEventListener("storage", handleStorage)
-        return () => window.removeEventListener("storage", handleStorage)
-    }, [])
+    }, []);
+
+    const location = useLocation();
+
+    // Load notifications + auto-polling + re-fetch on route change + visibility/focus change
+    useEffect(() => {
+        fetchNotifications();
+
+        // Poll mỗi 15 giây để cập nhật realtime hơn
+        const intervalId = setInterval(fetchNotifications, 15000);
+
+        // Re-fetch khi user quay lại tab trình duyệt
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                fetchNotifications();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        // Re-fetch khi user chuyển cửa sổ (Alt+Tab) quay lại
+        const handleFocus = () => { fetchNotifications(); };
+        window.addEventListener('focus', handleFocus);
+
+        // Lắng nghe storage event (cho mock mode)
+        const handleStorage = (e) => {
+            if (e.key === "nexcv_mock_notifications") {
+                setNotifications(JSON.parse(e.newValue));
+            }
+        };
+        window.addEventListener("storage", handleStorage);
+
+        return () => {
+            clearInterval(intervalId);
+            document.removeEventListener('visibilitychange', handleVisibility);
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener("storage", handleStorage);
+        };
+    }, [fetchNotifications, location.pathname]);
 
     const unreadCount = (notifications || []).filter(n => n.unread).length
 
-    const handleMarkRead = (id) => {
+    const handleMarkRead = async (id) => {
         const updated = notifications.map(n => n.id === id ? { ...n, unread: false } : n)
         setNotifications(updated)
+        try {
+            await adminService.markNotificationRead(id);
+            // Sync lại từ server sau khi đánh dấu để đảm bảo đồng bộ
+            fetchNotifications();
+        } catch(e) { /* silent */ }
         localStorage.setItem("nexcv_mock_notifications", JSON.stringify(updated))
     }
 
@@ -444,7 +481,11 @@ export default function AdminLayout() {
                                             setSelectedNotif(n);
                                             handleMarkRead(n.id);
                                         }}
-                                        onClose={() => setShowNotifications(false)} 
+                                        onClose={() => {
+                                            setShowNotifications(false);
+                                            // Fetch lại khi đóng dropdown để đồng bộ
+                                            fetchNotifications();
+                                        }} 
                                     />
                                 )}
                             </div>

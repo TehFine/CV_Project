@@ -1,6 +1,6 @@
 import api from './api'
 
-const USE_MOCK = true; // Forced to true for Admin UI until Backend Admin APIs are implemented
+const USE_MOCK = false; // Backend Admin APIs are now implemented
 const delay = ms => new Promise(r => setTimeout(r, ms))
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -365,5 +365,46 @@ export const adminService = {
     async updateSettings(section, data) {
         if (USE_MOCK) { await delay(600); return { section, ...data } }
         return api.patch(`/admin/settings/${section}`, data)
+    },
+
+    // ── Notifications ──────────────────────────────────────────────────────────
+    async getNotifications(params = {}) {
+        if (USE_MOCK) {
+            await delay(300);
+            const stored = localStorage.getItem('nexcv_mock_notifications');
+            let list = stored ? JSON.parse(stored) : [];
+            if (params.filter === 'unread') list = list.filter(n => n.unread);
+            return { data: list, total: list.length, unreadCount: list.filter(n => n.unread).length };
+        }
+        const query = params.filter ? `?filter=${params.filter}` : '';
+        return api.get(`/admin/notifications${query}`);
+    },
+
+    async markNotificationRead(id) {
+        if (USE_MOCK) {
+            await delay(200);
+            const stored = localStorage.getItem('nexcv_mock_notifications');
+            if (stored) {
+                const list = JSON.parse(stored).map(n =>
+                    n.id === id ? { ...n, unread: false } : n
+                );
+                localStorage.setItem('nexcv_mock_notifications', JSON.stringify(list));
+            }
+            return { success: true };
+        }
+        return api.patch(`/admin/notifications/${id}/read`);
+    },
+
+    async markAllNotificationsRead() {
+        if (USE_MOCK) {
+            await delay(300);
+            const stored = localStorage.getItem('nexcv_mock_notifications');
+            if (stored) {
+                const list = JSON.parse(stored).map(n => ({ ...n, unread: false }));
+                localStorage.setItem('nexcv_mock_notifications', JSON.stringify(list));
+            }
+            return { success: true };
+        }
+        return api.post('/admin/notifications/read-all');
     },
 }
