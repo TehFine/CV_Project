@@ -11,8 +11,18 @@ async function bootstrap() {
   // Set global prefix
   app.setGlobalPrefix('api');
 
-  // Enable CORS
-  app.enableCors();
+  // Get config
+  const configService = app.get(ConfigService);
+
+  // Enable CORS with configurable origins
+  const corsOrigin = configService.get<string>('CORS_ORIGIN', '*');
+  const origins = corsOrigin.split(',').map(s => s.trim()).filter(Boolean);
+  const isWildcard = origins.includes('*');
+  app.enableCors({
+    origin: isWildcard ? '*' : origins,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: !isWildcard,
+  });
 
   // Global Validation Pipe
   app.useGlobalPipes(new ValidationPipe({
@@ -24,7 +34,6 @@ async function bootstrap() {
   // Global HTTP logging interceptor
   app.useGlobalInterceptors(new LogInterceptor());
 
-  const configService = app.get(ConfigService);
   const port = configService.get('PORT') || 3000;
   await app.listen(port);
   logger.log(`🚀 Server running on http://localhost:${port}/api`);
