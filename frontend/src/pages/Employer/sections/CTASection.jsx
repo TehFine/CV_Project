@@ -9,8 +9,8 @@ export function CTASection() {
   return (
     <section className="section-sm">
       <div className="container-app">
-        <div style={{ textAlign: "center", padding: "48px 24px", backgroundColor: "#EEF2FF", borderRadius: 20, border: "1px solid rgba(21,73,184,0.15)" }}>
-          <h2 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10 }}>
+          <div style={{ textAlign: "center", padding: "32px 20px", backgroundColor: "#EEF2FF", borderRadius: 16, border: "1px solid rgba(21,73,184,0.15)" }} className="md:p-12 md:rounded-[20px]">
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10 }} className="md:text-[28px]">
             Sẵn sàng tìm ứng viên chất lượng?
           </h2>
           <p style={{ color: "var(--text-secondary)", marginBottom: 28, fontSize: 15 }}>

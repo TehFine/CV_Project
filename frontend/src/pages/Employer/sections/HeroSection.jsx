@@ -11,11 +11,12 @@ export function HeroSection() {
     <section
       style={{
         background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4C1D95 100%)",
-        paddingTop: 120,
-        paddingBottom: 80,
+        paddingTop: 100,
+        paddingBottom: 60,
         position: "relative",
         overflow: "hidden",
       }}
+      className="md:pt-[120px] md:pb-[80px]"
     >
       {/* Background decoration */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
@@ -45,7 +46,7 @@ export function HeroSection() {
           </span>
         </h1>
 
-        <p style={{ fontSize: 16, color: "rgba(255,255,255,0.7)", marginBottom: 36, maxWidth: 520, lineHeight: 1.7 }}>
+        <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginBottom: 36, maxWidth: 520, lineHeight: 1.7 }} className="md:text-base">
           Đăng tin tuyển dụng, nhận hồ sơ chất lượng và để AI tự động chấm điểm CV — tìm ứng viên phù hợp nhanh gấp 3 lần.
         </p>
 
@@ -77,9 +78,9 @@ export function HeroSection() {
       </div>
 
       {/* Stats bar */}
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: 60 }}>
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: 40 }} className="md:mt-[60px]">
         <div className="container-app" style={{ paddingTop: 28, paddingBottom: 0 }}>
-          <div style={{ display: "flex", gap: 48, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 48, flexWrap: "wrap" }} className="gap-4 md:gap-12">
             {[
               { value: "2,000+", label: "Nhà tuyển dụng tin dùng", icon: "🏢" },
               { value: "50,000+", label: "CV đã được chấm điểm", icon: "🤖" },

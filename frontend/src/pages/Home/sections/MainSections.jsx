@@ -48,7 +48,7 @@ export function HeroSection() {
           <span className="text-xs font-medium text-violet-200">Tích hợp AI phân tích CV thông minh</span>
         </div>
 
-        <h1 className="text-4xl md:text-[56px] font-black text-white leading-[1.1] mb-5 max-w-3xl">
+        <h1 className="text-3xl sm:text-4xl md:text-[56px] font-black text-white leading-[1.1] mb-5 max-w-3xl">
           Tìm việc làm mơ ước
           <br />
           <span className="bg-linear-to-r from-blue-300 to-violet-400 bg-clip-text text-transparent">với sức mạnh AI</span>
@@ -57,7 +57,7 @@ export function HeroSection() {
           Upload CV và nhận đánh giá chi tiết từ AI trong 30 giây. Khám phá hàng nghìn cơ hội từ các công ty hàng đầu Việt Nam.
         </p>
 
-        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row bg-white rounded-2xl p-2 shadow-2xl max-w-2xl mb-5 gap-0">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row bg-white rounded-2xl p-2 shadow-2xl max-w-2xl mb-5 gap-2 sm:gap-0">
           <div className="flex-1 flex items-center gap-2 px-3 py-1.5">
             <Search className="h-4 w-4 text-[#94A3B8] shrink-0" />
             <Input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Tên công việc, kỹ năng, công ty..."
@@ -67,9 +67,9 @@ export function HeroSection() {
           <div className="flex items-center gap-2 px-3 py-1.5">
             <MapPin className="h-4 w-4 text-[#94A3B8] shrink-0" />
             <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="Địa điểm"
-              className="border-0 shadow-none focus-visible:ring-0 p-0 text-sm text-[#0F172A] placeholder:text-[#94A3B8] w-36" />
+              className="border-0 shadow-none focus-visible:ring-0 p-0 text-sm text-[#0F172A] placeholder:text-[#94A3B8] w-full sm:w-36" />
           </div>
-          <Button type="submit" size="lg" className="rounded-xl sm:ml-1 bg-[#1549B8] hover:bg-[#1240A0] text-white font-bold shrink-0">Tìm kiếm</Button>
+          <Button type="submit" size="lg" className="rounded-xl sm:ml-1 bg-[#1549B8] hover:bg-[#1240A0] text-white font-bold shrink-0 sm:w-auto">Tìm kiếm</Button>
         </form>
 
         <div className="flex flex-wrap gap-2 items-center mb-10">
@@ -82,12 +82,12 @@ export function HeroSection() {
           ))}
         </div>
 
-        <div className="border-t border-white/10 pt-8 pb-10 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="border-t border-white/10 pt-8 pb-10 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {STATS.map(s => (
             <div key={s.value} className="flex items-center gap-3">
               <span className="text-2xl">{s.icon}</span>
               <div>
-                <div className="text-2xl font-black text-white">{s.value}</div>
+                <div className="text-xl md:text-2xl font-black text-white">{s.value}</div>
                 <div className="text-xs text-slate-400 mt-0.5">{s.label}</div>
               </div>
             </div>
@@ -103,7 +103,7 @@ export function CategoriesSection({ categories, onCategoryClick }) {
     <section className="section bg-[#F8FAFC] border-t border-[#F1F5F9]">
       <div className="container-app">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-black text-[#0F172A] mb-2">Khám phá theo ngành nghề</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-[#0F172A] mb-2">Khám phá theo ngành nghề</h2>
           <p className="text-[#475569]">Hàng nghìn công việc trong tất cả lĩnh vực</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -129,7 +129,7 @@ export function FeaturedJobsSection({ jobs, loading }) {
       <div className="container-app">
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h2 className="text-3xl font-black text-[#0F172A] mb-1">Việc làm mới nhất</h2>
+            <h2 className="text-2xl md:text-3xl font-black text-[#0F172A] mb-1">Việc làm mới nhất</h2>
             <p className="text-[#475569]">Cập nhật mỗi ngày từ các công ty hàng đầu</p>
           </div>
           <Button variant="ghost" asChild className="gap-1 text-[#1549B8] hover:text-[#1549B8] hover:bg-[#EEF2FF]">

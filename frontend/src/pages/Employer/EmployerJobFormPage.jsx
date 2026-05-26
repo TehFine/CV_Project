@@ -138,7 +138,7 @@ export default function EmployerJobFormPage() {
   if (loading) return <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>Đang tải...</div>
 
   return (
-    <div style={{ padding: '32px 0', maxWidth: 760, margin: '0 auto' }}>
+    <div style={{ padding: '32px 16px', maxWidth: 760, margin: '0 auto' }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <button onClick={() => navigate('/employer/jobs')} style={{
@@ -153,7 +153,7 @@ export default function EmployerJobFormPage() {
         </h1>
       </div>
 
-      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: 32, marginBottom: 20 }}>
+      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 20 }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9' }}>
           📝 Thông tin cơ bản
         </h2>
@@ -178,7 +178,7 @@ export default function EmployerJobFormPage() {
           {errors.title && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.title}</p>}
         </Field>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
           <Field label="Tên công ty" required>
             <input value={form.companyName} onChange={e => set('companyName', e.target.value)}
               placeholder="VD: VNG Corporation"
@@ -202,7 +202,7 @@ export default function EmployerJobFormPage() {
           </Field>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
           <Field label="Hình thức làm việc" required>
             <select value={form.job_type} onChange={e => set('job_type', e.target.value)} style={{ ...inputStyle }}>
               <option value="full-time">Toàn thời gian</option>
@@ -232,7 +232,7 @@ export default function EmployerJobFormPage() {
           {errors.location && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.location}</p>}
         </Field>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
           <Field label="Lương tối thiểu" hint="(VNĐ, để trống = thỏa thuận)">
             <input type="number" value={form.salary_min} onChange={e => set('salary_min', e.target.value)}
               placeholder="VD: 15000000"
@@ -263,7 +263,7 @@ export default function EmployerJobFormPage() {
       </div>
 
       {/* Description & Details */}
-      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: 32, marginBottom: 20 }}>
+      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 20 }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9' }}>
           📄 Chi tiết tin đăng
         </h2>
@@ -298,7 +298,7 @@ export default function EmployerJobFormPage() {
       </div>
 
       {/* Skills */}
-      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: 32, marginBottom: 24 }}>
+      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 24 }}>
         <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 8, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9' }}>
           🔧 Kỹ năng yêu cầu <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 400 }}>(AI dùng để so khớp CV)</span>
         </h2>
@@ -359,7 +359,7 @@ export default function EmployerJobFormPage() {
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', flexDirection: 'row' }}>
         <button onClick={() => navigate('/employer/jobs')} style={{
           padding: '12px 24px', borderRadius: 10, border: '1.5px solid #E2E8F0',
           background: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 600,

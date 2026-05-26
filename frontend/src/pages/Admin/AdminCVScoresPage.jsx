@@ -46,14 +46,14 @@ export default function AdminCVScoresPage() {
   }
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto">
+    <div className="p-4 md:p-8 max-w-[1200px] mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 md:mb-8">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Lịch sử chấm CV</h1>
-          <p className="text-slate-500 mt-1">Theo dõi chất lượng CV và hiệu suất của công cụ AI chấm điểm</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Lịch sử chấm CV</h1>
+          <p className="text-slate-500 mt-1 text-sm">Theo dõi chất lượng CV và hiệu suất của công cụ AI chấm điểm</p>
         </div>
-        <div className="bg-white p-1 rounded-2xl border border-slate-200 flex gap-1">
+        <div className="bg-white p-1 rounded-2xl border border-slate-200 flex gap-1 w-full sm:w-auto">
           {['all', 'A', 'B', 'C', 'D'].map(grade => (
             <button
               key={grade}
@@ -71,8 +71,8 @@ export default function AdminCVScoresPage() {
       </div>
 
       {/* Filters & Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        <div className="lg:col-span-3 flex gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="lg:col-span-3 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
@@ -84,7 +84,7 @@ export default function AdminCVScoresPage() {
               onKeyDown={e => e.key === 'Enter' && fetchScores()}
             />
           </div>
-          <Button onClick={fetchScores} className="rounded-2xl px-8 bg-[#1549B8] hover:bg-[#1e40af] font-bold">
+          <Button onClick={fetchScores} className="rounded-2xl px-8 bg-[#1549B8] hover:bg-[#1e40af] font-bold w-full sm:w-auto">
             Tìm kiếm
           </Button>
         </div>
@@ -99,8 +99,8 @@ export default function AdminCVScoresPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
+      {/* Desktop Table */}
+      <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden hidden md:block">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-slate-50/50 border-b border-slate-100">
@@ -187,6 +187,64 @@ export default function AdminCVScoresPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <div className="py-20 text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+            <span className="text-slate-400 font-medium">Đang tải lịch sử...</span>
+          </div>
+        ) : scores.length === 0 ? (
+          <div className="py-20 text-center bg-white rounded-[24px] border border-slate-200">
+            <FileSearch className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+            <span className="text-slate-400 font-medium">Không tìm thấy kết quả nào</span>
+          </div>
+        ) : (
+          scores.map(s => {
+            const cfg = GRADE_CONFIG[s.grade] || GRADE_CONFIG.B
+            return (
+              <div key={s.id} className="bg-white rounded-[24px] border border-slate-200 p-5 shadow-sm">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-black text-xs uppercase">
+                    {s.userName.split(' ').pop()[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-slate-900 text-sm truncate">{s.userName}</div>
+                    <div className="text-xs text-slate-400 truncate">{s.userEmail}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-black text-slate-900 leading-none">{s.overall}</div>
+                    <Badge className={`${cfg.bg} ${cfg.color} ${cfg.border} border text-[10px] py-0 px-2 mt-1`}>
+                      Hạng {s.grade}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-[#1549B8] font-semibold text-[13px] mb-2">
+                  <FileText size={14} />
+                  <span className="truncate">{s.fileName}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-slate-400 flex items-center gap-1">
+                    <Clock size={12} /> {new Date(s.scoredAt).toLocaleDateString('vi-VN')} · {s.processingTime}s
+                  </div>
+                  <div className="flex gap-1">
+                    <button className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-[#1549B8] transition-all">
+                      <MoreHorizontal size={16} />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(s.id)}
+                      className="p-2 hover:bg-red-50 rounded-xl text-slate-400 hover:text-red-600 transition-all"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        )}
       </div>
     </div>
   )

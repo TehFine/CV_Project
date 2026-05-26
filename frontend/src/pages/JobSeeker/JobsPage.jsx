@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { Search, Filter, X, Sparkles } from 'lucide-react'
+import { Search, Filter, X, Sparkles, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,7 +14,7 @@ const LEVELS    = ['Intern','Junior','Middle','Senior','Lead/Manager']
 const JOB_TYPES = ['Toàn thời gian','Bán thời gian','Remote','Freelance']
 const LOCATIONS = ['TP. Hồ Chí Minh','Hà Nội','Đà Nẵng','Cần Thơ']
 
-function Sidebar({ filters, onChange }) {
+function Sidebar({ filters, onChange, mobile, onClose }) {
   const hasFilters = ['category','level','type','location'].some(k => filters[k])
   const toggle = (key, val) => onChange({ ...filters, [key]: filters[key] === val ? '' : val })
 
@@ -52,24 +52,39 @@ function Sidebar({ filters, onChange }) {
   )
 
   return (
-    <aside className="hidden lg:block w-56 shrink-0">
-      <div className="bg-white rounded-xl border border-[#E2E8F0] p-5 sticky top-20">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2 font-bold text-sm text-[#0F172A]">
-            <Filter className="h-4 w-4 text-[#1549B8]" />Bộ lọc
-          </div>
-          {hasFilters && (
-            <button onClick={() => onChange({ ...filters, category:'', level:'', type:'', location:'' })}
-              className="text-xs text-red-500 hover:underline flex items-center gap-1">
-              <X className="h-3 w-3" />Xóa lọc
+    <aside className={cn(
+        mobile ? 'fixed inset-0 z-50 bg-black/50 flex' : 'hidden lg:block w-56 shrink-0',
+      )} onClick={mobile ? onClose : undefined}>
+      <div className={cn(
+        mobile ? 'w-72 bg-white h-full overflow-y-auto animate-slide-in' : 'bg-white rounded-xl border border-[#E2E8F0] p-5 sticky top-20',
+      )} onClick={e => e.stopPropagation()}>
+        {/* Mobile header */}
+        {mobile && (
+          <div className="flex items-center justify-between p-4 border-b border-[#E2E8F0]">
+            <span className="font-bold text-sm text-[#0F172A]">Bộ lọc</span>
+            <button onClick={onClose} className="p-1 hover:bg-[#F1F5F9] rounded-lg transition-colors">
+              <X className="h-5 w-5 text-[#475569]" />
             </button>
-          )}
+          </div>
+        )}
+        <div className={mobile ? 'p-4' : ''}>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2 font-bold text-sm text-[#0F172A]">
+              <Filter className="h-4 w-4 text-[#1549B8]" />Bộ lọc
+            </div>
+            {hasFilters && (
+              <button onClick={() => onChange({ ...filters, category:'', level:'', type:'', location:'' })}
+                className="text-xs text-red-500 hover:underline flex items-center gap-1">
+                <X className="h-3 w-3" />Xóa lọc
+              </button>
+            )}
+          </div>
+          <Separator className="mb-4" />
+          <Group title="Địa điểm"  items={LOCATIONS}               fkey="location" />
+          <Group title="Ngành nghề" items={JOB_CATEGORIES} fkey="category" />
+          <Group title="Cấp bậc"   items={LEVELS}                  fkey="level" />
+          <Group title="Hình thức" items={JOB_TYPES}               fkey="type" />
         </div>
-        <Separator className="mb-4" />
-        <Group title="Địa điểm"  items={LOCATIONS}               fkey="location" />
-        <Group title="Ngành nghề" items={JOB_CATEGORIES} fkey="category" />
-        <Group title="Cấp bậc"   items={LEVELS}                  fkey="level" />
-        <Group title="Hình thức" items={JOB_TYPES}               fkey="type" />
       </div>
     </aside>
   )
@@ -80,6 +95,7 @@ export default function JobsPage() {
   const [jobs,    setJobs]    = useState([])
   const [total,   setTotal]   = useState(0)
   const [loading, setLoading] = useState(true)
+  const [showMobileFilter, setShowMobileFilter] = useState(false)
   const [searchInput, setSearchInput] = useState(searchParams.get('keyword') || '')
   const [filters, setFilters] = useState({
     keyword:  searchParams.get('keyword')  || '',
@@ -119,10 +135,15 @@ export default function JobsPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
               <Input value={searchInput} onChange={e => setSearchInput(e.target.value)}
-                placeholder="Tìm kiếm theo tên công việc, kỹ năng, công ty..."
-                className="pl-9 border-[#E2E8F0] focus-visible:border-[#1549B8]" />
+                placeholder="Tìm kiếm việc làm..."
+                className="pl-9 border-[#E2E8F0] focus-visible:border-[#1549B8] text-sm" />
             </div>
-            <Button type="submit" className="bg-[#1549B8] hover:bg-[#1240A0] text-white font-semibold">Tìm kiếm</Button>
+            {/* Mobile filter toggle */}
+            <button type="button" onClick={() => setShowMobileFilter(true)}
+              className="lg:hidden flex items-center justify-center w-10 h-10 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F1F5F9] transition-colors">
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+            <Button type="submit" className="bg-[#1549B8] hover:bg-[#1240A0] text-white font-semibold hidden sm:inline-flex">Tìm kiếm</Button>
           </form>
         </div>
       </div>
@@ -130,6 +151,10 @@ export default function JobsPage() {
       <div className="container-app py-6">
         <div className="flex gap-5 items-start">
           <Sidebar filters={filters} onChange={setFilters} />
+          {/* Mobile filter drawer */}
+          {showMobileFilter && (
+            <Sidebar filters={filters} onChange={setFilters} mobile onClose={() => setShowMobileFilter(false)} />
+          )}
 
           <div className="flex-1 min-w-0">
             {/* Results header */}

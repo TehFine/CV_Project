@@ -291,7 +291,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
       {/* Expanded detail */}
       {expanded && (
         <div style={{ borderTop: '1.5px solid #F1F5F9', padding: '24px 28px', background: '#FAFAFA' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: app.ai_score ? '1.1fr 2fr' : '1fr', gap: 32, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: app.ai_score ? '1fr' : '1fr', gap: 24, alignItems: 'start' }} className="md:grid-cols-[1.1fr_2fr]">
             {/* Left Column: Scores & Radar Chart */}
             {app.ai_score && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24, background: '#F8FAFC', padding: 20, borderRadius: 12, border: '1.5px solid #E2E8F0' }}>
@@ -541,9 +541,9 @@ export default function EmployerApplicantsPage() {
   }
 
   return (
-    <div style={{ padding: '32px 0', maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ padding: '32px 16px', maxWidth: 1200, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <button onClick={() => navigate('/employer/jobs')} style={{
             background: 'none', border: 'none', cursor: 'pointer', color: '#64748B',
@@ -583,7 +583,7 @@ export default function EmployerApplicantsPage() {
 
       {/* Filter + Sort */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: 300 }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 300, width: '100%' }}>
           <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>🔍</span>
           <input
             type="text"

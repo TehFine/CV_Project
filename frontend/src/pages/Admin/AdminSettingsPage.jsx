@@ -67,14 +67,14 @@ export default function AdminSettingsPage() {
   ]
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto min-h-screen">
+    <div className="p-4 md:p-8 max-w-[1200px] mx-auto min-h-screen">
       {/* Header Area */}
-      <div className="flex justify-between items-start mb-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6 md:mb-10">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Thiết lập hệ thống</h1>
-          <p className="text-slate-400 font-medium mt-2">Tùy chỉnh các tham số vận hành và quy tắc bảo mật của NexCV</p>
+          <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter">Thiết lập hệ thống</h1>
+          <p className="text-slate-400 font-medium mt-2 text-sm">Tùy chỉnh các tham số vận hành và quy tắc bảo mật của NexCV</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
            {saved && (
              <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-2xl text-sm font-bold animate-in fade-in slide-in-from-right-4">
                 <CheckCircle2 size={16} /> Đã lưu thành công
@@ -91,37 +91,67 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      <div className="flex gap-10">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
         {/* Left Sidebar Navigation */}
-        <div className="w-[320px] flex-shrink-0 space-y-1">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={cn(
-                "w-full flex items-center gap-4 p-4 rounded-[24px] transition-all text-left group",
-                activeTab === item.id 
-                  ? "bg-white shadow-xl shadow-slate-100 border border-slate-100" 
-                  : "hover:bg-slate-50 border border-transparent"
-              )}
-            >
-              <div className={cn(
-                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
-                activeTab === item.id ? "bg-[#1549B8] text-white rotate-3" : "bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600"
-              )}>
-                <item.icon size={22} />
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <div className={cn("font-black text-sm", activeTab === item.id ? "text-slate-900" : "text-slate-500")}>
-                  {item.label}
+        <div className="w-full lg:w-[320px] flex-shrink-0 space-y-1">
+          {/* Mobile: horizontal scrollable tabs */}
+          <div className="flex lg:hidden overflow-x-auto gap-2 pb-2 -mx-2 px-2 snap-x snap-mandatory">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "flex-shrink-0 snap-center flex items-center gap-3 px-4 py-3 rounded-[20px] transition-all text-left",
+                  activeTab === item.id 
+                    ? "bg-white shadow-lg shadow-slate-100 border border-slate-100" 
+                    : "bg-slate-50 border border-transparent"
+                )}
+              >
+                <div className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                  activeTab === item.id ? "bg-[#1549B8] text-white" : "bg-white text-slate-400"
+                )}>
+                  <item.icon size={18} />
                 </div>
-                <div className="text-[11px] text-slate-400 font-medium truncate">{item.desc}</div>
-              </div>
-              {activeTab === item.id && <ChevronRight size={16} className="text-[#1549B8]" />}
-            </button>
-          ))}
+                <div className="overflow-hidden">
+                  <div className={cn("font-black text-xs", activeTab === item.id ? "text-slate-900" : "text-slate-500")}>
+                    {item.label}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+          {/* Desktop: stacked layout */}
+          <div className="hidden lg:block space-y-1">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-4 p-4 rounded-[24px] transition-all text-left group",
+                  activeTab === item.id 
+                    ? "bg-white shadow-xl shadow-slate-100 border border-slate-100" 
+                    : "hover:bg-slate-50 border border-transparent"
+                )}
+              >
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                  activeTab === item.id ? "bg-[#1549B8] text-white rotate-3" : "bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600"
+                )}>
+                  <item.icon size={22} />
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <div className={cn("font-black text-sm", activeTab === item.id ? "text-slate-900" : "text-slate-500")}>
+                    {item.label}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium truncate">{item.desc}</div>
+                </div>
+                {activeTab === item.id && <ChevronRight size={16} className="text-[#1549B8]" />}
+              </button>
+            ))}
+          </div>
           
-          <div className="mt-10 p-6 bg-slate-900 rounded-[32px] text-white">
+          <div className="hidden lg:block mt-10 p-6 bg-slate-900 rounded-[32px] text-white">
              <div className="flex items-center gap-2 text-violet-400 text-[10px] font-black uppercase tracking-widest mb-2">
                 <Settings size={12} /> System Status
              </div>
@@ -135,15 +165,15 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* Right Content Area */}
-        <div className="flex-1 animate-in fade-in slide-in-from-right-6 duration-500">
-          <div className="bg-white rounded-[48px] border border-slate-100 shadow-2xl shadow-slate-100/50 p-10 min-h-[600px]">
+        <div className="flex-1 animate-in fade-in duration-500 min-w-0">
+          <div className="bg-white rounded-[24px] lg:rounded-[48px] border border-slate-100 shadow-2xl shadow-slate-100/50 p-5 md:p-8 lg:p-10 min-h-[400px] lg:min-h-[600px]">
             {activeTab === 'site' && (
               <div className="space-y-8 animate-in fade-in duration-300">
                 <div>
                   <h3 className="text-2xl font-black text-slate-900">Thông tin chung</h3>
                   <p className="text-sm text-slate-400 font-medium">Quản lý nhận diện thương hiệu và thông tin liên hệ chính thức</p>
                 </div>
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Tên nền tảng</Label>
                     <Input value={settings.site.siteName} onChange={e => updateSetting('site', 'siteName', e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5 focus:ring-2 focus:ring-blue-500/10" />

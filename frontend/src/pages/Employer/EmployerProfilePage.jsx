@@ -98,15 +98,15 @@ export default function EmployerProfilePage() {
   }
 
   return (
-    <div style={{ padding: '40px 20px', maxWidth: 800, margin: '0 auto', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+    <div style={{ padding: '32px 16px', maxWidth: 800, margin: '0 auto', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0F172A', marginBottom: 8 }}>Hồ sơ Công ty</h1>
         <p style={{ color: '#64748B', fontSize: 15 }}>Quản lý thông tin hiển thị với ứng viên và trên các tin tuyển dụng.</p>
       </div>
 
-      <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E2E8F0', padding: 40, boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+      <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E2E8F0', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 40, paddingBottom: 32, borderBottom: '1px solid #F1F5F9' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap' }}>
           <div 
             onClick={() => document.getElementById('logo-upload').click()}
             style={{ 
@@ -145,7 +145,7 @@ export default function EmployerProfilePage() {
         </div>
 
         {/* Form Fields */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
           <Field label="Tên công ty" required icon={Building}>
             <input 
               value={form.companyName} 
@@ -214,7 +214,7 @@ export default function EmployerProfilePage() {
         </div>
 
         {/* Footer Actions */}
-        <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, borderTop: '1px solid #F1F5F9' }}>
+        <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, borderTop: '1px solid #F1F5F9', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ fontSize: 14, color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, opacity: success ? 1 : 0, transition: 'opacity 0.3s' }}>
             <CheckCircle2 size={18} /> Đã cập nhật thành công
           </div>
@@ -222,11 +222,11 @@ export default function EmployerProfilePage() {
             onClick={handleSave} 
             disabled={saving}
             style={{
-              padding: '12px 32px', borderRadius: 12, border: 'none',
+              padding: '12px 24px', borderRadius: 12, border: 'none',
               background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', color: 'white',
-              fontSize: 15, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
+              fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
               boxShadow: '0 4px 12px rgba(59,130,246,0.3)', transition: 'all 0.2s',
-              opacity: saving ? 0.7 : 1
+              opacity: saving ? 0.7 : 1, flex: 1, minWidth: 160
             }}
           >
             {saving ? '⏳ Đang lưu...' : '💾 Lưu thay đổi'}

@@ -19,8 +19,7 @@ function StatCard({ icon, label, value, sub, color = '#3B82F6', to }) {
     }}
       onMouseEnter={e => { if (to) { e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-2px)' } }}
       onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none' }}
-    >
-      <div style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
+    >        <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
         {icon}
       </div>
       <div>
@@ -64,11 +63,11 @@ export default function EmployerDashboard() {
   const totalStatus = Object.values(stats?.status_breakdown || {}).reduce((a, b) => a + b, 0) || 1
 
   return (
-    <div style={{ padding: '32px 0', maxWidth: 960, margin: '0 auto' }}>
+    <div style={{ padding: '32px 16px', maxWidth: 960, margin: '0 auto' }}>
       {/* Header */}
       <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>Dashboard</h1>
+          <h1 style={{ fontSize: 'clamp(20px, 5vw, 26px)', fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>Dashboard</h1>
           <p style={{ fontSize: 14, color: '#64748B' }}>Tổng quan hoạt động tuyển dụng của bạn</p>
         </div>
         <Link to="/employer/jobs/new" style={{
@@ -82,14 +81,14 @@ export default function EmployerDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
         <StatCard icon="📋" label="Tin tuyển dụng" value={stats.total_jobs} sub={`${stats.active_jobs} đang hoạt động`} color="#3B82F6" to="/employer/jobs" />
         <StatCard icon="📩" label="Tổng ứng tuyển" value={stats.total_applications} sub={`${stats.pending_applications} chờ xử lý`} color="#8B5CF6" />
         <StatCard icon="👁️" label="Lượt xem JD" value={stats.total_views.toLocaleString()} color="#10B981" />
         <StatCard icon="⏳" label="Chờ xem xét" value={stats.pending_applications} sub="Cần xử lý" color="#F59E0B" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
         {/* Chart */}
         <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: 24 }}>
           <h3 style={{ fontWeight: 700, fontSize: 15, color: '#0F172A', marginBottom: 20 }}>📈 Ứng tuyển 7 ngày qua</h3>
@@ -129,10 +128,10 @@ export default function EmployerDashboard() {
       </div>
 
       {/* Quick links */}
-      <div style={{ background: 'linear-gradient(135deg, #0F172A, #1E3A6E)', borderRadius: 16, padding: 24, display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
+      <div style={{ background: 'linear-gradient(135deg, #0F172A, #1E3A6E)', borderRadius: 16, padding: '20px', display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ minWidth: 200 }}>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', marginBottom: 4 }}>Thao tác nhanh</p>
-          <h3 style={{ color: 'white', fontWeight: 800, fontSize: 16 }}>Quản lý tuyển dụng hiệu quả hơn</h3>
+          <h3 style={{ color: 'white', fontWeight: 800, fontSize: 'clamp(14px, 4vw, 16px)' }}>Quản lý tuyển dụng hiệu quả hơn</h3>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {[

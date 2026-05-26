@@ -11,8 +11,8 @@ export function HowItWorksSection() {
   return (
     <section className="section" style={{ backgroundColor: "var(--bg-subtle)" }}>
       <div className="container-app">
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <h2 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>Bắt đầu tuyển dụng chỉ với 4 bước</h2>
+        <div style={{ textAlign: "center", marginBottom: 32 }} className="md:mb-12">
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }} className="md:text-[28px]">Bắt đầu tuyển dụng chỉ với 4 bước</h2>
           <p style={{ color: "var(--text-secondary)", fontSize: 15 }}>Đơn giản, nhanh chóng và hiệu quả</p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24 }}>

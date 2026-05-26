@@ -67,14 +67,29 @@ export default function CVBuilderPage() {
       </div>
 
       {/* Content area */}
-      <div className="container-app py-5">
+      <div className="container-app py-5 px-4 md:px-6">
+        {/* View toggle - show on mobile too */}
+        <div className="flex md:hidden items-center gap-1 bg-white border border-[#E2E8F0] rounded-lg p-1 mb-4 overflow-x-auto">
+          {[
+            { key: 'edit', label: '✏️ Sửa' },
+            { key: 'split', label: '🔄 Đôi' },
+            { key: 'preview', label: '👁️ Xem' },
+          ].map(v => (
+            <button key={v.key} onClick={() => setView(v.key)}
+              className={cn('flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all whitespace-nowrap',
+                view === v.key ? 'bg-[#1549B8] text-white shadow-sm' : 'text-[#94A3B8] hover:text-[#475569]')}>
+              {v.label}
+            </button>
+          ))}
+        </div>
+
         {/* Split view (default) */}
         {view === 'split' && (
-          <div className="grid lg:grid-cols-[1fr_650px] gap-5 items-start">
-            <div className="space-y-0 overflow-y-auto max-h-[calc(100vh-9rem)] pr-1">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(300px,650px)] gap-5 items-start">
+            <div className="space-y-0 overflow-y-auto max-h-[calc(100vh-12rem)] lg:max-h-[calc(100vh-9rem)] pr-1">
               <EditorPanel cv={cv} onChange={setCv} />
             </div>
-            <div className="sticky top-[7rem] overflow-auto max-h-[calc(100vh-9rem)] rounded-xl shadow-xl ring-1 ring-[#E2E8F0]">
+            <div className="lg:sticky lg:top-[7rem] overflow-auto max-h-none lg:max-h-[calc(100vh-9rem)] rounded-xl shadow-xl ring-1 ring-[#E2E8F0]">
               <CVPreview cv={cv} />
             </div>
           </div>
@@ -87,7 +102,7 @@ export default function CVBuilderPage() {
         )}
 
         {view === 'preview' && (
-          <div className="max-w-[780px] mx-auto shadow-xl rounded-xl overflow-hidden ring-1 ring-[#E2E8F0]">
+          <div className="max-w-full lg:max-w-[780px] mx-auto shadow-xl rounded-xl overflow-hidden ring-1 ring-[#E2E8F0]">
             <CVPreview cv={cv} />
           </div>
         )}

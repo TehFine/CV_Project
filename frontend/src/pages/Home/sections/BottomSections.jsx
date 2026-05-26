@@ -20,14 +20,14 @@ export function AIPromoSection() {
   return (
     <section className="section-sm relative bg-white from-[#0F172A] via-[#1E3A6E] to-[#1549B8] overflow-hidden">
       <div className="container-app">
-        <div className="rounded-3xl bg-linear-to-br from-[#0F172A] via-[#1E3A6E] to-[#1549B8] p-8 md:p-12 flex flex-col md:flex-row gap-8 items-center relative overflow-hidden">
+        <div className="rounded-2xl md:rounded-3xl bg-linear-to-br from-[#0F172A] via-[#1E3A6E] to-[#1549B8] p-6 md:p-12 flex flex-col md:flex-row gap-6 md:gap-8 items-center relative overflow-hidden">
           <div className="absolute top-0 right-0 w-72 h-72 bg-violet-500/20 rounded-full blur-3xl pointer-events-none" />
           <div className="flex-1 relative">
             <div className="inline-flex items-center gap-1.5 bg-violet-500/20 border border-violet-400/30 rounded-full px-3 py-1 mb-4">
               <Sparkles className="h-3 w-3 text-violet-300" />
               <span className="text-xs text-violet-200 font-medium">AI-Powered CV Scoring</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">
+            <h2 className="text-2xl md:text-4xl font-black text-white mb-4 leading-tight">
               CV của bạn có đủ<br />sức cạnh tranh?
             </h2>
             <p className="text-slate-300 leading-relaxed mb-6 text-sm">
@@ -43,7 +43,7 @@ export function AIPromoSection() {
             </div>
           </div>
 
-          <div className="w-full md:w-72 bg-white/8 backdrop-blur-sm border border-white/15 rounded-2xl p-6 shrink-0">
+          <div className="w-full md:w-72 bg-white/8 backdrop-blur-sm border border-white/15 rounded-2xl p-5 md:p-6 shrink-0">
             <div className="text-center mb-5">
               <div className="w-20 h-20 mx-auto rounded-full border-4 border-blue-400 bg-blue-500/20 flex items-center justify-center mb-2">
                 <span className="text-3xl font-black text-white">82</span>
@@ -73,10 +73,10 @@ export function HowItWorksSection() {
     <section className="section bg-[#F8FAFC] border-t border-[#F1F5F9]">
       <div className="container-app">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-black text-[#0F172A] mb-2">Cách hoạt động</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-[#0F172A] mb-2">Cách hoạt động</h2>
           <p className="text-[#475569]">Chỉ 4 bước đơn giản để có CV hoàn hảo</p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           {HOW_IT_WORKS.map((step, i) => (
             <div key={step.num} className="bg-white rounded-2xl border border-[#E2E8F0] p-6 text-center relative overflow-hidden" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="absolute top-3 right-4 text-5xl font-black text-[#F1F5F9] leading-none select-none">{step.num}</div>
@@ -95,10 +95,10 @@ export function CTASplitSection({ onCreateCV }) {
   return (
     <section className="section bg-white border-t border-[#F1F5F9]">
       <div className="container-app">
-        <div className="grid md:grid-cols-2 gap-5">
-          <div className="bg-linear-to-br from-[#1549B8] to-[#1E40AF] rounded-2xl p-8 text-white">
+        <div className="grid md:grid-cols-2 gap-4 md:gap-5">
+          <div className="bg-linear-to-br from-[#1549B8] to-[#1E40AF] rounded-2xl p-6 md:p-8 text-white">
             <Users className="h-8 w-8 mb-4 opacity-80" />
-            <h3 className="text-2xl font-black mb-2">Dành cho ứng viên</h3>
+            <h3 className="text-xl md:text-2xl font-black mb-2">Dành cho ứng viên</h3>
             <p className="text-blue-100 text-sm leading-relaxed mb-5">
               Tạo hồ sơ, upload CV và để AI giúp bạn tối ưu để nổi bật trước nhà tuyển dụng.
             </p>
@@ -112,9 +112,9 @@ export function CTASplitSection({ onCreateCV }) {
             </div>
           </div>
 
-          <div className="bg-linear-to-br from-[#0F172A] to-[#1E293B] rounded-2xl p-8 text-white">
+          <div className="bg-linear-to-br from-[#0F172A] to-[#1E293B] rounded-2xl p-6 md:p-8 text-white">
             <span className="text-3xl mb-4 block">🏢</span>
-            <h3 className="text-2xl font-black mb-2">Dành cho nhà tuyển dụng</h3>
+            <h3 className="text-xl md:text-2xl font-black mb-2">Dành cho nhà tuyển dụng</h3>
             <p className="text-slate-300 text-sm leading-relaxed mb-5">
               Đăng tin tuyển dụng, tìm kiếm ứng viên phù hợp và quản lý toàn bộ quy trình tuyển dụng với AI.
             </p>

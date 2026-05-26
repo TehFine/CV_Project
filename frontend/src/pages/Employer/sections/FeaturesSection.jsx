@@ -15,8 +15,8 @@ export function FeaturesSection() {
   return (
     <section className="section">
       <div className="container-app">
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <h2 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }} className="md:mb-10">
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }} className="md:text-[28px]">
             Tất cả công cụ bạn cần
           </h2>
           <p style={{ color: "var(--text-secondary)", fontSize: 15 }}>
