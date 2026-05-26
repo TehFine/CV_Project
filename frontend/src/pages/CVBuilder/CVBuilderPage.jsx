@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Download, Eye, Edit3, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useReactToPrint } from 'react-to-print'
+import { PDFDownloadLink } from '@react-pdf/renderer'
 import { DEFAULT_CV } from './components/constants'
 import { CVPreview } from './components/CVPreview'
+import { CVPDFDocument } from './components/CVPDFDocument'
 import { EditorPanel } from './components/EditorPanel'
 
 export default function CVBuilderPage() {
@@ -12,27 +13,14 @@ export default function CVBuilderPage() {
   const [view, setView] = useState('split') // 'split' | 'preview' | 'edit'
   const [saved, setSaved] = useState(false)
 
-  const componentRef = useRef(null)
-
   const handleSave = () => {
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
     // Khi có backend: await cvBuilderService.save(cv)
   }
 
-  const handlePrint = useReactToPrint({
-    contentRef: componentRef,
-    documentTitle: cv.personal?.name ? `CV_${cv.personal.name}` : 'CV',
-  })
-
   return (
     <div className="min-h-screen bg-[#F1F5F9]">
-      {/* Container ẩn được dành riêng cho việc in ấn */}
-      <div style={{ display: 'none' }}>
-        <div ref={componentRef}>
-          <CVPreview cv={cv} />
-        </div>
-      </div>
 
       {/* Toolbar */}
       <div className="bg-white border-b border-[#E2E8F0] shadow-sm sticky top-16 z-10">
@@ -62,9 +50,18 @@ export default function CVBuilderPage() {
               <Save className="h-3.5 w-3.5" />
               {saved ? '✅ Đã lưu' : 'Lưu'}
             </Button>
-            <Button size="sm" onClick={handlePrint} className="bg-[#1549B8] hover:bg-[#1240A0] text-white gap-1.5 text-xs">
-              <Download className="h-3.5 w-3.5" />Xuất PDF
-            </Button>
+            <PDFDownloadLink
+              document={<CVPDFDocument cv={cv} />}
+              fileName={`CV_${cv.personal?.name || 'CV'}.pdf`}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1549B8] hover:bg-[#1240A0] text-white no-underline cursor-pointer transition-colors"
+            >
+              {({ loading }) => (
+                <>
+                  <Download className="h-3.5 w-3.5" />
+                  {loading ? '⏳ Đang tạo...' : 'Xuất PDF'}
+                </>
+              )}
+            </PDFDownloadLink>
           </div>
         </div>
       </div>

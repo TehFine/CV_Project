@@ -136,7 +136,8 @@ export const cvService = {
         { id: 2, fileName: 'CV_Frontend_Updated.pdf', overall: 85, grade: 'A', scoredAt: '2025-01-15T14:20:00Z' },
       ]
     }
-    return api.get('/cv/my-cvs')
+    const res = await api.get('/cv-scoring/history')
+    return res.data?.data || res.data || res
   },
 
   /**
@@ -148,7 +149,7 @@ export const cvService = {
       await delay(400)
       return generateMockScore('CV_NguyenVanAn_2024.pdf')
     }
-    return api.get(`/cv/scores/${id}`)
+    return api.get(`/cv-scoring/scores/${id}`)
   },
 
   /**
@@ -160,7 +161,7 @@ export const cvService = {
       await delay(300)
       return { message: 'Đã xóa' }
     }
-    return api.delete(`/cv/scores/${id}`)
+    return api.delete(`/cv-scoring/scores/${id}`)
   },
 
   /**
@@ -190,6 +191,27 @@ export const cvService = {
   },
 
   async getResume(id) {
+    if (USE_MOCK) {
+      await delay(400)
+      return { id, title: 'CV mẫu', content: {} }
+    }
+    return api.get(`/resumes/${id}`)
+  },
+
+  /**
+   * Lưu CV Builder data lên server
+   */
+  async saveCVBuilder(data) {
+    if (USE_MOCK) {
+      await delay(500)
+      return { id: data.id || Date.now(), ...data }
+    }
+    return data.id
+      ? api.put(`/resumes/${data.id}`, data)
+      : api.post('/resumes', data)
+  },
+
+  async getCVBuilder(id) {
     if (USE_MOCK) {
       await delay(400)
       return { id, title: 'CV mẫu', content: {} }
