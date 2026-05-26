@@ -6,6 +6,7 @@ import { AuthModule } from '../auth/auth.module';
 import { Job, JobSchema } from './schemas/job.schema';
 import { Application, ApplicationSchema } from './schemas/application.schema';
 import { CvScore, CvScoreSchema } from '../cv-scoring/schemas/cv-score.schema';
+import { Notification, NotificationSchema } from '../admin/schemas/notification.schema';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CvScore, CvScoreSchema } from '../cv-scoring/schemas/cv-score.schema';
       { name: Job.name, schema: JobSchema },
       { name: 'Application', schema: ApplicationSchema },
       { name: CvScore.name, schema: CvScoreSchema },
+      { name: Notification.name, schema: NotificationSchema },
     ]),
     AuthModule,
   ],

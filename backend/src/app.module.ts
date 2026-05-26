@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { EmployerModule } from './employer/employer.module';
 import { JobsModule } from './jobs/jobs.module';
 import { CvScoringModule } from './cv-scoring/cv-scoring.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { CvScoringModule } from './cv-scoring/cv-scoring.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI'),
+        uri: configService.get<string>('MONGODB_URI'),
         connectTimeoutMS: 10000, // 10 seconds
         socketTimeoutMS: 45000, // 45 seconds
       }),
@@ -28,6 +29,7 @@ import { CvScoringModule } from './cv-scoring/cv-scoring.module';
     EmployerModule,
     JobsModule,
     CvScoringModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

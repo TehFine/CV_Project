@@ -5,13 +5,18 @@ import { Job, JobDocument } from './schemas/job.schema';
 import { Application, ApplicationDocument } from './schemas/application.schema';
 import { SEED_JOBS } from './jobs-seed.data';
 import { CvScore, CvScoreDocument } from '../cv-scoring/schemas/cv-score.schema';
+import { Notification, NotificationDocument } from '../admin/schemas/notification.schema';
+import { AppLogger } from '../common/logger.service';
 
 @Injectable()
 export class JobsService {
+  private readonly logger = AppLogger.forContext(JobsService.name);
+
   constructor(
     @InjectModel(Job.name) private jobModel: Model<JobDocument>,
     @InjectModel('Application') private applicationModel: Model<ApplicationDocument>,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
+    @InjectModel(Notification.name) private notificationModel: Model<NotificationDocument>,
   ) {}
 
   async findAll(query: any) {
@@ -97,7 +102,25 @@ export class JobsService {
       ...jobData,
       employerId,
     });
-    return newJob.save();
+    const saved = await newJob.save();
+    this.logger.success('Tạo tin tuyển dụng mới', { userId: employerId, action: 'create_job', jobId: saved._id.toString(), title: jobData.title });
+
+    // Tạo thông báo cho admin nếu tin cần duyệt
+    if (saved.status === 'pending' || saved.status === 'draft') {
+      try {
+        await this.notificationModel.create({
+          title: 'Tin tuyển dụng mới chờ duyệt',
+          message: `Nhà tuyển dụng vừa đăng tin "${saved.title}" — trạng thái: ${saved.status === 'pending' ? 'chờ duyệt' : 'bản nháp'}. Vui lòng kiểm tra và phê duyệt.`,
+          type: 'info',
+          jobId: String(saved._id),
+        } as any);
+        this.logger.log('Đã tạo thông báo cho admin về tin mới', { action: 'notify_admin_new_job', jobId: saved._id.toString() });
+      } catch (notifErr) {
+        this.logger.error('Không thể tạo thông báo admin', notifErr as any);
+      }
+    }
+
+    return saved;
   }
 
   async update(id: string, jobData: any, requesterId: string, requesterRole: string) {
@@ -105,11 +128,13 @@ export class JobsService {
     if (!job) {
       throw new NotFoundException('Không tìm thấy công việc để cập nhật');
     }
-    // Chỉ admin hoặc chủ sở hữu mới được cập nhật
     if (requesterRole !== 'admin' && job.employerId?.toString() !== requesterId) {
+      this.logger.fail('Cập nhật job thất bại - không có quyền', { userId: requesterId, action: 'update_job', jobId: id });
       throw new ForbiddenException('Bạn không có quyền chỉnh sửa tin tuyển dụng này');
     }
-    return this.jobModel.findByIdAndUpdate(id, jobData, { new: true }).exec();
+    const updated = await this.jobModel.findByIdAndUpdate(id, jobData, { new: true }).exec();
+    this.logger.success('Cập nhật tin tuyển dụng', { userId: requesterId, action: 'update_job', jobId: id, title: jobData.title });
+    return updated;
   }
 
   async remove(id: string, requesterId: string, requesterRole: string) {
@@ -117,21 +142,22 @@ export class JobsService {
     if (!job) {
       throw new NotFoundException('Không tìm thấy công việc để xóa');
     }
-    // Chỉ admin hoặc chủ sở hữu mới được xóa
     if (requesterRole !== 'admin' && job.employerId?.toString() !== requesterId) {
+      this.logger.fail('Xóa job thất bại - không có quyền', { userId: requesterId, action: 'delete_job', jobId: id });
       throw new ForbiddenException('Bạn không có quyền xóa tin tuyển dụng này');
     }
     await this.jobModel.findByIdAndDelete(id).exec();
+    this.logger.success('Xóa tin tuyển dụng', { userId: requesterId, action: 'delete_job', jobId: id, title: job.title });
     return { message: 'Đã xóa công việc thành công' };
   }
 
   async apply(jobId: string, candidateId: string, data: any) {
     const job = await this.jobModel.findById(jobId);
     if (!job) {
+      this.logger.fail('Ứng tuyển thất bại - job không tồn tại', { userId: candidateId, action: 'apply_job', jobId });
       throw new NotFoundException('Không tìm thấy công việc');
     }
 
-    // Automatically check for previous AI scores matching this job, or candidate's latest general CV
     let cvId = data.cvId || 'uploaded_cv.pdf';
     let aiScoreId: any = undefined;
 
@@ -163,9 +189,10 @@ export class JobsService {
 
     await application.save();
 
-    // Increment applied count
     job.applied += 1;
     await job.save();
+
+    this.logger.success('Ứng tuyển thành công', { userId: candidateId, action: 'apply_job', jobId, title: job.title });
 
     return { message: 'Ứng tuyển thành công', applicationId: application._id };
   }

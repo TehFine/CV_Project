@@ -4,9 +4,12 @@ import { Model } from 'mongoose';
 import { Job, JobDocument } from '../jobs/schemas/job.schema';
 import { Application, ApplicationDocument } from '../jobs/schemas/application.schema';
 import { CvScore, CvScoreDocument } from '../cv-scoring/schemas/cv-score.schema';
+import { AppLogger } from '../common/logger.service';
 
 @Injectable()
 export class EmployerService {
+  private readonly logger = AppLogger.forContext(EmployerService.name);
+
   constructor(
     @InjectModel(Job.name) private jobModel: Model<JobDocument>,
     @InjectModel('Application') private applicationModel: Model<ApplicationDocument>,
@@ -33,6 +36,7 @@ export class EmployerService {
   }
 
   async getDashboardStats(employerId: string) {
+    this.logger.log('Xem thống kê dashboard', { userId: employerId, action: 'view_dashboard' });
     const filter = employerId ? { employerId: employerId as any } : {};
     const totalJobs = await this.jobModel.countDocuments(filter as any);
 
@@ -106,6 +110,7 @@ export class EmployerService {
       .find({ jobId: jobId as any })
       .populate('candidateId')
       .populate('aiScoreId')
+      .sort({ createdAt: -1 })
       .exec();
 
     const data = apps.map(app => {
@@ -166,20 +171,30 @@ export class EmployerService {
 
   async updateApplicationStatus(appId: string, status: string) {
     const app = await this.applicationModel.findById(appId);
-    if (!app) throw new NotFoundException('Không tìm thấy hồ sơ');
+    if (!app) {
+      this.logger.fail('Cập nhật trạng thái hồ sơ thất bại - không tìm thấy', { action: 'update_status', applicationId: appId, status });
+      throw new NotFoundException('Không tìm thấy hồ sơ');
+    }
+    const oldStatus = app.status;
     app.status = status;
     await app.save();
+    this.logger.success('Cập nhật trạng thái hồ sơ', { action: 'update_status', applicationId: appId, from: oldStatus, to: status, candidateId: app.candidateId?.toString() });
     return { success: true };
   }
 
   async deleteApplication(appId: string) {
     const app = await this.applicationModel.findByIdAndDelete(appId).exec();
-    if (!app) throw new NotFoundException('Không tìm thấy hồ sơ');
+    if (!app) {
+      this.logger.fail('Xóa hồ sơ thất bại - không tìm thấy', { action: 'delete_application', applicationId: appId });
+      throw new NotFoundException('Không tìm thấy hồ sơ');
+    }
+    this.logger.success('Xóa hồ sơ ứng tuyển', { action: 'delete_application', applicationId: appId, candidateId: app.candidateId?.toString() });
     return { success: true };
   }
 
   async bulkDeleteApplications(ids: string[]) {
-    await this.applicationModel.deleteMany({ _id: { $in: ids } }).exec();
+    const result = await this.applicationModel.deleteMany({ _id: { $in: ids } }).exec();
+    this.logger.success('Xóa hàng loạt hồ sơ', { action: 'bulk_delete_applications', count: result.deletedCount, ids });
     return { success: true };
   }
 }
