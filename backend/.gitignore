@@ -14,6 +14,7 @@ lerna-debug.log*
 
 # OS
 .DS_Store
+Thumbs.db
 
 # Tests
 /coverage
@@ -45,6 +46,7 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+temp
 
 # Runtime data
 pids
@@ -52,5 +54,11 @@ pids
 *.seed
 *.pid.lock
 
-# Diagnostic reports (https://nodejs.org/api/report.html)
+# Diagnostic reports
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# TypeScript
+*.tsbuildinfo
+
+# Scratch / dev scripts
+scratch/
