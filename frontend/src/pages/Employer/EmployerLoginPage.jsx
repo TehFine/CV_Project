@@ -209,7 +209,7 @@ export default function EmployerLoginPage() {
                 >
                   Mật khẩu
                 </label>
-                <a href="#" className="employer-auth-forgot">
+                <a href="/forgot-password" className="employer-auth-forgot">
                   Quên mật khẩu?
                 </a>
               </div>

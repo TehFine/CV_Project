@@ -124,6 +124,31 @@ export const authService = {
   },
 
   /**
+   * Quên mật khẩu - gửi yêu cầu reset
+   * @param {string} email
+   */
+  async forgotPassword(email) {
+    if (USE_MOCK) {
+      await delay(800);
+      return { message: "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu." };
+    }
+    return api.post("/auth/forgot-password", { email });
+  },
+
+  /**
+   * Đặt lại mật khẩu với token
+   * @param {string} token
+   * @param {string} password
+   */
+  async resetPassword(token, password) {
+    if (USE_MOCK) {
+      await delay(600);
+      return { message: "Mật khẩu đã được đặt lại thành công" };
+    }
+    return api.post("/auth/reset-password", { token, password });
+  },
+
+  /**
    * Đăng xuất (invalidate server-side token nếu có)
    */
   async logout() {

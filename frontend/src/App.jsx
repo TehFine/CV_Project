@@ -21,6 +21,8 @@ import ProfilePage from "./pages/JobSeeker/ProfilePage";
 import CVUploadPage from "./pages/CV_AIScore/CVUploadPage";
 import CVBuilderPage from "./pages/CVBuilder/CVBuilderPage";
 import CVHistoryPage from "./pages/JobSeeker/CVHistoryPage";
+import ForgotPasswordPage from "./pages/JobSeeker/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/JobSeeker/ResetPasswordPage";
 
 // ── Nhà tuyển dụng (Employer) ─────────────────────────────────────────────────
 import EmployerHomePage from "./pages/Employer/EmployerHomePage";
@@ -285,6 +287,26 @@ export default function App() {
                   <CVHistoryPage />
                 </ProtectedRoute>
               </SeekerLayout>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <GuestRoute>
+                <SeekerLayout>
+                  <ForgotPasswordPage />
+                </SeekerLayout>
+              </GuestRoute>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <GuestRoute>
+                <SeekerLayout>
+                  <ResetPasswordPage />
+                </SeekerLayout>
+              </GuestRoute>
             }
           />
 
