@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, Eye, Edit3, Save } from 'lucide-react'
+import { Download, Eye, Edit3, Save, AlertCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PDFDownloadLink } from '@react-pdf/renderer'
@@ -8,19 +8,104 @@ import { CVPreview } from './components/CVPreview'
 import { CVPDFDocument } from './components/CVPDFDocument'
 import { EditorPanel } from './components/EditorPanel'
 
+// Các trường bắt buộc và tên hiển thị
+const REQUIRED_FIELDS = [
+  { path: 'personal.name',     label: 'Họ và tên' },
+  { path: 'personal.phone',    label: 'Số điện thoại' },
+  { path: 'personal.email',    label: 'Email' },
+  { path: 'personal.location', label: 'Địa chỉ / Thành phố' },
+  { path: 'personal.title',    label: 'Chức danh / Vị trí ứng tuyển' },
+  { path: 'personal.summary',  label: 'Giới thiệu bản thân' },
+]
+
+function getField(obj, path) {
+  return path.split('.').reduce((acc, key) => acc?.[key], obj)
+}
+
+function validateCV(cv) {
+  const errors = []
+  for (const field of REQUIRED_FIELDS) {
+    const value = getField(cv, field.path)
+    if (!value || String(value).trim() === '') {
+      errors.push(field.label)
+    }
+  }
+  // Phải có ít nhất 1 kinh nghiệm hoặc 1 học vấn
+  const hasExp = cv.experience?.length > 0 && cv.experience.some(e => e.company?.trim())
+  const hasEdu = cv.education?.length > 0 && cv.education.some(e => e.school?.trim())
+  if (!hasExp && !hasEdu) {
+    errors.push('Kinh nghiệm làm việc hoặc Học vấn (cần ít nhất 1 mục)')
+  }
+  // Phải có kỹ năng
+  if (!cv.skills?.length || !cv.skills.some(s => s.items?.trim())) {
+    errors.push('Kỹ năng (cần ít nhất 1 nhóm kỹ năng)')
+  }
+  return errors
+}
+
 export default function CVBuilderPage() {
   const [cv, setCv] = useState(DEFAULT_CV)
   const [view, setView] = useState('split') // 'split' | 'preview' | 'edit'
   const [saved, setSaved] = useState(false)
+  const [showErrors, setShowErrors] = useState(false)
+
+  // Derived — re-computed on every render, always up to date
+  const currentErrors = validateCV(cv)
+  const isValid = currentErrors.length === 0
 
   const handleSave = () => {
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
-    // Khi có backend: await cvBuilderService.save(cv)
+  }
+
+  const handleExportClick = () => {
+    if (!isValid) {
+      setShowErrors(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    // If valid, PDFDownloadLink renders and handles the click itself
+  }
+
+  const handleCvChange = (newCv) => {
+    setCv(newCv)
+    // Auto-hide error banner once all fields are filled
+    if (showErrors && validateCV(newCv).length === 0) {
+      setShowErrors(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#F1F5F9]">
+
+      {/* Validation Error Banner */}
+      {showErrors && currentErrors.length > 0 && (
+        <div className="sticky top-16 z-20 bg-red-50 border-b-2 border-red-200 shadow-md">
+          <div className="container-app py-3 px-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-red-700 text-sm mb-1">
+                  Vui lòng điền đầy đủ các thông tin bắt buộc trước khi xuất PDF:
+                </p>
+                <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                  {currentErrors.map((err, i) => (
+                    <li key={i} className="flex items-center gap-1 text-xs text-red-600 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                      {err}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                onClick={() => setShowErrors(false)}
+                className="shrink-0 text-red-400 hover:text-red-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toolbar */}
       <div className="bg-white border-b border-[#E2E8F0] shadow-sm sticky top-16 z-10">
@@ -50,18 +135,35 @@ export default function CVBuilderPage() {
               <Save className="h-3.5 w-3.5" />
               {saved ? '✅ Đã lưu' : 'Lưu'}
             </Button>
-            <PDFDownloadLink
-              document={<CVPDFDocument cv={cv} />}
-              fileName={`CV_${cv.personal?.name || 'CV'}.pdf`}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1549B8] hover:bg-[#1240A0] text-white no-underline cursor-pointer transition-colors"
-            >
-              {({ loading }) => (
-                <>
-                  <Download className="h-3.5 w-3.5" />
-                  {loading ? '⏳ Đang tạo...' : 'Xuất PDF'}
-                </>
-              )}
-            </PDFDownloadLink>
+
+            {/* Export button — always re-checks current cv state */}
+            {isValid ? (
+              <PDFDownloadLink
+                document={<CVPDFDocument cv={cv} />}
+                fileName={`CV_${cv.personal?.name || 'CV'}.pdf`}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-[#1549B8] hover:bg-[#1240A0] text-white no-underline cursor-pointer transition-colors"
+              >
+                {({ loading }) => (
+                  <>
+                    <Download className="h-3.5 w-3.5" />
+                    {loading ? '⏳ Đang tạo...' : 'Xuất PDF'}
+                  </>
+                )}
+              </PDFDownloadLink>
+            ) : (
+              <button
+                onClick={handleExportClick}
+                className={cn(
+                  'inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                  showErrors
+                    ? 'bg-red-100 text-red-600 border border-red-300 hover:bg-red-200'
+                    : 'bg-[#1549B8] hover:bg-[#1240A0] text-white'
+                )}
+              >
+                <Download className="h-3.5 w-3.5" />
+                {showErrors ? `⚠️ ${currentErrors.length} thiếu` : 'Xuất PDF'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -87,7 +189,7 @@ export default function CVBuilderPage() {
         {view === 'split' && (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(300px,650px)] gap-5 items-start">
             <div className="space-y-0 overflow-y-auto max-h-[calc(100vh-12rem)] lg:max-h-[calc(100vh-9rem)] pr-1">
-              <EditorPanel cv={cv} onChange={setCv} />
+              <EditorPanel cv={cv} onChange={handleCvChange} />
             </div>
             <div className="lg:sticky lg:top-[7rem] overflow-auto max-h-none lg:max-h-[calc(100vh-9rem)] rounded-xl shadow-xl ring-1 ring-[#E2E8F0]">
               <CVPreview cv={cv} />
@@ -97,7 +199,7 @@ export default function CVBuilderPage() {
 
         {view === 'edit' && (
           <div className="max-w-2xl mx-auto">
-            <EditorPanel cv={cv} onChange={setCv} />
+            <EditorPanel cv={cv} onChange={handleCvChange} />
           </div>
         )}
 
