@@ -7,6 +7,7 @@ import { Application, ApplicationDocument } from '../jobs/schemas/application.sc
 import { CvScore, CvScoreDocument } from '../cv-scoring/schemas/cv-score.schema';
 import { Notification, NotificationDocument } from './schemas/notification.schema';
 import { AppLogger } from '../common/logger.service';
+import { NotificationsGateway } from './gateways/notifications.gateway';
 
 @Injectable()
 export class AdminService {
@@ -18,6 +19,7 @@ export class AdminService {
     @InjectModel(Application.name) private applicationModel: Model<ApplicationDocument>,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
     @InjectModel(Notification.name) private notificationModel: Model<NotificationDocument>,
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   // ─── Dashboard ──────────────────────────────────────────────────────
@@ -30,10 +32,12 @@ export class AdminService {
 
     const totalJobs = await this.jobModel.countDocuments();
     const activeJobs = await this.jobModel.countDocuments({ status: 'active' } as any);
-    const pendingJobs = await this.jobModel.countDocuments({ status: 'pending' } as any);
+    const pendingJobsCount = await this.jobModel.countDocuments({ status: 'pending' } as any);
+    const reportedJobs = await this.jobModel.countDocuments({ status: 'reported' } as any);
 
     const totalApplications = await this.applicationModel.countDocuments();
     const totalCvScores = await this.cvScoreModel.countDocuments();
+    const pendingEmployers = await this.userModel.countDocuments({ role: 'employer', status: 'pending' } as any);
 
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -64,15 +68,15 @@ export class AdminService {
 
     // CV score distribution
     const scoreDistribution = [
-      { grade: 'A (85-100)', count: await this.cvScoreModel.countDocuments({ overall: { $gte: 85 } } as any) },
-      { grade: 'B (70-84)', count: await this.cvScoreModel.countDocuments({ overall: { $gte: 70, $lt: 85 } } as any) },
-      { grade: 'C (55-69)', count: await this.cvScoreModel.countDocuments({ overall: { $gte: 55, $lt: 70 } } as any) },
-      { grade: 'D (<55)', count: await this.cvScoreModel.countDocuments({ overall: { $lt: 55 } } as any) },
+      { grade: 'A (85-100)', count: await this.cvScoreModel.countDocuments({ score: { $gte: 85 } } as any) },
+      { grade: 'B (70-84)', count: await this.cvScoreModel.countDocuments({ score: { $gte: 70, $lt: 85 } } as any) },
+      { grade: 'C (55-69)', count: await this.cvScoreModel.countDocuments({ score: { $gte: 55, $lt: 70 } } as any) },
+      { grade: 'D (<55)', count: await this.cvScoreModel.countDocuments({ score: { $lt: 55 } } as any) },
     ];
 
     // Average CV score
     const avgScoreAgg = await this.cvScoreModel.aggregate([
-      { $group: { _id: null, avg: { $avg: '$overall' } } },
+      { $group: { _id: null, avg: { $avg: '$score' } } },
     ]).exec();
     const avgCVScore = avgScoreAgg.length > 0 ? Math.round(avgScoreAgg[0].avg) : 0;
 
@@ -99,6 +103,9 @@ export class AdminService {
         totalEmployers,
         totalJobs,
         activeJobs,
+        pendingJobs: pendingJobsCount,
+        reportedJobs,
+        pendingEmployers,
         totalApplications,
         totalCvScores,
         avgCVScore,
@@ -120,11 +127,15 @@ export class AdminService {
     // Recent user registrations
     const recentUsers = await this.userModel.find().sort({ createdAt: -1 } as any).limit(5).exec();
     for (const u of recentUsers) {
+      const roleLabel = u.role === 'employer' ? 'NTD' : u.role === 'admin' ? 'Quản trị viên' : 'Ứng viên';
+      const typeLabel = u.role === 'employer' ? 'new_employer' : u.role === 'admin' ? 'new_admin' : 'new_user';
+      const icon = u.role === 'employer' ? '🏢' : u.role === 'admin' ? '⚙️' : '👤';
       recent.push({
-        type: 'new_user',
-        message: `${u.role === 'employer' ? 'NTD' : 'Ứng viên'} mới: ${u.name}`,
+        type: typeLabel,
+        message: `${roleLabel} mới: ${u.name}`,
         time: this.timeAgo((u as any).createdAt),
-        icon: u.role === 'employer' ? '🏢' : '👤',
+        icon,
+        role: u.role,
       });
     }
 
@@ -150,11 +161,11 @@ export class AdminService {
       });
     }
 
-    // Sort by time and limit
+    // Sort by time (newest first), then limit
     recent.sort((a, b) => {
       const timeA = this.parseTimeAgo(a.time);
       const timeB = this.parseTimeAgo(b.time);
-      return timeA - timeB;
+      return timeB - timeA;
     });
 
     return recent.slice(0, limit).map((r, i) => ({ id: i + 1, ...r }));
@@ -228,12 +239,20 @@ export class AdminService {
     }
     this.logger.success('Cập nhật trạng thái user', { action: 'admin_update_user_status', targetUserId: id, status, reason: reason || 'none' });
     // Create notification for user status change
-    await this.notificationModel.create({
+    const notif = await this.notificationModel.create({
       userId: id,
       title: 'Cập nhật trạng thái tài khoản',
       message: `Tài khoản của bạn đã được chuyển sang trạng thái: ${status}${reason ? `. Lý do: ${reason}` : ''}`,
       type: status === 'banned' ? 'warning' : 'info',
     } as any);
+    this.notificationsGateway.emitNotificationCreated({
+      id: (notif as any)._id.toString(),
+      title: (notif as any).title,
+      message: (notif as any).message,
+      type: (notif as any).type,
+      time: 'Vừa xong',
+      unread: true,
+    });
     return { success: true };
   }
 
@@ -307,13 +326,22 @@ export class AdminService {
     this.logger.success('Cập nhật trạng thái job', { action: 'admin_update_job_status', jobId: id, status, title: job.title });
 
     // Notify employer about status change
-    await this.notificationModel.create({
+    const notif = await this.notificationModel.create({
       userId: job.employerId,
       title: 'Cập nhật trạng thái tin tuyển dụng',
       message: `Tin tuyển dụng "${job.title}" đã được chuyển sang trạng thái: ${status}`,
       type: status === 'active' ? 'success' : status === 'rejected' ? 'warning' : 'info',
       jobId: String(job._id),
     } as any);
+    this.notificationsGateway.emitNotificationCreated({
+      id: (notif as any)._id.toString(),
+      title: (notif as any).title,
+      message: (notif as any).message,
+      type: (notif as any).type,
+      time: 'Vừa xong',
+      unread: true,
+      jobId: (notif as any).jobId,
+    });
 
     return { success: true };
   }
@@ -338,12 +366,37 @@ export class AdminService {
 
   async getCVScores(params: { keyword?: string; grade?: string; page?: number; limit?: number }) {
     const filter: any = {};
-    if (params.grade) filter.grade = params.grade;
+    if (params.grade) {
+      // Support both stored grade field AND score-based fallback for old records
+      const scoreRanges: Record<string, { $gte?: number; $lt?: number }> = {
+        A: { $gte: 85 },
+        B: { $gte: 70, $lt: 85 },
+        C: { $gte: 55, $lt: 70 },
+        D: { $lt: 55 },
+      };
+      const range = scoreRanges[params.grade];
+      if (range) {
+        filter.$or = [
+          { grade: params.grade },
+          { score: { ...range } as any },
+        ];
+      } else {
+        filter.grade = params.grade;
+      }
+    }
     if (params.keyword) {
-      filter.$or = [
+      const kwFilter = [
         { fileName: { $regex: params.keyword, $options: 'i' } },
         { targetPosition: { $regex: params.keyword, $options: 'i' } },
+        { 'analysis.gradeLabel': { $regex: params.keyword, $options: 'i' } },
       ];
+      if (filter.$or) {
+        // Already has $or from grade filter — combine with $and
+        filter.$and = [{ $or: filter.$or }, { $or: kwFilter }];
+        delete filter.$or;
+      } else {
+        filter.$or = kwFilter;
+      }
     }
 
     const page = params.page || 1;
@@ -371,14 +424,24 @@ export class AdminService {
         if (key) categories[key] = c.score;
       }
 
+      const overallVal = (score as any).overall || (score as any).score || 0;
+      // Compute grade from score if not stored (for old records)
+      let computedGrade = (score as any).grade || null;
+      if (!computedGrade) {
+        if (overallVal >= 85) computedGrade = 'A';
+        else if (overallVal >= 70) computedGrade = 'B';
+        else if (overallVal >= 55) computedGrade = 'C';
+        else computedGrade = 'D';
+      }
+
       return {
         id: score._id,
         userId: user?._id,
         userName: user?.name || 'N/A',
         userEmail: user?.email || 'N/A',
         fileName: score.fileName || (score as any).cvUrl || 'CV.pdf',
-        overall: (score as any).overall || (score as any).score || 0,
-        grade: (score as any).grade || 'N/A',
+        overall: overallVal,
+        grade: computedGrade,
         targetPosition: (score as any).targetPosition || '',
         scoredAt: (score as any).createdAt,
         categories,
@@ -435,18 +498,21 @@ export class AdminService {
   async markNotificationRead(id: string) {
     await this.notificationModel.findByIdAndUpdate(id, { read: true }).exec();
     this.logger.log('Đánh dấu thông báo đã đọc', { action: 'admin_mark_notification_read', notificationId: id });
+    this.notificationsGateway.emitNotificationRead(id);
     return { success: true };
   }
 
   async markAllNotificationsRead(userId: string) {
     const result = await this.notificationModel.updateMany({ read: false } as any, { read: true }).exec();
     this.logger.log('Đánh dấu tất cả thông báo đã đọc', { action: 'admin_mark_all_read', count: result.modifiedCount });
+    this.notificationsGateway.emitAllNotificationsRead();
     return { success: true };
   }
 
   async deleteNotification(id: string) {
     await this.notificationModel.findByIdAndDelete(id).exec();
     this.logger.log('Xóa thông báo', { action: 'admin_delete_notification', notificationId: id });
+    this.notificationsGateway.emitNotificationDeleted(id);
     return { success: true };
   }
 
@@ -459,6 +525,15 @@ export class AdminService {
       jobId: data.jobId,
     } as any);
     this.logger.success('Tạo thông báo mới', { action: 'admin_create_notification', notificationId: created._id.toString(), title: data.title });
+    this.notificationsGateway.emitNotificationCreated({
+      id: created._id.toString(),
+      title: created.title,
+      message: created.message,
+      type: created.type,
+      time: 'Vừa xong',
+      unread: true,
+      jobId: created.jobId,
+    });
     return created;
   }
 

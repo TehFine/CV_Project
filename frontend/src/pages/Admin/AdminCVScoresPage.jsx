@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { adminService } from '../../services/adminService'
 import { 
-  FileText, Search, Filter, Trash2, ChevronRight, 
-  ArrowUpRight, Clock, User, FileSearch, MoreHorizontal,
+  FileText, Search, Trash2, 
+  Clock, FileSearch, MoreHorizontal,
   Briefcase
 } from 'lucide-react'
+import { connectSocket, onDashboardUpdateNeeded } from '../../services/socket.js'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -21,12 +22,12 @@ export default function AdminCVScoresPage() {
   const [search, setSearch] = useState('')
   const [activeGrade, setActiveGrade] = useState('all')
 
-  const fetchScores = async () => {
+  const fetchScores = async (keyword, grade) => {
     setLoading(true)
     try {
       const params = {}
-      if (search) params.keyword = search
-      if (activeGrade !== 'all') params.grade = activeGrade
+      if (keyword || search) params.keyword = keyword || search
+      if ((grade || activeGrade) !== 'all') params.grade = grade || activeGrade
       const res = await adminService.getCVScores(params)
       setScores(res.data)
     } finally {
@@ -37,6 +38,18 @@ export default function AdminCVScoresPage() {
   useEffect(() => {
     fetchScores()
   }, [activeGrade])
+
+  // Realtime sync: refetch when dashboard data changes (new CV scores, etc.)
+  useEffect(() => {
+    connectSocket()
+    const cleanup = onDashboardUpdateNeeded(() => fetchScores(search, activeGrade))
+    return cleanup
+  }, [search, activeGrade])
+
+  // Compute average score from the loaded scores
+  const avgScore = scores.length > 0
+    ? (scores.reduce((sum, s) => sum + Number(s.overall), 0) / scores.length).toFixed(1)
+    : '—'
 
   const handleDelete = async (id) => {
     if (confirm('Bạn có chắc muốn xóa lịch sử chấm điểm này?')) {
@@ -73,8 +86,10 @@ export default function AdminCVScoresPage() {
       {/* Filters & Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
         <div className="lg:col-span-3 flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <div className="relative flex items-center flex-1">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="text-slate-400" size={18} />
+            </div>
             <input 
               type="text"
               placeholder="Tìm kiếm ứng viên, email hoặc file..."
@@ -88,14 +103,9 @@ export default function AdminCVScoresPage() {
             Tìm kiếm
           </Button>
         </div>
-        <div className="bg-blue-600 rounded-2xl p-4 text-white flex items-center justify-between shadow-lg shadow-blue-200">
-           <div>
-             <div className="text-[10px] font-bold uppercase opacity-80">Điểm trung bình</div>
-             <div className="text-2xl font-black">74.5</div>
-           </div>
-           <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-             <ArrowUpRight size={20} />
-           </div>
+        <div className="bg-blue-600 rounded-2xl p-4 text-white shadow-lg shadow-blue-200">
+          <div className="text-[10px] font-bold uppercase opacity-80">Điểm trung bình</div>
+          <div className="text-2xl font-black mt-0.5">{avgScore}</div>
         </div>
       </div>
 

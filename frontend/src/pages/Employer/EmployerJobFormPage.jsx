@@ -99,6 +99,10 @@ export default function EmployerJobFormPage() {
     if (!form.title.trim()) e.title = 'Vui lòng nhập tiêu đề'
     if (!form.description.trim()) e.description = 'Vui lòng nhập mô tả công việc'
     if (!form.location.trim()) e.location = 'Vui lòng nhập địa điểm'
+    if (form.salary_min && Number(form.salary_min) < 0)
+      e.salary_min = 'Lương tối thiểu không được âm'
+    if (form.salary_max && Number(form.salary_max) < 0)
+      e.salary_max = 'Lương tối đa không được âm'
     if (form.salary_min && form.salary_max && Number(form.salary_min) > Number(form.salary_max))
       e.salary_min = 'Lương tối thiểu không được lớn hơn tối đa'
     setErrors(e)
@@ -234,7 +238,12 @@ export default function EmployerJobFormPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
           <Field label="Lương tối thiểu" hint="(VNĐ, để trống = thỏa thuận)">
-            <input type="number" value={form.salary_min} onChange={e => set('salary_min', e.target.value)}
+            <input type="number" min="0" value={form.salary_min} onChange={e => {
+              const v = e.target.value
+              if (v === '') return set('salary_min', '')
+              const n = Number(v)
+              if (!isNaN(n)) set('salary_min', Math.max(0, n).toString())
+            }}
               placeholder="VD: 15000000"
               style={{ ...inputStyle, borderColor: errors.salary_min ? '#EF4444' : '#E2E8F0' }}
               onFocus={e => e.target.style.borderColor = '#3B82F6'}
@@ -242,7 +251,12 @@ export default function EmployerJobFormPage() {
             />
           </Field>
           <Field label="Lương tối đa" hint="(VNĐ)">
-            <input type="number" value={form.salary_max} onChange={e => set('salary_max', e.target.value)}
+            <input type="number" min="0" value={form.salary_max} onChange={e => {
+              const v = e.target.value
+              if (v === '') return set('salary_max', '')
+              const n = Number(v)
+              if (!isNaN(n)) set('salary_max', Math.max(0, n).toString())
+            }}
               placeholder="VD: 25000000"
               style={inputStyle}
               onFocus={e => e.target.style.borderColor = '#3B82F6'}

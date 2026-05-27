@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { adminService } from '../../services/adminService'
+import { connectSocket, onDashboardUpdateNeeded } from '@/services/socket'
 import { 
   Users, Briefcase, FileText, Download, TrendingUp, 
   MapPin, PieChart as PieChartIcon, BarChart as BarChartIcon,
-  Calendar, ArrowUpRight, ArrowDownRight
+  Calendar, ArrowUpRight, CheckCircle2
 } from 'lucide-react'
 import { 
   LineChart, Line, AreaChart, Area, XAxis, YAxis, 
@@ -32,30 +33,85 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = useState(true)
 
   const [period, setPeriod] = useState('month')
+  const [exporting, setExporting] = useState(false)
 
-  const fetchData = async (p) => {
-    setLoading(true)
-    // Simulate API delay for different periods
-    await new Promise(resolve => setTimeout(resolve, 600))
-    adminService.getDashboard().then(res => {
-      // Mock: tweak data slightly based on period
-      let multiplier = p === 'year' ? 12 : p === 'quarter' ? 3 : 1
-      const tweaked = {
-          ...res,
-          overview: {
-              ...res.overview,
-              totalUsers: Math.round(res.overview.totalUsers * multiplier * 0.8),
-              activeJobs: Math.round(res.overview.activeJobs * multiplier * 0.7),
-          }
+  const handleExport = () => {
+    setExporting(true)
+    try {
+      const rows = []
+      rows.push('Báo cáo & Thống kê NexCV')
+      rows.push(`Kỳ: ${period === 'month' ? 'Tháng này' : period === 'quarter' ? 'Quý này' : 'Năm này'}`)
+      rows.push(`Xuất lúc: ${new Date().toLocaleString('vi-VN')}`)
+      rows.push('')
+
+      rows.push('=== TỔNG QUAN ===')
+      rows.push(`Tổng người dùng,${data.overview.totalUsers}`)
+      rows.push(`Nhà tuyển dụng,${data.overview.totalEmployers}`)
+      rows.push(`Tin đang tuyển,${data.overview.activeJobs}`)
+      rows.push(`Lượt ứng tuyển,${data.overview.totalApplications}`)
+      rows.push(`Điểm CV trung bình,${data.overview.avgCVScore}`)
+      rows.push('')
+
+      rows.push('=== TĂNG TRƯỞNG NGƯỜI DÙNG ===')
+      rows.push('Tháng,Ứng viên,Nhà tuyển dụng')
+      for (const g of data.userGrowth) {
+        rows.push(`${g.month},${g.candidates},${g.employers}`)
       }
-      setData(tweaked)
+      rows.push('')
+
+      rows.push('=== NGÀNH NGHỀ HOT ===')
+      rows.push('Ngành,Số lượng,Tỉ lệ')
+      for (const c of data.jobsByCategory) {
+        rows.push(`${c.category},${c.count},${c.pct}%`)
+      }
+      rows.push('')
+
+      rows.push('=== PHÂN PHỐI ĐIỂM CV ===')
+      rows.push('Hạng,Số lượng,Tỉ lệ')
+      for (const d of data.cvScoreDistribution) {
+        rows.push(`${d.grade},${d.count},${d.pct}%`)
+      }
+      rows.push('')
+
+      rows.push('=== ĐỊA ĐIỂM ===')
+      rows.push('Thành phố,Tin đăng,Người dùng')
+      for (const l of data.topLocations) {
+        rows.push(`${l.city},${l.jobs},${l.users}`)
+      }
+
+      const csv = rows.join('\n')
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `nexcv-baocao-${period}-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const fetchData = useCallback((p) => {
+    setLoading(true)
+    adminService.getDashboard().then(res => {
+      setData(res)
       setLoading(false)
     })
-  }
+  }, [])
 
   useEffect(() => {
     fetchData(period)
-  }, [period])
+  }, [period, fetchData])
+
+  // Realtime: lắng nghe dashboard.updateNeeded để cập nhật số liệu
+  useEffect(() => {
+    connectSocket()
+    const cleanup = onDashboardUpdateNeeded(() => {
+      fetchData(period)
+    })
+    return cleanup
+  }, [fetchData, period])
 
   if (loading) return <div className="p-12 text-center text-slate-400">Đang tải dữ liệu báo cáo...</div>
 
@@ -79,8 +135,9 @@ export default function AdminReportsPage() {
               <SelectItem value="year" className="font-bold">Năm này</SelectItem>
             </SelectContent>
           </Select>
-          <Button className="rounded-2xl h-10 font-bold bg-[#1549B8] hover:bg-[#1e40af] shadow-lg shadow-blue-100">
-            <Download size={16} className="mr-2" /> Xuất báo cáo
+          <Button onClick={handleExport} disabled={exporting} className="rounded-2xl h-10 font-bold bg-[#1549B8] hover:bg-[#1e40af] shadow-lg shadow-blue-100 disabled:opacity-60">
+            {exporting ? <CheckCircle2 size={16} className="mr-2 animate-pulse" /> : <Download size={16} className="mr-2" />}
+            {exporting ? 'Đang xuất...' : 'Xuất báo cáo'}
           </Button>
         </div>
       </div>

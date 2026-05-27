@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CvScoringService } from './cv-scoring.service';
 import { CvScoringController } from './cv-scoring.controller';
 import { JobsModule } from '../jobs/jobs.module';
+import { AdminModule } from '../admin/admin.module';
 import { CvScore, CvScoreSchema } from './schemas/cv-score.schema';
 import { ApplicationSchema } from '../jobs/schemas/application.schema';
 
@@ -11,6 +12,7 @@ import { ApplicationSchema } from '../jobs/schemas/application.schema';
   imports: [
     ConfigModule,
     JobsModule,
+    AdminModule,
     MongooseModule.forFeature([
       { name: CvScore.name, schema: CvScoreSchema },
       { name: 'Application', schema: ApplicationSchema }

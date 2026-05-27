@@ -4,12 +4,14 @@ import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { AppLogger } from '../common/logger.service';
+import { NotificationsGateway } from '../admin/gateways/notifications.gateway';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -36,6 +38,13 @@ export class AuthService {
     const token = this.generateToken(user);
 
     this.logger.success('Đăng ký thành công', { userId: user._id.toString(), email, userRole: user.role, action: 'register' });
+
+    // Notify admin dashboard to refresh data (new user needs approval)
+    try {
+      this.notificationsGateway.emitDashboardUpdateNeeded();
+    } catch (e) {
+      this.logger.warn('Failed to emit dashboard update via WebSocket', e as any);
+    }
 
     return {
       token,

@@ -1,14 +1,25 @@
-import { Clock } from 'lucide-react'
+import { Clock, TrendingUp, UserPlus, Building2, Shield, Briefcase, Star, Flag, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
 const ACTIVITY_COLORS = {
   new_user:     { bg: '#EEF2FF', text: '#1549B8' },
+  new_employer: { bg: '#FFFBEB', text: '#D97706' },
+  new_admin:    { bg: '#F0F0FF', text: '#7C3AED' },
   new_job:      { bg: '#ECFDF5', text: '#059669' },
   cv_score:     { bg: '#F5F3FF', text: '#7C3AED' },
   report:       { bg: '#FEF2F2', text: '#DC2626' },
-  new_employer: { bg: '#FFFBEB', text: '#D97706' },
   application:  { bg: '#F0FDF4', text: '#16A34A' },
+}
+
+const ACTIVITY_ICONS = {
+  new_user:     UserPlus,
+  new_employer: Building2,
+  new_admin:    Shield,
+  new_job:      Briefcase,
+  cv_score:     Star,
+  report:       Flag,
+  application:  FileText,
 }
 
 const COLORS = ['#1549B8', '#7C3AED', '#F59E0B', '#EF4444']
@@ -54,7 +65,7 @@ export function UserGrowthChart({ userGrowth, overview }) {
     <Card className="lg:col-span-2 border-[#E2E8F0]">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-sm font-bold text-[#0F172A]">📈 Tăng trưởng người dùng</CardTitle>
+          <CardTitle className="text-sm font-bold text-[#0F172A]"><TrendingUp className="inline h-4 w-4 mr-1.5" />Tăng trưởng người dùng</CardTitle>
           <div className="flex gap-3 text-xs text-[#94A3B8]">
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#1549B8] inline-block" />Ứng viên</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-[#7C3AED] inline-block" />NTD</span>
@@ -104,7 +115,7 @@ export function RecentActivity({ recentActivities }) {
     <Card className="border-[#E2E8F0]">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-sm font-bold text-[#0F172A]">🕐 Hoạt động gần đây</CardTitle>
+          <CardTitle className="text-sm font-bold text-[#0F172A]"><Clock className="inline h-4 w-4 mr-1.5" />Hoạt động gần đây</CardTitle>
           <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
         </div>
       </CardHeader>
@@ -112,10 +123,11 @@ export function RecentActivity({ recentActivities }) {
         <div className="space-y-3">
           {recentActivities.map(act => {
             const s = ACTIVITY_COLORS[act.type] || ACTIVITY_COLORS.new_user
+            const IconComp = ACTIVITY_ICONS[act.type] || UserPlus
             return (
               <div key={act.id} className="flex gap-3 items-start">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: s.bg }}>
-                  {act.icon}
+                  <IconComp className="h-4 w-4" style={{ color: s.text }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-[#0F172A] leading-snug">{act.message}</p>

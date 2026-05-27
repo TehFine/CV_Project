@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   Bell, CheckCircle2, Info, AlertTriangle, 
@@ -6,6 +6,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { adminService } from '@/services/adminService'
+import { connectSocket, onNotificationCreated, onNotificationRead, onAllNotificationsRead, onNotificationDeleted } from '@/services/socket'
 
 export default function AdminNotificationsPage() {
   const navigate = useNavigate()
@@ -13,31 +15,103 @@ export default function AdminNotificationsPage() {
   const [filter, setFilter] = useState('all') // all, unread
   const [search, setSearch] = useState('')
 
-  useEffect(() => {
-    const stored = localStorage.getItem("nexcv_mock_notifications")
-    if (stored) {
-      setNotifications(JSON.parse(stored))
+  // Fetch từ API, fallback về localStorage
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await adminService.getNotifications();
+      if (res?.data) {
+        setNotifications(res.data);
+        // Đồng bộ xuống localStorage để các component khác dùng được
+        localStorage.setItem("nexcv_mock_notifications", JSON.stringify(res.data));
+      }
+    } catch (e) {
+      const stored = localStorage.getItem("nexcv_mock_notifications");
+      if (stored) {
+        setNotifications(JSON.parse(stored));
+      }
     }
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+
+    // Kết nối WebSocket + lắng nghe sự kiện realtime
+    connectSocket();
+
+    const unsubCreated = onNotificationCreated((notification) => {
+      setNotifications(prev => {
+        const exists = prev.some(n => n.id === notification.id);
+        if (exists) return prev;
+        return [notification, ...prev];
+      });
+    });
+
+    const unsubRead = onNotificationRead(({ id }) => {
+      setNotifications(prev => prev.map(n =>
+        n.id === id ? { ...n, unread: false } : n
+      ));
+    });
+
+    const unsubReadAll = onAllNotificationsRead(() => {
+      setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+    });
+
+    const unsubDeleted = onNotificationDeleted(({ id }) => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    });
+
+    // Đồng bộ khi có thay đổi từ tab/component khác (fallback)
+    const handleStorage = (e) => {
+      if (e.key === "nexcv_mock_notifications") {
+        try { setNotifications(JSON.parse(e.newValue)); } catch { /* ignore */ }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      unsubCreated();
+      unsubRead();
+      unsubReadAll();
+      unsubDeleted();
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [fetchNotifications])
 
   const saveNotifications = (newNotifs) => {
     setNotifications(newNotifs)
     localStorage.setItem("nexcv_mock_notifications", JSON.stringify(newNotifs))
   }
 
-  const markRead = (id) => {
+  const markRead = async (id) => {
+    // Cập nhật local ngay lập tức
     const updated = notifications.map(n => n.id === id ? { ...n, unread: false } : n)
     saveNotifications(updated)
+    // Gọi API backend để đồng bộ (không await để UI không bị chờ)
+    try {
+      await adminService.markNotificationRead(id);
+      fetchNotifications(); // Sync lại từ server để đồng bộ hoàn toàn
+    } catch (e) { /* silent */ }
   }
 
-  const markAllRead = () => {
+  const markAllRead = async () => {
+    // Cập nhật local ngay lập tức
     const updated = notifications.map(n => ({ ...n, unread: false }))
     saveNotifications(updated)
+    // Gọi API backend để đồng bộ
+    try {
+      await adminService.markAllNotificationsRead();
+      fetchNotifications(); // Sync lại từ server để đồng bộ hoàn toàn
+    } catch (e) { /* silent */ }
   }
 
-  const deleteNotif = (id) => {
+  const deleteNotif = async (id) => {
     const updated = notifications.filter(n => n.id !== id)
     saveNotifications(updated)
+    // Gọi API backend để đồng bộ
+    try {
+      await adminService.deleteNotification(id);
+      fetchNotifications(); // Sync lại từ server
+    } catch (e) { /* silent */ }
   }
 
   const filtered = notifications.filter(n => {

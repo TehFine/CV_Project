@@ -395,6 +395,19 @@ export const adminService = {
         return api.patch(`/admin/notifications/${id}/read`);
     },
 
+    async deleteNotification(id) {
+        if (USE_MOCK) {
+            await delay(200);
+            const stored = localStorage.getItem('nexcv_mock_notifications');
+            if (stored) {
+                const list = JSON.parse(stored).filter(n => n.id !== id);
+                localStorage.setItem('nexcv_mock_notifications', JSON.stringify(list));
+            }
+            return { success: true };
+        }
+        return api.delete(`/admin/notifications/${id}`);
+    },
+
     async markAllNotificationsRead() {
         if (USE_MOCK) {
             await delay(300);

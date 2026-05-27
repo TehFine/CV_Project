@@ -813,6 +813,48 @@ function generateFeedback(
 // ─────────────────────────────────────────────
 
 /**
+ * Kiểm tra nội dung có phải là CV hợp lệ hay không dựa trên:
+ * - Có ít nhất 2/3 section quan trọng (Experience, Skills, Education)
+ * - Có thông tin liên hệ (email hoặc số điện thoại)
+ * - Có độ dài tối thiểu
+ */
+export function isValidCV(cvText: string): { valid: boolean; reason: string } {
+  const normalized = normalizeText(cvText);
+
+  // Kiểm tra độ dài tối thiểu (tránh file rỗng hoặc quá ngắn)
+  if (normalized.length < 50) {
+    return { valid: false, reason: 'Tài liệu quá ngắn, không đủ thông tin để phân tích CV.' };
+  }
+
+  // Phát hiện các section
+  const sections = detectSections(normalized);
+  const criticalSections = ['experience', 'skills', 'education'];
+  const foundCritical = criticalSections.filter(s => sections.found.includes(s));
+
+  if (foundCritical.length < 2) {
+    const foundList = foundCritical.length === 0
+      ? 'không tìm thấy phần nào'
+      : `chỉ tìm thấy: ${foundCritical.join(', ')}`;
+    return {
+      valid: false,
+      reason: `Tài liệu không giống một bản CV hợp lệ (${foundList}). Một CV cần có ít nhất 2 trong 3 phần: Kinh nghiệm (Experience), Kỹ năng (Skills), Học vấn (Education).`
+    };
+  }
+
+  // Kiểm tra thông tin liên hệ
+  const hasContact = /[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(normalized) ||
+    /(\+84|0[3-9]\d{8}|\(\d{3}\)\s?\d{3}-\d{4})/.test(normalized);
+  if (!hasContact) {
+    return {
+      valid: false,
+      reason: 'Tài liệu không giống một bản CV hợp lệ (không tìm thấy email hoặc số điện thoại). Vui lòng kiểm tra lại.'
+    };
+  }
+
+  return { valid: true, reason: '' };
+}
+
+/**
  * Analyze a CV using local knowledge base only (no API required).
  * Use this as fallback when Gemini API is unavailable or quota exceeded.
  *
@@ -821,6 +863,12 @@ function generateFeedback(
  */
 export function analyzeCVLocal(cvText: string, targetRole?: string): CVAnalysisResult {
   const normalized = normalizeText(cvText);
+
+  // Validate that this looks like a CV before analyzing
+  const cvCheck = isValidCV(normalized);
+  if (!cvCheck.valid) {
+    throw new Error(cvCheck.reason);
+  }
 
   // Step 1: Determine roles
   let detectedRoles = targetRole

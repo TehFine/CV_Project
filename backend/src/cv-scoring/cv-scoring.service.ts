@@ -7,6 +7,7 @@ import { JobDocument } from '../jobs/schemas/job.schema';
 import { CvScore, CvScoreDocument } from './schemas/cv-score.schema';
 import { ROLE_MAPPING, analyzeCVLocal, CVAnalysisResult } from './constants/knowledge-base';
 import { ApplicationDocument } from '../jobs/schemas/application.schema';
+import { NotificationsGateway } from '../admin/gateways/notifications.gateway';
 import { AppLogger } from '../common/logger.service';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class CvScoringService {
     private configService: ConfigService,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
     @InjectModel('Application') private applicationModel: Model<ApplicationDocument>,
+    private notificationsGateway: NotificationsGateway,
   ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (apiKey) {
@@ -155,16 +157,30 @@ export class CvScoringService {
   }
 
   async saveScore(userId: string, result: any, type: string, jobId?: string, cvUrl?: string, pdfBuffer?: Buffer): Promise<CvScoreDocument> {
+    const scoreValue = result.overall || result.score || 0;
+    // Normalize grade: A+, B+ → A, B, etc.
+    const gradeValue = result.grade ? (result.grade as string).replace('+', '') : 'N/A';
     const newScore = new this.cvScoreModel({
       userId,
       jobId,
       cvUrl: cvUrl || 'default_cv',
-      score: result.overall || result.score || 0,
+      score: scoreValue,
+      overall: scoreValue,
+      grade: gradeValue,
       analysis: result,
       type,
       pdfBuffer
     });
-    return newScore.save();
+    const saved = await newScore.save();
+
+    // Emit realtime update for admin dashboard
+    try {
+      this.notificationsGateway.emitDashboardUpdateNeeded();
+    } catch (e) {
+      this.logger.warn('Failed to emit dashboard update via WebSocket', e as any);
+    }
+
+    return saved;
   }
 
   private scoreByKeywords(cvText: string, job: JobDocument): number {

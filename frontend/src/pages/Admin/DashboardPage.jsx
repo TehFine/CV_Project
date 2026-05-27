@@ -1,17 +1,31 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, ChartPie, Briefcase, MapPin } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { adminService } from '@/services/adminService'
 import { StatsRow, DashboardHeader } from './components/StatsCards'
 import { DonutChart, UserGrowthChart, RecentActivity } from './components/RecentActivity'
+import { connectSocket, onDashboardUpdateNeeded } from '@/services/socket'
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState(null)
 
-  useEffect(() => { adminService.getDashboard().then(setData) }, [])
+  const fetchDashboard = useCallback(() => {
+    adminService.getDashboard().then(setData)
+  }, [])
+
+  useEffect(() => { fetchDashboard() }, [fetchDashboard])
+
+  // Realtime: lắng nghe sự kiện cần refresh dashboard (người dùng mới đăng ký, ...)
+  useEffect(() => {
+    connectSocket()
+    const cleanup = onDashboardUpdateNeeded(() => {
+      fetchDashboard()
+    })
+    return cleanup
+  }, [fetchDashboard])
 
   if (!data) return (
     <div className="p-8 flex items-center justify-center min-h-[60vh]">
@@ -27,24 +41,37 @@ export default function AdminDashboardPage() {
       <StatsRow overview={overview} />
 
       {/* Pending alert */}
-      <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-        <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-amber-800">
-            Cần xử lý: <span className="text-amber-600">1 nhà tuyển dụng chờ xác minh</span> · <span className="text-amber-600">1 tin tuyển dụng chờ duyệt</span> · <span className="text-red-600">1 tin bị báo cáo</span>
-          </p>
+      {overview.pendingEmployers > 0 || overview.pendingJobs > 0 || overview.reportedJobs > 0 ? (
+        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-800">
+              Cần xử lý:
+              {overview.pendingEmployers > 0 && (
+                <span className="text-amber-600"> {overview.pendingEmployers} nhà tuyển dụng chờ xác minh</span>
+              )}
+              {overview.pendingEmployers > 0 && (overview.pendingJobs > 0 || overview.reportedJobs > 0) && <span> ·</span>}
+              {overview.pendingJobs > 0 && (
+                <span className="text-amber-600"> {overview.pendingJobs} tin tuyển dụng chờ duyệt</span>
+              )}
+              {overview.pendingJobs > 0 && overview.reportedJobs > 0 && <span> ·</span>}
+              {overview.reportedJobs > 0 && (
+                <span className="text-red-600"> {overview.reportedJobs} tin bị báo cáo</span>
+              )}
+            </p>
+          </div>
+          <Button asChild size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100 shrink-0">
+            <Link to="/admin/jobs?status=pending">Xem ngay</Link>
+          </Button>
         </div>
-        <Button asChild size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100 shrink-0">
-          <Link to="/admin/jobs?status=pending">Xem ngay</Link>
-        </Button>
-      </div>
+      ) : null}
 
       {/* Charts row */}
       <div className="grid lg:grid-cols-3 gap-5">
         <UserGrowthChart userGrowth={userGrowth} overview={overview} />
         <Card className="border-[#E2E8F0]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-[#0F172A]">✨ Phân phối điểm CV</CardTitle>
+            <CardTitle className="text-sm font-bold text-[#0F172A]"><ChartPie className="inline h-4 w-4 mr-1.5" />Phân phối điểm CV</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <DonutChart data={cvScoreDistribution} />
@@ -62,7 +89,7 @@ export default function AdminDashboardPage() {
         {/* Jobs by category */}
         <Card className="border-[#E2E8F0]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-[#0F172A]">💼 Tin theo ngành nghề</CardTitle>
+            <CardTitle className="text-sm font-bold text-[#0F172A]"><Briefcase className="inline h-4 w-4 mr-1.5" />Tin theo ngành nghề</CardTitle>
           </CardHeader>
           <CardContent className="pt-0 space-y-2.5">
             {jobsByCategory.map((cat, i) => (
@@ -82,7 +109,7 @@ export default function AdminDashboardPage() {
         {/* Top locations */}
         <Card className="border-[#E2E8F0]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-[#0F172A]">📍 Theo địa điểm</CardTitle>
+            <CardTitle className="text-sm font-bold text-[#0F172A]"><MapPin className="inline h-4 w-4 mr-1.5" />Theo địa điểm</CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-3">

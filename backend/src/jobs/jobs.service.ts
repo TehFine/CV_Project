@@ -6,6 +6,7 @@ import { Application, ApplicationDocument } from './schemas/application.schema';
 import { SEED_JOBS } from './jobs-seed.data';
 import { CvScore, CvScoreDocument } from '../cv-scoring/schemas/cv-score.schema';
 import { Notification, NotificationDocument } from '../admin/schemas/notification.schema';
+import { NotificationsGateway } from '../admin/gateways/notifications.gateway';
 import { AppLogger } from '../common/logger.service';
 import { User, UserDocument } from '../users/schemas/user.schema';
 
@@ -19,6 +20,7 @@ export class JobsService {
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
     @InjectModel(Notification.name) private notificationModel: Model<NotificationDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   async findAll(query: any) {
@@ -95,6 +97,13 @@ export class JobsService {
     // Increment views
     job.views += 1;
     await job.save();
+
+    // Emit realtime update for admin
+    try {
+      this.notificationsGateway.emitJobViewsUpdated(id, job.views);
+    } catch (e) {
+      this.logger.warn('Failed to emit job views update via WebSocket', e as any);
+    }
     
     return job;
   }
@@ -110,16 +119,32 @@ export class JobsService {
     // Tạo thông báo cho admin nếu tin cần duyệt
     if (saved.status === 'pending' || saved.status === 'draft') {
       try {
-        await this.notificationModel.create({
+        const notif = await this.notificationModel.create({
           title: 'Tin tuyển dụng mới chờ duyệt',
           message: `Nhà tuyển dụng vừa đăng tin "${saved.title}" — trạng thái: ${saved.status === 'pending' ? 'chờ duyệt' : 'bản nháp'}. Vui lòng kiểm tra và phê duyệt.`,
           type: 'info',
           jobId: String(saved._id),
         } as any);
         this.logger.log('Đã tạo thông báo cho admin về tin mới', { action: 'notify_admin_new_job', jobId: saved._id.toString() });
+        this.notificationsGateway.emitNotificationCreated({
+          id: (notif as any)._id.toString(),
+          title: (notif as any).title,
+          message: (notif as any).message,
+          type: (notif as any).type,
+          time: 'Vừa xong',
+          unread: true,
+          jobId: (notif as any).jobId,
+        });
       } catch (notifErr) {
         this.logger.error('Không thể tạo thông báo admin', notifErr as any);
       }
+    }
+
+    // Emit realtime update for admin dashboard
+    try {
+      this.notificationsGateway.emitDashboardUpdateNeeded();
+    } catch (e) {
+      this.logger.warn('Failed to emit dashboard update via WebSocket', e as any);
     }
 
     return saved;
@@ -221,6 +246,20 @@ export class JobsService {
 
     job.applied += 1;
     await job.save();
+
+    // Emit realtime update for admin
+    try {
+      this.notificationsGateway.emitJobApplicationsUpdated(jobId, job.applied);
+    } catch (e) {
+      this.logger.warn('Failed to emit job applications update via WebSocket', e as any);
+    }
+
+    // Emit realtime update for admin dashboard
+    try {
+      this.notificationsGateway.emitDashboardUpdateNeeded();
+    } catch (e) {
+      this.logger.warn('Failed to emit dashboard update via WebSocket', e as any);
+    }
 
     this.logger.success('Ứng tuyển thành công', { userId: candidateId, action: 'apply_job', jobId, title: job.title });
 

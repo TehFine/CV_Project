@@ -7,6 +7,7 @@ import { Job, JobSchema } from '../jobs/schemas/job.schema';
 import { Application, ApplicationSchema } from '../jobs/schemas/application.schema';
 import { CvScore, CvScoreSchema } from '../cv-scoring/schemas/cv-score.schema';
 import { Notification, NotificationSchema } from './schemas/notification.schema';
+import { NotificationsGateway } from './gateways/notifications.gateway';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { Notification, NotificationSchema } from './schemas/notification.schema'
     ]),
   ],
   controllers: [AdminController],
-  providers: [AdminService],
-  exports: [AdminService],
+  providers: [AdminService, NotificationsGateway],
+  exports: [AdminService, NotificationsGateway],
 })
 export class AdminModule {}

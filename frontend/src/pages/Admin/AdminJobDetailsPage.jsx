@@ -4,7 +4,7 @@ import { adminService } from '../../services/adminService'
 import { 
   ArrowLeft, Building, MapPin, Briefcase, DollarSign, 
   Clock, CheckCircle2, XCircle, AlertCircle, Calendar,
-  FileText, PlusCircle, Tag
+  FileText, PlusCircle, Tag, Star
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -76,7 +76,7 @@ export default function AdminJobDetailsPage() {
                     </Badge>
                     {job.featured && (
                         <Badge className="bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1">
-                            ⭐ Nổi bật
+                            <Star size={14} fill="#D97706" className="mr-1" /> Nổi bật
                         </Badge>
                     )}
                 </div>

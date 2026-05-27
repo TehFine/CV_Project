@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminService } from '../../services/adminService'
+import { connectSocket, onJobViewsUpdated, onJobApplicationsUpdated } from '../../services/socket'
+import {
+  Search, Building2, Star, CheckCircle2, PauseCircle, RefreshCw,
+  Ban, Trash2, CircleAlert, CircleCheck, CircleX, ClipboardList,
+  DollarSign, BarChart3, FolderOpen, Briefcase, AlertTriangle, X
+} from 'lucide-react'
 
 /* ── Configs ───────────────────────────────────────────────────────────────── */
 const STATUS_CONFIG = {
@@ -12,10 +18,10 @@ const STATUS_CONFIG = {
 
 const TABS = [
   { key: 'all',      label: 'Tất cả' },
-  { key: 'pending',  label: '🟡 Chờ duyệt' },
-  { key: 'active',   label: '🟢 Đang tuyển' },
-  { key: 'reported', label: '🔴 Bị báo cáo' },
-  { key: 'closed',   label: '⏸️ Đã đóng' },
+  { key: 'pending',  label: 'Chờ duyệt', icon: CircleAlert },
+  { key: 'active',   label: 'Đang tuyển', icon: CircleCheck },
+  { key: 'reported', label: 'Bị báo cáo', icon: CircleX },
+  { key: 'closed',   label: 'Đã đóng', icon: PauseCircle },
 ]
 
 /* ── Job Card ──────────────────────────────────────────────────────────────── */
@@ -30,6 +36,13 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
     try { await action(...args) }
     finally { setActionLoading(false); setMenuOpen(false) }
   }
+
+  const JOB_INFO_ICONS = [
+    { icon: DollarSign, text: job.salary },
+    { icon: BarChart3, text: job.level },
+    { icon: FolderOpen, text: job.category },
+    { icon: Briefcase, text: job.type },
+  ]
 
   return (
     <div style={{
@@ -49,28 +62,26 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
               {cfg.label}
             </span>
             {job.featured && (
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20, backgroundColor: '#FEF3C7', color: '#D97706' }}>
-                ⭐ Nổi bật
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20, backgroundColor: '#FEF3C7', color: '#D97706', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Star size={12} fill="#D97706" /> Nổi bật
               </span>
             )}
           </div>
 
           {/* Company + meta */}
-          <p style={{ fontSize: 13, color: '#475569', fontWeight: 500, marginBottom: 8, margin: 0 }}>
-            🏢 {job.company} <span style={{ color: '#94A3B8', marginLeft: 4 }}>· {job.location}</span>
+          <p style={{ fontSize: 13, color: '#475569', fontWeight: 500, marginBottom: 8, margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Building2 size={14} style={{ color: '#94A3B8' }} /> {job.company} <span style={{ color: '#94A3B8', marginLeft: 4 }}>· {job.location}</span>
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
-            {[
-              { icon: '💰', text: job.salary },
-              { icon: '📊', text: job.level },
-              { icon: '📂', text: job.category },
-              { icon: '💼', text: job.type },
-            ].map(item => (
-              <span key={item.text} style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 4 }}>
-                {item.icon} {item.text}
-              </span>
-            ))}
+            {JOB_INFO_ICONS.map(item => {
+              const ItemIcon = item.icon
+              return (
+                <span key={item.text} style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <ItemIcon size={14} style={{ color: '#94A3B8' }} /> {item.text}
+                </span>
+              )
+            })}
           </div>
 
           {/* Tags */}
@@ -86,8 +97,9 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
 
           {/* Report warning */}
           {job.reportCount > 0 && (
-            <div style={{ marginTop: 8, padding: '8px 12px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, fontSize: 12, color: '#DC2626' }}>
-              🚨 <strong>{job.reportCount} lượt báo cáo</strong> từ người dùng
+            <div style={{ marginTop: 8, padding: '8px 12px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, fontSize: 12, color: '#DC2626', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <AlertTriangle size={14} className="shrink-0" />
+              <span><strong>{job.reportCount} lượt báo cáo</strong> từ người dùng</span>
             </div>
           )}
         </div>
@@ -115,27 +127,27 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
                 onMouseLeave={() => setMenuOpen(false)}
               >
                 {job.status === 'pending' && (
-                  <MenuBtn icon="✅" label="Duyệt tin" onClick={() => handleAction(onStatusChange, job.id, 'active')} />
+                  <MenuBtn icon={<CheckCircle2 size={14} />} label="Duyệt tin" onClick={() => handleAction(onStatusChange, job.id, 'active')} />
                 )}
                 {job.status === 'active' && (
-                  <MenuBtn icon="⏸️" label="Đóng tin" onClick={() => handleAction(onStatusChange, job.id, 'closed')} />
+                  <MenuBtn icon={<PauseCircle size={14} />} label="Đóng tin" onClick={() => handleAction(onStatusChange, job.id, 'closed')} />
                 )}
                 {job.status === 'closed' && (
-                  <MenuBtn icon="🔄" label="Mở lại" onClick={() => handleAction(onStatusChange, job.id, 'active')} />
+                  <MenuBtn icon={<RefreshCw size={14} />} label="Mở lại" onClick={() => handleAction(onStatusChange, job.id, 'active')} />
                 )}
                 {job.status === 'reported' && (
                   <>
-                    <MenuBtn icon="✅" label="Bỏ qua báo cáo" onClick={() => handleAction(onStatusChange, job.id, 'active')} />
-                    <MenuBtn icon="🚫" label="Gỡ tin" onClick={() => handleAction(onStatusChange, job.id, 'closed')} danger />
+                    <MenuBtn icon={<CheckCircle2 size={14} />} label="Bỏ qua báo cáo" onClick={() => handleAction(onStatusChange, job.id, 'active')} />
+                    <MenuBtn icon={<Ban size={14} />} label="Gỡ tin" onClick={() => handleAction(onStatusChange, job.id, 'closed')} danger />
                   </>
                 )}
                 <MenuBtn
-                  icon={job.featured ? '⭐' : '☆'}
+                  icon={job.featured ? <Star size={14} fill="#D97706" /> : <Star size={14} />}
                   label={job.featured ? 'Bỏ nổi bật' : 'Đánh dấu nổi bật'}
                   onClick={() => handleAction(onToggleFeatured, job.id, !job.featured)}
                 />
                 <div style={{ borderTop: '1px solid #F1F5F9' }} />
-                <MenuBtn icon="🗑️" label="Xóa vĩnh viễn" danger onClick={() => {
+                <MenuBtn icon={<Trash2 size={14} />} label="Xóa vĩnh viễn" danger onClick={() => {
                   if (confirm(`Xóa vĩnh viễn tin "${job.title}"?`)) handleAction(onDelete, job.id)
                 }} />
               </div>
@@ -174,7 +186,8 @@ function MenuBtn({ icon, label, onClick, danger }) {
       onMouseEnter={e => e.currentTarget.style.background = danger ? '#FEF2F2' : '#F8FAFC'}
       onMouseLeave={e => e.currentTarget.style.background = 'none'}
     >
-      {icon} {label}
+      <span style={{ width: 16, display: 'inline-flex', justifyContent: 'center', color: danger ? '#EF4444' : '#94A3B8' }}>{icon}</span>
+      {label}
     </button>
   )
 }
@@ -205,6 +218,25 @@ export default function AdminJobsPage() {
 
   useEffect(() => { loadJobs() }, [activeTab])
 
+  // Realtime: listen for view count & application count updates via WebSocket
+  useEffect(() => {
+    connectSocket()
+    const cleanupViews = onJobViewsUpdated(({ jobId, views }) => {
+      setJobs(prev => prev.map(j =>
+        j.id === jobId ? { ...j, views } : j
+      ))
+    })
+    const cleanupApps = onJobApplicationsUpdated(({ jobId, applied }) => {
+      setJobs(prev => prev.map(j =>
+        j.id === jobId ? { ...j, applied } : j
+      ))
+    })
+    return () => {
+      cleanupViews()
+      cleanupApps()
+    }
+  }, [])
+
   const handleSearch = (e) => {
     e.preventDefault()
     loadJobs()
@@ -214,19 +246,19 @@ export default function AdminJobsPage() {
     await adminService.updateJobStatus(id, newStatus)
     setJobs(prev => prev.map(j => j.id === id ? { ...j, status: newStatus } : j))
     const labels = { active: 'Đã duyệt', closed: 'Đã đóng' }
-    showToast(`${labels[newStatus] || 'Cập nhật'} tin thành công ✅`)
+    showToast(`${labels[newStatus] || 'Cập nhật'} tin thành công`)
   }
 
   const handleDelete = async (id) => {
     await adminService.deleteJob(id)
     setJobs(prev => prev.filter(j => j.id !== id))
-    showToast('Đã xóa tin tuyển dụng 🗑️')
+    showToast('Đã xóa tin tuyển dụng')
   }
 
   const handleToggleFeatured = async (id, featured) => {
     await adminService.toggleJobFeatured(id, featured)
     setJobs(prev => prev.map(j => j.id === id ? { ...j, featured } : j))
-    showToast(featured ? 'Đã đánh dấu nổi bật ⭐' : 'Đã bỏ nổi bật')
+    showToast(featured ? 'Đã đánh dấu nổi bật' : 'Đã bỏ nổi bật')
   }
 
   const pendingCount = jobs.filter(j => j.status === 'pending').length
@@ -258,51 +290,60 @@ export default function AdminJobsPage() {
 
       {/* Search */}
       <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input
-          type="text" value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Tìm theo tên tin hoặc công ty..."
-          style={{
-            flex: 1, padding: '9px 14px', borderRadius: 10, border: '1.5px solid #E2E8F0',
-            fontSize: 13, fontFamily: 'inherit', outline: 'none',
-          }}
-          onFocus={e => e.target.style.borderColor = '#3B82F6'}
-          onBlur={e => e.target.style.borderColor = '#E2E8F0'}
-        />
+        <div style={{ flex: 1, position: 'relative' }}>
+          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+          <input
+            type="text" value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Tìm theo tên tin hoặc công ty..."
+            style={{
+              width: '100%', padding: '9px 14px 9px 36px', borderRadius: 10, border: '1.5px solid #E2E8F0',
+              fontSize: 13, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
+            }}
+            onFocus={e => e.target.style.borderColor = '#3B82F6'}
+            onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+          />
+        </div>
         <button type="submit" style={{
           padding: '9px 18px', borderRadius: 10, border: 'none',
           background: '#1549B8', color: 'white', fontWeight: 700, fontSize: 13,
-          cursor: 'pointer', fontFamily: 'inherit',
+          cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
         }}>
-          🔍 Tìm
+          <Search size={14} /> Tìm
         </button>
       </form>
 
       {/* Filter tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
-        {TABS.map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-            padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-            border: '1.5px solid', cursor: 'pointer', fontFamily: 'inherit',
-            borderColor: activeTab === tab.key ? '#3B82F6' : '#E2E8F0',
-            backgroundColor: activeTab === tab.key ? '#EFF6FF' : 'white',
-            color: activeTab === tab.key ? '#2563EB' : '#64748B',
-            transition: 'all 0.15s',
-          }}>
-            {tab.label}
-          </button>
-        ))}
+        {TABS.map(tab => {
+          const TabIcon = tab.icon
+          return (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
+              padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+              border: '1.5px solid', cursor: 'pointer', fontFamily: 'inherit',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              borderColor: activeTab === tab.key ? '#3B82F6' : '#E2E8F0',
+              backgroundColor: activeTab === tab.key ? '#EFF6FF' : 'white',
+              color: activeTab === tab.key ? '#2563EB' : '#64748B',
+              transition: 'all 0.15s',
+            }}>
+              {TabIcon && <TabIcon size={14} />}
+              {tab.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* Toast */}
       {toast && (
         <div style={{
           marginBottom: 16, padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600,
-          border: '1.5px solid',
+          border: '1.5px solid', display: 'flex', alignItems: 'center', gap: 8,
           background: toast.type === 'error' ? '#FEF2F2' : '#F0FDF4',
           borderColor: toast.type === 'error' ? '#FECACA' : '#BBF7D0',
           color: toast.type === 'error' ? '#DC2626' : '#16A34A',
         }}>
-          {toast.msg}
+          {toast.type === 'error' ? <X size={14} /> : <CheckCircle2 size={14} />}
+          <span>{toast.msg}</span>
         </div>
       )}
 
@@ -315,10 +356,10 @@ export default function AdminJobsPage() {
         </div>
       ) : jobs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+          <ClipboardList size={48} style={{ color: '#CBD5E1', marginBottom: 12 }} />
           <h3 style={{ color: '#0F172A', fontWeight: 700, marginBottom: 8 }}>Không có tin tuyển dụng nào</h3>
           <p style={{ color: '#64748B', fontSize: 14 }}>
-            {activeTab === 'pending' ? 'Không có tin nào chờ duyệt 🎉' : 'Chưa có tin nào trong danh mục này'}
+            {activeTab === 'pending' ? 'Không có tin nào chờ duyệt' : 'Chưa có tin nào trong danh mục này'}
           </p>
         </div>
       ) : (

@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JobsService } from './jobs.service';
 import { JobsController } from './jobs.controller';
@@ -8,9 +8,11 @@ import { Application, ApplicationSchema } from './schemas/application.schema';
 import { CvScore, CvScoreSchema } from '../cv-scoring/schemas/cv-score.schema';
 import { Notification, NotificationSchema } from '../admin/schemas/notification.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
+import { AdminModule } from '../admin/admin.module';
 
 @Module({
   imports: [
+    AdminModule,
     MongooseModule.forFeature([
       { name: Job.name, schema: JobSchema },
       { name: 'Application', schema: ApplicationSchema },
