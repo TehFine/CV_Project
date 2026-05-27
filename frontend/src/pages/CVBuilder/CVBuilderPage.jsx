@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Download, Eye, Edit3, Save, AlertCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -7,6 +7,8 @@ import { DEFAULT_CV } from './components/constants'
 import { CVPreview } from './components/CVPreview'
 import { CVPDFDocument } from './components/CVPDFDocument'
 import { EditorPanel } from './components/EditorPanel'
+import { authService } from '@/services/authService'
+import { useAuth } from '@/context/AuthContext'
 
 // Các trường bắt buộc và tên hiển thị
 const REQUIRED_FIELDS = [
@@ -45,17 +47,59 @@ function validateCV(cv) {
 
 export default function CVBuilderPage() {
   const [cv, setCv] = useState(DEFAULT_CV)
-  const [view, setView] = useState('split') // 'split' | 'preview' | 'edit'
+  const [view, setView] = useState('split')
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [showErrors, setShowErrors] = useState(false)
+  const { isAuthenticated } = useAuth()
+
+  const STORAGE_KEY = 'nexcv_cv_builder_draft'
+
+  // Load saved CV on mount
+  useEffect(() => {
+    const loadSavedCV = async () => {
+      if (isAuthenticated) {
+        // Load from server for authenticated users
+        try {
+          const profile = await authService.getProfile(localStorage.getItem('nexcv_token'))
+          const user = profile?.data || profile
+          if (user?.cvBuilderData) {
+            setCv(user.cvBuilderData)
+            return
+          }
+        } catch { /* ignore, fall through to localStorage */ }
+      }
+      // Fallback: load from localStorage (guest or server empty)
+      try {
+        const draft = localStorage.getItem(STORAGE_KEY)
+        if (draft) setCv(JSON.parse(draft))
+      } catch { /* ignore */ }
+    }
+    loadSavedCV()
+  }, [isAuthenticated]) // eslint-disable-line
 
   // Derived — re-computed on every render, always up to date
   const currentErrors = validateCV(cv)
   const isValid = currentErrors.length === 0
 
-  const handleSave = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      // Always save to localStorage as a fast local backup
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cv))
+      // If logged in, also persist to server profile
+      if (isAuthenticated) {
+        await authService.updateProfile({ cvBuilderData: cv })
+      }
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch {
+      /* silent fail, localStorage already saved */
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleExportClick = () => {
@@ -131,9 +175,9 @@ export default function CVBuilderPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleSave} className="gap-1.5 border-[#E2E8F0] text-xs">
+            <Button variant="outline" size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 border-[#E2E8F0] text-xs">
               <Save className="h-3.5 w-3.5" />
-              {saved ? '✅ Đã lưu' : 'Lưu'}
+              {saving ? '⏳ Đang lưu...' : saved ? '✅ Đã lưu' : isAuthenticated ? '☁️ Lưu' : 'Lưu'}
             </Button>
 
             {/* Export button — always re-checks current cv state */}

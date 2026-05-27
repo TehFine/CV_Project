@@ -61,6 +61,10 @@ export class User {
   // User status (for admin management)
   @Prop({ default: 'active', enum: ['active', 'banned', 'pending', 'inactive'] })
   status?: string;
+
+  // CV Builder saved data
+  @Prop({ type: Object, default: null })
+  cvBuilderData?: Record<string, any>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
