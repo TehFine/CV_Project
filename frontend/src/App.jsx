@@ -20,7 +20,6 @@ import JobDetailPage from "./pages/JobSeeker/JobDetailPage";
 import ProfilePage from "./pages/JobSeeker/ProfilePage";
 import CVUploadPage from "./pages/CV_AIScore/CVUploadPage";
 import CVBuilderPage from "./pages/CVBuilder/CVBuilderPage";
-import CVHistoryPage from "./pages/JobSeeker/CVHistoryPage";
 import ForgotPasswordPage from "./pages/JobSeeker/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/JobSeeker/ResetPasswordPage";
 
@@ -279,16 +278,7 @@ export default function App() {
               </SeekerLayout>
             }
           />
-          <Route
-            path="/cv-history"
-            element={
-              <SeekerLayout>
-                <ProtectedRoute requireRole="candidate">
-                  <CVHistoryPage />
-                </ProtectedRoute>
-              </SeekerLayout>
-            }
-          />
+
           <Route
             path="/forgot-password"
             element={

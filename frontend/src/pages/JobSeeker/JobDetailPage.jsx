@@ -11,10 +11,10 @@ import { Label } from '@/components/ui/label'
 import { jobService } from '@/services/jobService'
 
 const LEVEL_BADGE = {
-  Intern:         { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0' },
-  Junior:         { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' },
-  Middle:         { bg: '#EEF2FF', text: '#1549B8', border: '#C7D2FE' },
-  Senior:         { bg: '#FFF7ED', text: '#C2410C', border: '#FED7AA' },
+  Intern: { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0' },
+  Junior: { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' },
+  Middle: { bg: '#EEF2FF', text: '#1549B8', border: '#C7D2FE' },
+  Senior: { bg: '#FFF7ED', text: '#C2410C', border: '#FED7AA' },
   'Lead/Manager': { bg: '#FDF4FF', text: '#7E22CE', border: '#E9D5FF' },
 }
 
@@ -22,56 +22,115 @@ export default function JobDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
-  const [job,         setJob]         = useState(null)
-  const [loading,     setLoading]     = useState(true)
-  const [saved,       setSaved]       = useState(false)
-  const [applied,     setApplied]     = useState(false)
-  const [applying,    setApplying]    = useState(false)
-  const [showApply,   setShowApply]   = useState(false)
+  const [job, setJob] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saved, setSaved] = useState(false)
+  const [applied, setApplied] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [showApply, setShowApply] = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
-  const [related,     setRelated]     = useState([])
+  const [cvFile, setCvFile] = useState(null)
+  const [hasCV, setHasCV] = useState(false)
+  const [related, setRelated] = useState([])
 
   useEffect(() => {
+    let cancelled = false
     jobService.getJob(id).then(res => {
+      if (cancelled) return
       setJob(res)
       // Fetch related jobs
       jobService.getJobs({ category: res.category, limit: 4 }).then(r => {
-        setRelated((r.data || []).filter(j => j.id !== id).slice(0, 3))
+        if (!cancelled) setRelated((r.data || []).filter(j => j.id !== id && (j._id || j.id) !== id).slice(0, 3))
       })
-    }).catch(() => navigate('/jobs')).finally(() => setLoading(false))
-  }, [id])
+    }).catch(() => navigate('/jobs')).finally(() => { if (!cancelled) setLoading(false) })
+
+    // Check saved & applied status if authenticated
+    if (isAuthenticated) {
+      jobService.getSavedJobs().then(list => {
+        if (cancelled) return
+        const arr = Array.isArray(list) ? list : (list?.data || [])
+        const isSaved = arr.some(j => {
+          const jid = j._id || j.id
+          return String(jid) === String(id)
+        })
+        setSaved(isSaved)
+      }).catch(() => {})
+
+      jobService.getAppliedJobs().then(list => {
+        if (cancelled) return
+        const arr = Array.isArray(list) ? list : (list?.data || [])
+        const isApplied = arr.some(app => {
+          const jid = app.jobId?._id || app.jobId?.id || app.jobId || app.job_id
+          return String(jid) === String(id)
+        })
+        setApplied(isApplied)
+      }).catch(() => {})
+
+      // Check if user has any CV history to auto-attach
+      import('@/services/cvService').then(({ cvService }) => {
+        cvService.getScoreHistory().then(cvs => {
+          if (cancelled) return
+          setHasCV(cvs && cvs.length > 0)
+        }).catch(() => {})
+      })
+    }
+
+    return () => { cancelled = true }
+  }, [id, isAuthenticated])
 
   const handleApply = async () => {
     if (!isAuthenticated) { navigate('/login', { state: { from: `/jobs/${id}` } }); return }
+    if (!hasCV && !cvFile) { alert('Vui lòng tải lên CV của bạn để ứng tuyển.'); return }
+    
     setApplying(true)
     try {
-      await jobService.applyJob(id, { coverLetter })
+      let data = { coverLetter }
+      if (cvFile) {
+        const formData = new FormData()
+        formData.append('cv', cvFile)
+        formData.append('coverLetter', coverLetter)
+        data = formData
+      }
+      
+      await jobService.applyJob(id, data)
       setApplied(true); setShowApply(false)
-    } catch (err) { alert(err?.message) }
+    } catch (err) { alert(err?.message || 'Lỗi khi ứng tuyển') }
     finally { setApplying(false) }
   }
 
-  const handleSave = () => {
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
     if (!isAuthenticated) { navigate('/login', { state: { from: `/jobs/${id}` } }); return }
-    setSaved(v => !v)
+    try {
+      setSaving(true)
+      const res = await jobService.toggleSaveJob(String(job._id || job.id || id))
+      // API returns { saved: true/false }
+      const nowSaved = typeof res?.saved === 'boolean' ? res.saved : !saved
+      setSaved(nowSaved)
+    } catch (err) {
+      alert(`Không thể lưu việc làm: ${err?.message || 'Lỗi không xác định'}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) return (
     <div className="container-app py-8 grid lg:grid-cols-[1fr_300px] gap-6">
-      {[1,2].map(i => <div key={i} className="h-64 shimmer-bg" />)}
+      {[1, 2].map(i => <div key={i} className="h-64 shimmer-bg" />)}
     </div>
   )
   if (!job) return null
 
-  const daysAgo   = Math.floor((Date.now() - new Date(job.postedAt)) / 86400000)
+  const daysAgo = Math.floor((Date.now() - new Date(job.postedAt)) / 86400000)
   const levelStyle = LEVEL_BADGE[job.level] || LEVEL_BADGE.Middle
 
   return (
     <>
       {/* Breadcrumb */}
-      <div className="bg-white border-b border-[#E2E8F0] sticky top-16 z-10 shadow-sm" style={{ top: 'var(--header-height)'}}>
+      <div className="bg-white border-b border-[#E2E8F0] sticky top-16 z-10 shadow-sm" style={{ top: 'var(--header-height)' }}>
         <div className="container-app py-2.5 flex gap-1.5 items-center text-xs text-[#94A3B8]">
-          <Link to="/"     className="hover:text-[#0F172A] transition-colors">Trang chủ</Link>
+          <Link to="/" className="hover:text-[#0F172A] transition-colors">Trang chủ</Link>
           <ChevronRight className="h-3 w-3" />
           <Link to="/jobs" className="hover:text-[#0F172A] transition-colors">Việc làm</Link>
           <ChevronRight className="h-3 w-3" />
@@ -93,7 +152,7 @@ export default function JobDetailPage() {
               )}
               <div className="flex gap-4 mb-5">
                 <div className="w-16 h-16 rounded-2xl bg-[#EEF2FF] flex items-center justify-center font-black text-xl text-[#1549B8] shrink-0 shadow-sm">
-                  {job.company.slice(0,2).toUpperCase()}
+                  {job.company.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1">
                   <h1 className="text-xl font-black text-[#0F172A] mb-1">{job.title}</h1>
@@ -145,7 +204,7 @@ export default function JobDetailPage() {
                       🚀 {isAuthenticated ? 'Ứng tuyển ngay' : 'Đăng nhập để ứng tuyển'}
                     </Button>
                   )}
-                  <Button variant="outline" size="icon" onClick={handleSave}
+                  <Button variant="outline" size="icon" onClick={handleSave} disabled={saving}
                     className={saved ? 'border-amber-300 bg-amber-50 text-amber-500' : 'border-[#E2E8F0] text-[#475569]'}>
                     <Bookmark className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
                   </Button>
@@ -209,16 +268,16 @@ export default function JobDetailPage() {
           </div>
 
           {/* ── Sidebar ──────────────────────────────────────────── */}
-          <div  className="space-y-4 sticky self-start" style={{ top: 'calc(var(--header-height) + 64px)' }}>
+          <div className="space-y-4 sticky self-start" style={{ top: 'calc(var(--header-height) + 64px)' }}>
             <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 top-20">
               <h3 className="font-bold text-sm text-[#0F172A] mb-4">Tổng quan công việc</h3>
               {[
-                ['Cấp bậc',   job.level],
-                ['Ngành nghề',job.category],
+                ['Cấp bậc', job.level],
+                ['Ngành nghề', job.category],
                 ['Hình thức', job.type],
-                ['Lương',     job.salary],
-                ['Địa điểm',  job.location],
-                ['Hạn nộp',   new Date(job.deadline).toLocaleDateString('vi-VN')],
+                ['Lương', job.salary],
+                ['Địa điểm', job.location],
+                ['Hạn nộp', new Date(job.deadline).toLocaleDateString('vi-VN')],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between py-2 border-b border-[#F1F5F9] last:border-0 text-xs">
                   <span className="text-[#94A3B8]">{label}</span>
@@ -263,9 +322,29 @@ export default function JobDetailPage() {
           <div className="p-3 bg-[#F5F3FF] border border-[#DDD6FE] rounded-xl text-xs text-[#7C3AED]">
             💡 <Link to={`/cv-upload?jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`} className="font-bold hover:underline text-[#7C3AED]">Xem mức độ phù hợp</Link> trước để tăng tỷ lệ đậu
           </div>
-          <div className="space-y-1.5">
-            <Label>Thư giới thiệu (tuỳ chọn)</Label>
-            <Textarea rows={4} placeholder="Viết vài câu giới thiệu bản thân..." value={coverLetter} onChange={e => setCoverLetter(e.target.value)} />
+          <div className="space-y-4">
+            {hasCV ? (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-medium flex gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+                <div>
+                  <p>Hệ thống sẽ tự động đính kèm CV phù hợp nhất của bạn từ các lần phân tích trước.</p>
+                  <p className="text-[11px] opacity-80 mt-1">Gợi ý: Dùng tính năng Xem mức độ phù hợp ở trên để CV ứng tuyển đạt điểm cao nhất.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label className="text-[#0F172A] font-bold">Tải lên CV (Bắt buộc) <span className="text-red-500">*</span></Label>
+                <div className="border border-dashed border-[#CBD5E1] rounded-xl p-4 text-center hover:bg-[#F8FAFC] transition-colors">
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={e => setCvFile(e.target.files[0])} className="text-xs text-slate-500 w-full" />
+                  {!cvFile && <p className="text-[11px] text-[#94A3B8] mt-2">Hỗ trợ PDF, DOC, DOCX (Tối đa 10MB)</p>}
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-1.5">
+              <Label className="text-[#0F172A] font-bold">Thư giới thiệu (Tuỳ chọn)</Label>
+              <Textarea rows={4} placeholder="Viết vài câu giới thiệu bản thân..." value={coverLetter} onChange={e => setCoverLetter(e.target.value)} />
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowApply(false)}>Hủy</Button>
