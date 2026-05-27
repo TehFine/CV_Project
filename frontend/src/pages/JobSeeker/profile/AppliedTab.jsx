@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
+import { Loader2, XCircle, Clock, Eye, CheckCircle, Mic, BriefcaseBusiness, Send } from 'lucide-react'
 import { jobService } from '@/services/jobService'
 
 const STATUS_MAP = {
-  pending:   { label: 'Đang chờ',    color: 'bg-slate-100 text-slate-600' },
-  reviewing: { label: 'Đang xem xét', color: 'bg-blue-100 text-blue-600' },
-  interview: { label: 'Phỏng vấn',   color: 'bg-purple-100 text-purple-600' },
-  offered:   { label: 'Đã mời làm',  color: 'bg-emerald-100 text-emerald-600' },
-  rejected:  { label: 'Từ chối',     color: 'bg-red-100 text-red-600' },
+  pending:   { label: 'Đang chờ',     color: 'bg-slate-100 text-slate-600',     icon: Clock },
+  reviewing: { label: 'Đang xem xét', color: 'bg-blue-100 text-blue-700',       icon: Eye },
+  interview: { label: 'Phỏng vấn',    color: 'bg-purple-100 text-purple-700',   icon: Mic },
+  offered:   { label: 'Đã mời làm',   color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
+  rejected:  { label: 'Bị từ chối',   color: 'bg-red-100 text-red-700',         icon: XCircle },
 }
 
 export function AppliedTab() {
@@ -19,43 +19,107 @@ export function AppliedTab() {
 
   useEffect(() => {
     jobService.getAppliedJobs().then(res => {
-      setApps(res || [])
+      setApps(Array.isArray(res) ? res : (res?.data || []))
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [])
 
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" /></div>
 
+  const active   = apps.filter(a => !['rejected', 'offered'].includes(a.status))
+  const resolved = apps.filter(a =>  ['rejected', 'offered'].includes(a.status))
+
+  const renderCard = (app) => {
+    const job = app.jobId
+    const isJobDeleted = !job || (!job.title && !job._id)
+    const status = STATUS_MAP[app.status] || STATUS_MAP.pending
+    const StatusIcon = status.icon
+    const isRejected = app.status === 'rejected'
+
+    return (
+      <Card
+        key={app._id}
+        className={`transition-shadow ${isRejected ? 'opacity-70 bg-red-50/40 border-red-100' : 'hover:shadow-sm'}`}
+      >
+        <CardContent className="p-4 flex gap-4 items-start">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold shrink-0 mt-0.5
+            ${isRejected ? 'bg-red-100 text-red-400' : 'bg-primary/5 text-primary'}`}>
+            {isJobDeleted
+              ? <BriefcaseBusiness className="h-5 w-5" />
+              : (job?.companyName?.slice(0, 2).toUpperCase() || 'CV')}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <p className={`font-bold text-sm truncate ${isRejected ? 'text-slate-500' : ''}`}>
+                {isJobDeleted ? 'Tin tuyển dụng đã bị gỡ' : job?.title}
+              </p>
+              <span className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold ${status.color}`}>
+                <StatusIcon className="h-3 w-3" />
+                {status.label}
+              </span>
+            </div>
+
+            {!isJobDeleted && (
+              <p className="text-xs text-muted-foreground">{job?.companyName} · {job?.location}</p>
+            )}
+
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Đã ứng tuyển: {new Date(app.createdAt).toLocaleDateString('vi-VN')}
+            </p>
+
+            {isRejected && (
+              <p className="text-[11px] text-red-500 mt-1.5 font-medium">
+                {isJobDeleted
+                  ? '⚠️ Tin tuyển dụng đã bị gỡ — đơn ứng tuyển đã tự động bị từ chối.'
+                  : '❌ Nhà tuyển dụng đã từ chối đơn ứng tuyển của bạn.'}
+              </p>
+            )}
+          </div>
+
+          {!isJobDeleted && !isRejected && job?._id && (
+            <Button variant="outline" size="sm" asChild className="shrink-0 mt-0.5">
+              <Link to={`/jobs/${job._id}`}>Chi tiết</Link>
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <div className="space-y-3">
-      <h3 className="font-bold text-foreground">Việc làm đã ứng tuyển ({apps.length})</h3>
+    <div className="space-y-5">
+      <h3 className="font-bold text-foreground flex items-center gap-2">
+        <Send className="h-4 w-4 text-primary" />
+        Việc làm đã ứng tuyển ({apps.length})
+      </h3>
+
       {apps.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-muted-foreground">Bạn chưa ứng tuyển công việc nào.</CardContent></Card>
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            Bạn chưa ứng tuyển công việc nào.
+          </CardContent>
+        </Card>
       ) : (
-        apps.map(app => {
-          const job = app.jobId
-          const status = STATUS_MAP[app.status] || STATUS_MAP.pending
-          return (
-            <Card key={app._id} className="hover:shadow-sm transition-shadow">
-              <CardContent className="p-4 flex gap-4 items-center">
-                <div className="w-12 h-12 bg-primary/5 rounded-xl flex items-center justify-center font-bold text-primary shrink-0">
-                  {job?.companyName?.slice(0, 2).toUpperCase() || 'CV'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="font-bold text-sm truncate">{job?.title || 'Công việc không còn tồn tại'}</p>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${status.color}`}>{status.label}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{job?.companyName} · {job?.location}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Đã ứng tuyển: {new Date(app.createdAt).toLocaleDateString('vi-VN')}</p>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={`/jobs/${job?._id}`}>Chi tiết</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )
-        })
+        <>
+          {active.length > 0 && (
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                🔄 Đang xử lý ({active.length})
+              </p>
+              {active.map(renderCard)}
+            </div>
+          )}
+
+          {resolved.length > 0 && (
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                📋 Đã xử lý ({resolved.length})
+              </p>
+              {resolved.map(renderCard)}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

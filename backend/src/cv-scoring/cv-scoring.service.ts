@@ -701,7 +701,13 @@ Hãy trả về JSON theo định dạng sau:
   }
 
   async getHistory(userId: string) {
-    return this.cvScoreModel.find({ userId: userId as any }).sort({ createdAt: -1 }).exec();
+    // Chỉ trả về các bản ghi do chính ứng viên tạo ra (tự phân tích CV).
+    // Loại bỏ 'employer_match' vì đây là điểm nhà tuyển dụng chấm, không phải phân tích của ứng viên.
+    return this.cvScoreModel
+      .find({ userId: userId as any, type: { $in: ['candidate_self_score', 'general_analysis'] } })
+      .populate('jobId', 'title companyName')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
   async getScoreById(id: string): Promise<CvScoreDocument | null> {

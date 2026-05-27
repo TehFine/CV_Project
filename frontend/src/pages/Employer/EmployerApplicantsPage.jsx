@@ -231,12 +231,21 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
 
         {/* AI Score */}
         <div style={{ textAlign: 'center', flexShrink: 0, minWidth: 64 }}>
-          <div style={{
-            fontSize: 22, fontWeight: 900, color: scoreColor, lineHeight: 1,
-            background: scoreColor + '18', borderRadius: 10, padding: '6px 14px',
-          }}>
-            {score.toFixed(0)}
-          </div>
+          {app.ai_score ? (
+            <div style={{
+              fontSize: 22, fontWeight: 900, color: scoreColor, lineHeight: 1,
+              background: scoreColor + '18', borderRadius: 10, padding: '6px 14px',
+            }}>
+              {score.toFixed(0)}
+            </div>
+          ) : (
+            <div style={{
+              fontSize: 14, fontWeight: 600, color: '#94A3B8', lineHeight: 1,
+              background: '#F1F5F9', borderRadius: 10, padding: '10px 14px',
+            }}>
+              N/A
+            </div>
+          )}
           <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 3, fontWeight: 600 }}>AI Score</div>
         </div>
 

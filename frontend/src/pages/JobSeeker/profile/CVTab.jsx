@@ -29,6 +29,7 @@ function normalizeCV(item) {
     overall: item.overall ?? item.analysis?.overall ?? item.score ?? 0,
     grade: item.grade || item.analysis?.grade || '-',
     gradeLabel: item.gradeLabel || item.analysis?.gradeLabel || '',
+    jobTitle: item.jobId?.title || null,
     scoredAt: item.createdAt || item.analysis?.scoredAt,
     createdAt: item.createdAt,
   }
@@ -151,6 +152,11 @@ export function CVTab() {
                   <Badge variant={gradeVariant[cv.grade] || 'secondary'} className="text-xs">
                     Loại {cv.grade || '-'}
                   </Badge>
+                  {cv.jobTitle && (
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      Mục tiêu: {cv.jobTitle}
+                    </Badge>
+                  )}
                   <span className="text-sm font-bold">{cv.overall}/100</span>
                   {cv.gradeLabel && (
                     <span className="text-xs text-muted-foreground">{cv.gradeLabel}</span>

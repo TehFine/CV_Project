@@ -66,11 +66,12 @@ export default function JobDetailPage() {
         setApplied(isApplied)
       }).catch(() => {})
 
-      // Check if user has any CV history to auto-attach
+      // Check if user has a specific CV matched for this job to auto-attach
       import('@/services/cvService').then(({ cvService }) => {
         cvService.getScoreHistory().then(cvs => {
           if (cancelled) return
-          setHasCV(cvs && cvs.length > 0)
+          const specificCV = cvs?.find(cv => String(cv.jobId?._id || cv.jobId || cv.job_id) === String(id))
+          setHasCV(!!specificCV)
         }).catch(() => {})
       })
     }

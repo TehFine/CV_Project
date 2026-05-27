@@ -44,7 +44,7 @@ export class EmployerService {
     const jobIds = employerJobs.map(j => j._id);
     const totalViews = employerJobs.reduce((sum, j) => sum + (j.views || 0), 0);
 
-    const appFilter: any = { jobId: { $in: jobIds as any } };
+    const appFilter: any = { jobId: { $in: jobIds as any }, isArchivedByEmployer: { $ne: true } };
     const totalApps = await this.applicationModel.countDocuments(appFilter);
     const pendingApps = await this.applicationModel.countDocuments({ ...appFilter, status: 'pending' } as any);
     const reviewingApps = await this.applicationModel.countDocuments({ ...appFilter, status: 'reviewing' } as any);
@@ -65,7 +65,8 @@ export class EmployerService {
 
       const count = await this.applicationModel.countDocuments({
         jobId: { $in: jobIds as any },
-        createdAt: { $gte: start, $lt: end }
+        createdAt: { $gte: start, $lt: end },
+        isArchivedByEmployer: { $ne: true }
       } as any);
 
       const day = String(d.getDate()).padStart(2, '0');
@@ -96,7 +97,17 @@ export class EmployerService {
   async getJobs(employerId: string) {
     const filter = employerId ? { employerId: employerId as any } : {};
     const jobs = await this.jobModel.find(filter).exec();
-    return { data: jobs.map(j => this.mapJobToFrontend(j)) };
+    const jobIds = jobs.map(j => j._id);
+
+    // Count visible (non-archived) applications per job
+    const counts = await this.applicationModel.aggregate([
+      { $match: { jobId: { $in: jobIds }, isArchivedByEmployer: { $ne: true } } },
+      { $group: { _id: '$jobId', count: { $sum: 1 } } },
+    ]);
+    const countMap: Record<string, number> = {};
+    for (const c of counts) countMap[c._id.toString()] = c.count;
+
+    return { data: jobs.map(j => ({ ...this.mapJobToFrontend(j), application_count: countMap[j._id.toString()] ?? 0 })) };
   }
 
   async getJob(id: string) {
@@ -107,7 +118,7 @@ export class EmployerService {
 
   async getApplications(jobId: string) {
     const apps = await this.applicationModel
-      .find({ jobId: jobId as any })
+      .find({ jobId: jobId as any, isArchivedByEmployer: { $ne: true } })
       .populate('candidateId')
       .populate('aiScoreId')
       .sort({ createdAt: -1 })
@@ -157,7 +168,7 @@ export class EmployerService {
           title: app.cvId || 'CV_Ung_Vien.pdf',
           pdf_url: app.cvId ? `/api/cv-scoring/view/${app.cvId}` : '#',
         },
-        ai_score: aiScore ? {
+        ai_score: (aiScore && (aiScore.score > 0 || aiScore.overall > 0 || aiScore.analysis?.overall > 0)) ? {
           overall_score: aiScore.analysis?.overall || (aiScore.score * 10) || 0,
           breakdown,
           analysis: aiScore.analysis || {},
@@ -183,18 +194,49 @@ export class EmployerService {
   }
 
   async deleteApplication(appId: string) {
-    const app = await this.applicationModel.findByIdAndDelete(appId).exec();
+    const app = await this.applicationModel.findById(appId).exec();
     if (!app) {
       this.logger.fail('Xóa hồ sơ thất bại - không tìm thấy', { action: 'delete_application', applicationId: appId });
       throw new NotFoundException('Không tìm thấy hồ sơ');
     }
-    this.logger.success('Xóa hồ sơ ứng tuyển', { action: 'delete_application', applicationId: appId, candidateId: app.candidateId?.toString() });
+    
+    // Nếu chưa archive, ta sẽ archive và giảm số lượng applied của job đi 1
+    if (!app.isArchivedByEmployer) {
+      await this.jobModel.findByIdAndUpdate(app.jobId, { $inc: { applied: -1 } }).exec();
+      app.isArchivedByEmployer = true;
+      app.status = 'rejected';
+      await app.save();
+    }
+
+    this.logger.success('Xóa (lưu trữ) hồ sơ ứng tuyển', { action: 'delete_application', applicationId: appId, candidateId: app.candidateId?.toString() });
     return { success: true };
   }
 
   async bulkDeleteApplications(ids: string[]) {
-    const result = await this.applicationModel.deleteMany({ _id: { $in: ids } }).exec();
-    this.logger.success('Xóa hàng loạt hồ sơ', { action: 'bulk_delete_applications', count: result.deletedCount, ids });
+    // Tìm các hồ sơ chưa bị archive để tính toán trừ số lượng cho các job
+    const appsToArchive = await this.applicationModel.find({ 
+      _id: { $in: ids }, 
+      isArchivedByEmployer: { $ne: true } 
+    }).exec();
+
+    // Tính số lượng cần trừ cho mỗi job
+    const jobCounts: Record<string, number> = {};
+    for (const app of appsToArchive) {
+      const jid = app.jobId.toString();
+      jobCounts[jid] = (jobCounts[jid] || 0) + 1;
+    }
+
+    const result = await this.applicationModel.updateMany(
+      { _id: { $in: ids } },
+      { $set: { status: 'rejected', isArchivedByEmployer: true } }
+    ).exec();
+
+    // Giảm số lượng applied của các job tương ứng
+    for (const [jid, count] of Object.entries(jobCounts)) {
+      await this.jobModel.findByIdAndUpdate(jid, { $inc: { applied: -count } }).exec();
+    }
+
+    this.logger.success('Xóa (lưu trữ) hàng loạt hồ sơ', { action: 'bulk_delete_applications', count: result.modifiedCount, ids });
     return { success: true };
   }
 }

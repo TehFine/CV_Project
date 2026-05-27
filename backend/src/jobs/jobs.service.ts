@@ -148,6 +148,14 @@ export class JobsService {
       this.logger.fail('Xóa job thất bại - không có quyền', { userId: requesterId, action: 'delete_job', jobId: id });
       throw new ForbiddenException('Bạn không có quyền xóa tin tuyển dụng này');
     }
+
+    // Tự động từ chối tất cả đơn ứng tuyển chưa được xử lý khi xóa job
+    const rejectResult = await this.applicationModel.updateMany(
+      { jobId: id as any, status: { $in: ['pending', 'reviewing', 'interview'] } as any },
+      { $set: { status: 'rejected' } },
+    ).exec();
+    this.logger.log(`Đã từ chối ${rejectResult.modifiedCount} đơn ứng tuyển do job bị xóa`, { action: 'auto_reject_applications', jobId: id });
+
     await this.jobModel.findByIdAndDelete(id).exec();
     this.logger.success('Xóa tin tuyển dụng', { userId: requesterId, action: 'delete_job', jobId: id, title: job.title });
     return { message: 'Đã xóa công việc thành công' };
@@ -158,6 +166,13 @@ export class JobsService {
     if (!job) {
       this.logger.fail('Ứng tuyển thất bại - job không tồn tại', { userId: candidateId, action: 'apply_job', jobId });
       throw new NotFoundException('Không tìm thấy công việc');
+    }
+
+    // SPAM PREVENTION: Check if already applied
+    const existingApp = await this.applicationModel.findOne({ jobId: jobId as any, candidateId: candidateId as any });
+    if (existingApp) {
+      this.logger.fail('Ứng tuyển thất bại - đã ứng tuyển', { userId: candidateId, action: 'apply_job', jobId });
+      throw new BadRequestException('Bạn đã từng ứng tuyển vị trí này rồi.');
     }
 
     let cvId = data.cvId || 'uploaded_cv.pdf';
@@ -189,16 +204,8 @@ export class JobsService {
         cvId = specificScore.cvUrl || cvId;
         aiScoreId = specificScore._id;
       } else {
-        const generalScore = await this.cvScoreModel.findOne({
-          userId: candidateId as any,
-        }).sort({ createdAt: -1 }).exec();
-
-        if (generalScore) {
-          cvId = generalScore.cvUrl || cvId;
-          aiScoreId = generalScore._id;
-        } else {
-          throw new BadRequestException('Bạn chưa đính kèm CV. Vui lòng đính kèm CV để ứng tuyển.');
-        }
+        // Remove general score fallback. Must have specific match or upload a CV.
+        throw new BadRequestException('Bạn chưa đính kèm CV. Vui lòng đính kèm CV để ứng tuyển.');
       }
     }
 

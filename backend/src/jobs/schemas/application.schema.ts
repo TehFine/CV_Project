@@ -22,6 +22,9 @@ export class Application {
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'CvScore' })
   aiScoreId: MongooseSchema.Types.ObjectId;
+
+  @Prop({ default: false })
+  isArchivedByEmployer: boolean;
 }
 
 export const ApplicationSchema = SchemaFactory.createForClass(Application);
