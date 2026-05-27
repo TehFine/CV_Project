@@ -4,17 +4,28 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Plus, Loader2, FileText, Eye } from 'lucide-react'
+import { Plus, Loader2, FileText, Eye, Trash2 } from 'lucide-react'
 import { cvService } from '@/services/cvService'
 import CVScoreModal from '@/components/CVScoreModal'
 
 const gradeVariant = { A: 'success', B: 'new', C: 'warning', D: 'destructive' }
 
+// Utility to fix font encoding issues if the backend saved UTF-8 as latin1
+function fixEncoding(str) {
+  if (!str) return str;
+  try {
+    // If the string contains mojibake like "Nguyá»…n", escape and decodeURIComponent will fix it
+    return decodeURIComponent(escape(str));
+  } catch (e) {
+    return str; // Return original if not valid encoded string
+  }
+}
+
 function normalizeCV(item) {
   return {
     _id: item._id,
     id: item.id,
-    fileName: item.fileName || item.cvUrl || 'CV',
+    fileName: fixEncoding(item.fileName || item.cvUrl || 'CV'),
     overall: item.overall ?? item.analysis?.overall ?? item.score ?? 0,
     grade: item.grade || item.analysis?.grade || '-',
     gradeLabel: item.gradeLabel || item.analysis?.gradeLabel || '',
@@ -30,6 +41,8 @@ export function CVTab() {
   const [selectedCv, setSelectedCv] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)   // id đang xóa
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null) // id chờ xác nhận
 
   const fetchCVs = async () => {
     try {
@@ -72,6 +85,19 @@ export function CVTab() {
       })
     } finally {
       setDetailLoading(false)
+    }
+  }
+
+  const handleDeleteCV = async (id) => {
+    try {
+      setDeletingId(id)
+      await cvService.deleteCVScore(id)
+      setCvs(prev => prev.filter(cv => (cv._id || cv.id) !== id))
+    } catch (err) {
+      setError('Xóa thất bại. Vui lòng thử lại.')
+    } finally {
+      setDeletingId(null)
+      setConfirmDeleteId(null)
     }
   }
 
@@ -135,9 +161,35 @@ export function CVTab() {
                   </span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => handleViewCV(cv)} disabled={detailLoading}>
-                <Eye className="h-3.5 w-3.5 mr-1" />Xem
-              </Button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button variant="outline" size="sm" onClick={() => handleViewCV(cv)} disabled={detailLoading}>
+                  <Eye className="h-3.5 w-3.5 mr-1" />Xem
+                </Button>
+                {confirmDeleteId === (cv._id || cv.id) ? (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="destructive" size="sm"
+                      disabled={deletingId === (cv._id || cv.id)}
+                      onClick={() => handleDeleteCV(cv._id || cv.id)}
+                    >
+                      {deletingId === (cv._id || cv.id)
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : 'Xác nhận'}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)}>
+                      Hủy
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost" size="sm"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => setConfirmDeleteId(cv._id || cv.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))

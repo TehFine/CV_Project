@@ -86,6 +86,10 @@ export class CvScoringController {
       if (!file) {
         throw new BadRequestException('Vui lòng tải lên file CV (PDF)');
       }
+      
+      // Fix Vietnamese font encoding issue caused by multer using latin1 by default
+      file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+      
       if (file.mimetype !== 'application/pdf' && !file.mimetype.includes('word') && !file.originalname.match(/\.(pdf|doc|docx)$/i)) {
         throw new BadRequestException('Hiện tại hệ thống AI chỉ hỗ trợ định dạng PDF và Word (DOC/DOCX).');
       }
