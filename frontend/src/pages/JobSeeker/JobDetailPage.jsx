@@ -29,6 +29,8 @@ export default function JobDetailPage() {
   const [applying, setApplying] = useState(false)
   const [showApply, setShowApply] = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
+  const [cvFile, setCvFile] = useState(null)
+  const [hasCV, setHasCV] = useState(false)
   const [related, setRelated] = useState([])
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function JobDetailPage() {
       })
     }).catch(() => navigate('/jobs')).finally(() => { if (!cancelled) setLoading(false) })
 
-    // Check saved status if authenticated
+    // Check saved & applied status if authenticated
     if (isAuthenticated) {
       jobService.getSavedJobs().then(list => {
         if (cancelled) return
@@ -53,6 +55,24 @@ export default function JobDetailPage() {
         })
         setSaved(isSaved)
       }).catch(() => {})
+
+      jobService.getAppliedJobs().then(list => {
+        if (cancelled) return
+        const arr = Array.isArray(list) ? list : (list?.data || [])
+        const isApplied = arr.some(app => {
+          const jid = app.jobId?._id || app.jobId?.id || app.jobId || app.job_id
+          return String(jid) === String(id)
+        })
+        setApplied(isApplied)
+      }).catch(() => {})
+
+      // Check if user has any CV history to auto-attach
+      import('@/services/cvService').then(({ cvService }) => {
+        cvService.getScoreHistory().then(cvs => {
+          if (cancelled) return
+          setHasCV(cvs && cvs.length > 0)
+        }).catch(() => {})
+      })
     }
 
     return () => { cancelled = true }
@@ -60,11 +80,21 @@ export default function JobDetailPage() {
 
   const handleApply = async () => {
     if (!isAuthenticated) { navigate('/login', { state: { from: `/jobs/${id}` } }); return }
+    if (!hasCV && !cvFile) { alert('Vui lòng tải lên CV của bạn để ứng tuyển.'); return }
+    
     setApplying(true)
     try {
-      await jobService.applyJob(id, { coverLetter })
+      let data = { coverLetter }
+      if (cvFile) {
+        const formData = new FormData()
+        formData.append('cv', cvFile)
+        formData.append('coverLetter', coverLetter)
+        data = formData
+      }
+      
+      await jobService.applyJob(id, data)
       setApplied(true); setShowApply(false)
-    } catch (err) { alert(err?.message) }
+    } catch (err) { alert(err?.message || 'Lỗi khi ứng tuyển') }
     finally { setApplying(false) }
   }
 
@@ -292,9 +322,29 @@ export default function JobDetailPage() {
           <div className="p-3 bg-[#F5F3FF] border border-[#DDD6FE] rounded-xl text-xs text-[#7C3AED]">
             💡 <Link to={`/cv-upload?jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`} className="font-bold hover:underline text-[#7C3AED]">Xem mức độ phù hợp</Link> trước để tăng tỷ lệ đậu
           </div>
-          <div className="space-y-1.5">
-            <Label>Thư giới thiệu (tuỳ chọn)</Label>
-            <Textarea rows={4} placeholder="Viết vài câu giới thiệu bản thân..." value={coverLetter} onChange={e => setCoverLetter(e.target.value)} />
+          <div className="space-y-4">
+            {hasCV ? (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-medium flex gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+                <div>
+                  <p>Hệ thống sẽ tự động đính kèm CV phù hợp nhất của bạn từ các lần phân tích trước.</p>
+                  <p className="text-[11px] opacity-80 mt-1">Gợi ý: Dùng tính năng Xem mức độ phù hợp ở trên để CV ứng tuyển đạt điểm cao nhất.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label className="text-[#0F172A] font-bold">Tải lên CV (Bắt buộc) <span className="text-red-500">*</span></Label>
+                <div className="border border-dashed border-[#CBD5E1] rounded-xl p-4 text-center hover:bg-[#F8FAFC] transition-colors">
+                  <input type="file" accept=".pdf,.doc,.docx" onChange={e => setCvFile(e.target.files[0])} className="text-xs text-slate-500 w-full" />
+                  {!cvFile && <p className="text-[11px] text-[#94A3B8] mt-2">Hỗ trợ PDF, DOC, DOCX (Tối đa 10MB)</p>}
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-1.5">
+              <Label className="text-[#0F172A] font-bold">Thư giới thiệu (Tuỳ chọn)</Label>
+              <Textarea rows={4} placeholder="Viết vài câu giới thiệu bản thân..." value={coverLetter} onChange={e => setCoverLetter(e.target.value)} />
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowApply(false)}>Hủy</Button>

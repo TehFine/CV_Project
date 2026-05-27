@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Job, JobDocument } from './schemas/job.schema';
@@ -153,7 +153,7 @@ export class JobsService {
     return { message: 'Đã xóa công việc thành công' };
   }
 
-  async apply(jobId: string, candidateId: string, data: any) {
+  async apply(jobId: string, candidateId: string, data: any, file?: Express.Multer.File) {
     const job = await this.jobModel.findById(jobId);
     if (!job) {
       this.logger.fail('Ứng tuyển thất bại - job không tồn tại', { userId: candidateId, action: 'apply_job', jobId });
@@ -163,21 +163,42 @@ export class JobsService {
     let cvId = data.cvId || 'uploaded_cv.pdf';
     let aiScoreId: any = undefined;
 
-    const specificScore = await this.cvScoreModel.findOne({
-      userId: candidateId as any,
-      jobId: jobId as any,
-    }).sort({ createdAt: -1 }).exec();
-
-    if (specificScore) {
-      cvId = specificScore.cvUrl || cvId;
-      aiScoreId = specificScore._id;
-    } else {
-      const generalScore = await this.cvScoreModel.findOne({
+    if (file) {
+      const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+      const newScore = new this.cvScoreModel({
         userId: candidateId as any,
+        jobId: jobId as any,
+        pdfBuffer: file.buffer,
+        cvUrl: originalname,
+        overall: 0,
+        fileName: originalname,
+        categories: [],
+        strengths: [],
+        improvements: []
+      });
+      await newScore.save();
+      aiScoreId = newScore._id;
+      cvId = originalname;
+    } else {
+      const specificScore = await this.cvScoreModel.findOne({
+        userId: candidateId as any,
+        jobId: jobId as any,
       }).sort({ createdAt: -1 }).exec();
 
-      if (generalScore) {
-        cvId = generalScore.cvUrl || cvId;
+      if (specificScore) {
+        cvId = specificScore.cvUrl || cvId;
+        aiScoreId = specificScore._id;
+      } else {
+        const generalScore = await this.cvScoreModel.findOne({
+          userId: candidateId as any,
+        }).sort({ createdAt: -1 }).exec();
+
+        if (generalScore) {
+          cvId = generalScore.cvUrl || cvId;
+          aiScoreId = generalScore._id;
+        } else {
+          throw new BadRequestException('Bạn chưa đính kèm CV. Vui lòng đính kèm CV để ứng tuyển.');
+        }
       }
     }
 
