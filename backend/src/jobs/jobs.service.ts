@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Job, JobDocument } from './schemas/job.schema';
 import { Application, ApplicationDocument } from './schemas/application.schema';
 import { SEED_JOBS } from './jobs-seed.data';
 import { CvScore, CvScoreDocument } from '../cv-scoring/schemas/cv-score.schema';
 import { Notification, NotificationDocument } from '../admin/schemas/notification.schema';
 import { AppLogger } from '../common/logger.service';
+import { User, UserDocument } from '../users/schemas/user.schema';
 
 @Injectable()
 export class JobsService {
@@ -17,6 +18,7 @@ export class JobsService {
     @InjectModel('Application') private applicationModel: Model<ApplicationDocument>,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
     @InjectModel(Notification.name) private notificationModel: Model<NotificationDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   async findAll(query: any) {
@@ -218,5 +220,34 @@ export class JobsService {
     await this.jobModel.deleteMany({});
     const result = await this.jobModel.insertMany(SEED_JOBS());
     return { message: `Da seed ${result.length} jobs vao database`, count: result.length };
+  }
+
+  async toggleSaveJob(jobId: string, userId: string): Promise<{ saved: boolean }> {
+    const job = await this.jobModel.findById(jobId);
+    if (!job) throw new NotFoundException('Không tìm thấy công việc');
+
+    const user = await this.userModel.findById(userId);
+    if (!user) throw new NotFoundException('Không tìm thấy người dùng');
+
+    const jobObjId = new Types.ObjectId(jobId);
+    const idx = (user.savedJobs || []).findIndex(id => id.toString() === jobId);
+
+    if (idx === -1) {
+      // Not saved yet → save it
+      await this.userModel.findByIdAndUpdate(userId, { $addToSet: { savedJobs: jobObjId } });
+      this.logger.log('Lưu việc làm', { userId, jobId, action: 'save_job' });
+      return { saved: true };
+    } else {
+      // Already saved → unsave
+      await this.userModel.findByIdAndUpdate(userId, { $pull: { savedJobs: jobObjId } });
+      this.logger.log('Bỏ lưu việc làm', { userId, jobId, action: 'unsave_job' });
+      return { saved: false };
+    }
+  }
+
+  async getSavedJobs(userId: string) {
+    const user = await this.userModel.findById(userId).populate('savedJobs').exec();
+    if (!user) throw new NotFoundException('Không tìm thấy người dùng');
+    return user.savedJobs || [];
   }
 }

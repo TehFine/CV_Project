@@ -151,7 +151,46 @@ export const jobService = {
    * @param {string} jobId
    */
   async toggleSaveJob(jobId) {
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 300));
+      const savedStr = localStorage.getItem('nexcv_mock_saved_jobs');
+      const saved = savedStr ? JSON.parse(savedStr) : [];
+      const idx = saved.indexOf(jobId);
+      if (idx === -1) {
+        saved.push(jobId);
+        localStorage.setItem('nexcv_mock_saved_jobs', JSON.stringify(saved));
+        return { saved: true };
+      } else {
+        saved.splice(idx, 1);
+        localStorage.setItem('nexcv_mock_saved_jobs', JSON.stringify(saved));
+        return { saved: false };
+      }
+    }
     return api.post(`/jobs/${jobId}/save`);
+  },
+
+  /**
+   * Lấy danh sách việc làm đã lưu
+   */
+  async getSavedJobs() {
+    const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+    if (USE_MOCK) {
+      await new Promise(r => setTimeout(r, 400));
+      const savedStr = localStorage.getItem('nexcv_mock_saved_jobs');
+      const savedIds = savedStr ? JSON.parse(savedStr) : [];
+      const jobsStr = localStorage.getItem('nexcv_mock_jobs');
+      const jobs = jobsStr ? JSON.parse(jobsStr) : [];
+      return jobs
+        .filter(j => savedIds.includes(String(j.id)))
+        .map(j => ({
+          ...j,
+          _id: j.id,
+          companyName: j.company || 'Công ty TNHH NexCV',
+          salary: j.salary_min ? `${j.salary_min / 1000000} - ${j.salary_max / 1000000} triệu` : 'Thỏa thuận',
+        }));
+    }
+    return api.get('/jobs/my-saved-jobs');
   },
 
   /**

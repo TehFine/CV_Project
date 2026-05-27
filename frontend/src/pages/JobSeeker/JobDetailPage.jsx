@@ -11,10 +11,10 @@ import { Label } from '@/components/ui/label'
 import { jobService } from '@/services/jobService'
 
 const LEVEL_BADGE = {
-  Intern:         { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0' },
-  Junior:         { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' },
-  Middle:         { bg: '#EEF2FF', text: '#1549B8', border: '#C7D2FE' },
-  Senior:         { bg: '#FFF7ED', text: '#C2410C', border: '#FED7AA' },
+  Intern: { bg: '#F1F5F9', text: '#64748B', border: '#E2E8F0' },
+  Junior: { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' },
+  Middle: { bg: '#EEF2FF', text: '#1549B8', border: '#C7D2FE' },
+  Senior: { bg: '#FFF7ED', text: '#C2410C', border: '#FED7AA' },
   'Lead/Manager': { bg: '#FDF4FF', text: '#7E22CE', border: '#E9D5FF' },
 }
 
@@ -22,24 +22,41 @@ export default function JobDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
-  const [job,         setJob]         = useState(null)
-  const [loading,     setLoading]     = useState(true)
-  const [saved,       setSaved]       = useState(false)
-  const [applied,     setApplied]     = useState(false)
-  const [applying,    setApplying]    = useState(false)
-  const [showApply,   setShowApply]   = useState(false)
+  const [job, setJob] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [saved, setSaved] = useState(false)
+  const [applied, setApplied] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [showApply, setShowApply] = useState(false)
   const [coverLetter, setCoverLetter] = useState('')
-  const [related,     setRelated]     = useState([])
+  const [related, setRelated] = useState([])
 
   useEffect(() => {
+    let cancelled = false
     jobService.getJob(id).then(res => {
+      if (cancelled) return
       setJob(res)
       // Fetch related jobs
       jobService.getJobs({ category: res.category, limit: 4 }).then(r => {
-        setRelated((r.data || []).filter(j => j.id !== id).slice(0, 3))
+        if (!cancelled) setRelated((r.data || []).filter(j => j.id !== id && (j._id || j.id) !== id).slice(0, 3))
       })
-    }).catch(() => navigate('/jobs')).finally(() => setLoading(false))
-  }, [id])
+    }).catch(() => navigate('/jobs')).finally(() => { if (!cancelled) setLoading(false) })
+
+    // Check saved status if authenticated
+    if (isAuthenticated) {
+      jobService.getSavedJobs().then(list => {
+        if (cancelled) return
+        const arr = Array.isArray(list) ? list : (list?.data || [])
+        const isSaved = arr.some(j => {
+          const jid = j._id || j.id
+          return String(jid) === String(id)
+        })
+        setSaved(isSaved)
+      }).catch(() => {})
+    }
+
+    return () => { cancelled = true }
+  }, [id, isAuthenticated])
 
   const handleApply = async () => {
     if (!isAuthenticated) { navigate('/login', { state: { from: `/jobs/${id}` } }); return }
@@ -51,27 +68,39 @@ export default function JobDetailPage() {
     finally { setApplying(false) }
   }
 
-  const handleSave = () => {
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
     if (!isAuthenticated) { navigate('/login', { state: { from: `/jobs/${id}` } }); return }
-    setSaved(v => !v)
+    try {
+      setSaving(true)
+      const res = await jobService.toggleSaveJob(String(job._id || job.id || id))
+      // API returns { saved: true/false }
+      const nowSaved = typeof res?.saved === 'boolean' ? res.saved : !saved
+      setSaved(nowSaved)
+    } catch (err) {
+      alert(`Không thể lưu việc làm: ${err?.message || 'Lỗi không xác định'}`)
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) return (
     <div className="container-app py-8 grid lg:grid-cols-[1fr_300px] gap-6">
-      {[1,2].map(i => <div key={i} className="h-64 shimmer-bg" />)}
+      {[1, 2].map(i => <div key={i} className="h-64 shimmer-bg" />)}
     </div>
   )
   if (!job) return null
 
-  const daysAgo   = Math.floor((Date.now() - new Date(job.postedAt)) / 86400000)
+  const daysAgo = Math.floor((Date.now() - new Date(job.postedAt)) / 86400000)
   const levelStyle = LEVEL_BADGE[job.level] || LEVEL_BADGE.Middle
 
   return (
     <>
       {/* Breadcrumb */}
-      <div className="bg-white border-b border-[#E2E8F0] sticky top-16 z-10 shadow-sm" style={{ top: 'var(--header-height)'}}>
+      <div className="bg-white border-b border-[#E2E8F0] sticky top-16 z-10 shadow-sm" style={{ top: 'var(--header-height)' }}>
         <div className="container-app py-2.5 flex gap-1.5 items-center text-xs text-[#94A3B8]">
-          <Link to="/"     className="hover:text-[#0F172A] transition-colors">Trang chủ</Link>
+          <Link to="/" className="hover:text-[#0F172A] transition-colors">Trang chủ</Link>
           <ChevronRight className="h-3 w-3" />
           <Link to="/jobs" className="hover:text-[#0F172A] transition-colors">Việc làm</Link>
           <ChevronRight className="h-3 w-3" />
@@ -93,7 +122,7 @@ export default function JobDetailPage() {
               )}
               <div className="flex gap-4 mb-5">
                 <div className="w-16 h-16 rounded-2xl bg-[#EEF2FF] flex items-center justify-center font-black text-xl text-[#1549B8] shrink-0 shadow-sm">
-                  {job.company.slice(0,2).toUpperCase()}
+                  {job.company.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1">
                   <h1 className="text-xl font-black text-[#0F172A] mb-1">{job.title}</h1>
@@ -145,7 +174,7 @@ export default function JobDetailPage() {
                       🚀 {isAuthenticated ? 'Ứng tuyển ngay' : 'Đăng nhập để ứng tuyển'}
                     </Button>
                   )}
-                  <Button variant="outline" size="icon" onClick={handleSave}
+                  <Button variant="outline" size="icon" onClick={handleSave} disabled={saving}
                     className={saved ? 'border-amber-300 bg-amber-50 text-amber-500' : 'border-[#E2E8F0] text-[#475569]'}>
                     <Bookmark className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
                   </Button>
@@ -209,16 +238,16 @@ export default function JobDetailPage() {
           </div>
 
           {/* ── Sidebar ──────────────────────────────────────────── */}
-          <div  className="space-y-4 sticky self-start" style={{ top: 'calc(var(--header-height) + 64px)' }}>
+          <div className="space-y-4 sticky self-start" style={{ top: 'calc(var(--header-height) + 64px)' }}>
             <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 top-20">
               <h3 className="font-bold text-sm text-[#0F172A] mb-4">Tổng quan công việc</h3>
               {[
-                ['Cấp bậc',   job.level],
-                ['Ngành nghề',job.category],
+                ['Cấp bậc', job.level],
+                ['Ngành nghề', job.category],
                 ['Hình thức', job.type],
-                ['Lương',     job.salary],
-                ['Địa điểm',  job.location],
-                ['Hạn nộp',   new Date(job.deadline).toLocaleDateString('vi-VN')],
+                ['Lương', job.salary],
+                ['Địa điểm', job.location],
+                ['Hạn nộp', new Date(job.deadline).toLocaleDateString('vi-VN')],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between py-2 border-b border-[#F1F5F9] last:border-0 text-xs">
                   <span className="text-[#94A3B8]">{label}</span>

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type UserDocument = User & Document;
 
@@ -36,6 +36,10 @@ export class User {
 
   @Prop({ type: [String] })
   skills: string[];
+
+  // Saved jobs (candidate bookmarks)
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Job' }], default: [] })
+  savedJobs: Types.ObjectId[];
 
   // Employer specific
   @Prop()

@@ -11,7 +11,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 export class JobsController {
   constructor(private readonly jobsService: JobsService) {}
 
-  // ── Public routes ──────────────────────────────────────────────────────────
+  // ── Public static routes (must be before :id) ──────────────────────────────
 
   @Get()
   async findAll(@Query() query: any) {
@@ -23,17 +23,34 @@ export class JobsController {
     return this.jobsService.getCategories();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.jobsService.findOne(id);
-  }
-
-  // ── Protected: Candidate only ──────────────────────────────────────────────
+  // ── Protected static routes (must be before :id) ───────────────────────────
 
   @UseGuards(JwtAuthGuard)
   @Get('my-applications')
   async getMyApplications(@Request() req) {
     return this.jobsService.getMyApplications(req.user._id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my-saved-jobs')
+  async getSavedJobs(@Request() req) {
+    return this.jobsService.getSavedJobs(req.user._id);
+  }
+
+  // ── Parameterized routes (after all static routes) ─────────────────────────
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.jobsService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/save')
+  async toggleSave(@Param('id') id: string, @Request() req) {
+    if (req.user.role !== 'candidate') {
+      throw new ForbiddenException('Chỉ ứng viên mới có thể lưu công việc');
+    }
+    return this.jobsService.toggleSaveJob(id, req.user._id);
   }
 
   @UseGuards(JwtAuthGuard)
