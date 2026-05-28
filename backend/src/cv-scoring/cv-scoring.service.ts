@@ -278,7 +278,8 @@ export class CvScoringService {
     // 1. Check for existing score from candidate for this job
     if (candidateId) {
       const existing = await this.findExistingScore(candidateId, (job as any)._id.toString());
-      if (existing) {
+      // Skip reuse if the existing score is a stub (created during application upload, not actually scored)
+      if (existing && existing.analysis && (existing.overall ?? 0) > 0) {
         this.logger.log('Tái sử dụng điểm số AI có sẵn', { action: 'reuse_score', userId: candidateId, jobTitle: job.title });
 
         // Generate contextual evaluation based on existing analysis
@@ -413,6 +414,9 @@ Trả về JSON theo cấu trúc sau:
   }
 
   async generateEmployerContext(existingAnalysis: any, job: JobDocument): Promise<string> {
+    if (!existingAnalysis) {
+      return 'Không có dữ liệu phân tích trước đó cho ứng viên này. Tiến hành chấm điểm mới...';
+    }
     const prompt = `
 Bạn là một chuyên gia tuyển dụng.Dưới đây là kết quả phân tích CV của một ứng viên cho vị trí: ${job.title}.
 
