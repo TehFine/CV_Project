@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Users, User, Building2, Hourglass, CheckCircle2, Trash2, X } from 'lucide-react'
+import { Search, Users, User, Building2, Hourglass, CheckCircle2, Trash2, X, Loader2 } from 'lucide-react'
 import { adminService } from '@/services/adminService'
+import { connectSocket, onDashboardUpdateNeeded } from '@/services/socket'
 import { UsersTable, UserDetailDialog } from './components/UsersTable'
 
 const QUICK_STATS = [
@@ -17,6 +18,7 @@ export default function AdminUsersPage() {
   const [role, setRole] = useState('all')
   const [status, setStatus] = useState('all')
   const [selectedUser, setSelectedUser] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
   const [toast, setToast] = useState(null)
   const [searchText, setSearchText] = useState('')
 
@@ -40,6 +42,30 @@ export default function AdminUsersPage() {
   }, [keyword, role, status])
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
+
+  // Realtime sync: refetch when dashboard data changes (new user, application, CV score, etc.)
+  useEffect(() => {
+    connectSocket()
+    const cleanup = onDashboardUpdateNeeded(() => {
+      fetchUsers()
+    })
+    return cleanup
+  }, [fetchUsers])
+
+  const handleViewUser = async (user) => {
+    setDetailLoading(true)
+    try {
+      const res = await adminService.getUser(user.id)
+      // getUser may return data directly (mock) or wrapped in axios response
+      const freshData = res?.data || res
+      setSelectedUser({ ...user, ...freshData })
+    } catch (err) {
+      // Fallback to cached data from list if API fails
+      setSelectedUser(user)
+    } finally {
+      setDetailLoading(false)
+    }
+  }
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -172,7 +198,7 @@ export default function AdminUsersPage() {
         users={users}
         loading={loading}
         role={role}
-        onView={setSelectedUser}
+        onView={handleViewUser}
         onStatusChange={handleStatusChange}
         onDelete={handleDelete}
         onRoleChange={setRole}
@@ -183,8 +209,9 @@ export default function AdminUsersPage() {
       {/* Detail Dialog */}
       <UserDetailDialog
         user={selectedUser}
-        open={!!selectedUser}
-        onClose={() => setSelectedUser(null)}
+        open={!!selectedUser || detailLoading}
+        detailLoading={detailLoading}
+        onClose={() => { setSelectedUser(null); setDetailLoading(false) }}
         onStatusChange={handleStatusChange}
       />
     </div>

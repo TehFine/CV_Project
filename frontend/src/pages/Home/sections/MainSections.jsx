@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, MapPin, Sparkles, ArrowRight } from "lucide-react";
+import { Search, MapPin, Sparkles, ArrowRight, FileText, Briefcase, Building2, Star, Monitor, Palette, Megaphone, Wallet, Users, TrendingUp, Bot, FolderKanban, Settings, HeartPulse, Newspaper, BookOpen, Ship, Folder } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -8,11 +8,29 @@ import { useAuth } from "@/context/AuthContext";
 import JobCard from "@/components/JobCard";
 import { JOB_CATEGORIES, jobService } from "@/services/jobService";
 
+const CATEGORY_ICON_MAP = {
+  monitor: Monitor,
+  palette: Palette,
+  megaphone: Megaphone,
+  wallet: Wallet,
+  users: Users,
+  'trending-up': TrendingUp,
+  bot: Bot,
+  'folder-kanban': FolderKanban,
+  settings: Settings,
+  building2: Building2,
+  'heart-pulse': HeartPulse,
+  newspaper: Newspaper,
+  'book-open': BookOpen,
+  ship: Ship,
+  folder: Folder,
+}
+
 const STATS = [
-  { value: "50,000+", label: "CV đã phân tích", icon: "📄" },
-  { value: "12,000+", label: "Việc làm đang tuyển", icon: "💼" },
-  { value: "3,500+", label: "Công ty đối tác", icon: "🏢" },
-  { value: "95%", label: "Tỷ lệ hài lòng", icon: "⭐" },
+  { value: "50,000+", label: "CV đã phân tích", icon: FileText },
+  { value: "12,000+", label: "Việc làm đang tuyển", icon: Briefcase },
+  { value: "3,500+", label: "Công ty đối tác", icon: Building2 },
+  { value: "95%", label: "Tỷ lệ hài lòng", icon: Star },
 ];
 
 export function HeroSection() {
@@ -83,15 +101,18 @@ export function HeroSection() {
         </div>
 
         <div className="border-t border-white/10 pt-8 pb-10 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {STATS.map(s => (
+          {STATS.map(s => {
+            const StatIcon = s.icon
+            return (
             <div key={s.value} className="flex items-center gap-3">
-              <span className="text-2xl">{s.icon}</span>
+              <StatIcon size={24} className="text-blue-300" />
               <div>
                 <div className="text-xl md:text-2xl font-black text-white">{s.value}</div>
                 <div className="text-xs text-slate-400 mt-0.5">{s.label}</div>
               </div>
             </div>
-          ))}
+          )
+          })}
         </div>
       </div>
     </section>
@@ -107,16 +128,19 @@ export function CategoriesSection({ categories, onCategoryClick }) {
           <p className="text-[#475569]">Hàng nghìn công việc trong tất cả lĩnh vực</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {categories.map(cat => (
+          {categories.map(cat => {
+            const CatIcon = CATEGORY_ICON_MAP[cat.icon] || Folder
+            return (
             <button key={cat.id || cat.name} onClick={() => onCategoryClick(cat.name)}
               className="flex items-center gap-3 p-4 bg-white rounded-xl border border-[#E2E8F0] hover:-translate-y-1 hover:shadow-md hover:border-[#1549B8]/30 transition-all duration-200 text-left cursor-pointer">
-              <span className="text-2xl">{cat.icon}</span>
+              <CatIcon size={24} className="text-[#1549B8]" />
               <div>
                 <div className="font-semibold text-sm text-[#0F172A]">{cat.name}</div>
                 <div className="text-xs text-[#94A3B8] mt-0.5">{(cat.count || 0).toLocaleString()} việc</div>
               </div>
             </button>
-          ))}
+          )
+          })}
         </div>
       </div>
     </section>

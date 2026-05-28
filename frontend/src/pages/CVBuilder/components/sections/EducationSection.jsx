@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, GraduationCap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,7 +21,7 @@ export function EducationSection({ items, onChange }) {
     onChange(cv => ({ ...cv, education: [...cv.education, { id: uid(), ...EMPTY_EDUCATION }] }))
 
   return (
-    <Section title="Học vấn" icon="🎓">
+    <Section title="Học vấn" icon={<GraduationCap className="h-4 w-4 text-[#1549B8]" />}>
       {items.map(edu => (
         <div key={edu.id} className="border border-[#E2E8F0] rounded-lg p-3 space-y-2 relative">
           <button

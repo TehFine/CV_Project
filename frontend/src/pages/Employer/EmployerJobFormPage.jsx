@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Edit3, FileText, Wrench, Save, Loader2, CheckCircle2, Rocket, XCircle, Plus } from 'lucide-react'
 import { employerService } from '../../services/employerService'
 import { useAuth } from '../../context/AuthContext'
 
@@ -152,14 +153,14 @@ export default function EmployerJobFormPage() {
         }}>
           ← Quay lại danh sách
         </button>
-        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A' }}>
-          {isEdit ? '✏️ Chỉnh sửa tin tuyển dụng' : 'Đăng tin tuyển dụng mới'}
+        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 8 }}>
+          {isEdit ? <><Edit3 className="h-5 w-5" /> Chỉnh sửa tin tuyển dụng</> : 'Đăng tin tuyển dụng mới'}
         </h1>
       </div>
 
       <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 20 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9' }}>
-          📝 Thông tin cơ bản
+        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FileText className="h-4 w-4" /> Thông tin cơ bản
         </h2>
 
         {errorMsg && (
@@ -167,8 +168,9 @@ export default function EmployerJobFormPage() {
             padding: '12px 16px', borderRadius: 10, marginBottom: 20,
             backgroundColor: '#FEF2F2', border: '1.5px solid #FECACA',
             color: '#DC2626', fontSize: 13, fontWeight: 600,
+            display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            ❌ {errorMsg}
+            <XCircle className="h-4 w-4 shrink-0" />{errorMsg}
           </div>
         )}
 
@@ -278,8 +280,8 @@ export default function EmployerJobFormPage() {
 
       {/* Description & Details */}
       <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 20 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9' }}>
-          📄 Chi tiết tin đăng
+        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FileText className="h-4 w-4" /> Chi tiết tin đăng
         </h2>
         
         <Field label="Mô tả công việc" required>
@@ -313,8 +315,8 @@ export default function EmployerJobFormPage() {
 
       {/* Skills */}
       <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 8, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9' }}>
-          🔧 Kỹ năng yêu cầu <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 400 }}>(AI dùng để so khớp CV)</span>
+        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 8, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Wrench className="h-4 w-4" /> Kỹ năng yêu cầu <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 400 }}>(AI dùng để so khớp CV)</span>
         </h2>
 
         {/* Selected skills */}
@@ -348,7 +350,7 @@ export default function EmployerJobFormPage() {
             color: 'white', fontWeight: 700, cursor: skillInput.trim() ? 'pointer' : 'not-allowed',
             opacity: skillInput.trim() ? 1 : 0.5, fontFamily: 'inherit', fontSize: 13,
           }}>
-            Thêm
+            <Plus className="h-4 w-4" /> Thêm
           </button>
         </div>
 
@@ -386,8 +388,9 @@ export default function EmployerJobFormPage() {
           background: 'white', cursor: saving ? 'not-allowed' : 'pointer',
           fontSize: 14, fontWeight: 600, fontFamily: 'inherit', color: '#0F172A',
           opacity: saving ? 0.6 : 1,
+          display: 'flex', alignItems: 'center', gap: 6,
         }}>
-          💾 Lưu nháp
+          <Save className="h-4 w-4" /> Lưu nháp
         </button>
         <button onClick={() => handleSave(true)} disabled={saving} style={{
           padding: '12px 28px', borderRadius: 10, border: 'none',
@@ -396,8 +399,9 @@ export default function EmployerJobFormPage() {
           fontSize: 14, fontWeight: 800, fontFamily: 'inherit',
           boxShadow: saving ? 'none' : '0 4px 12px rgba(59,130,246,0.35)',
           transition: 'all 0.2s', flex: 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
         }}>
-          {saving ? '⏳ Đang lưu...' : isEdit ? '✅ Cập nhật & Gửi duyệt' : '🚀 Đăng tin (Chờ duyệt)'}
+          {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Đang lưu...</> : isEdit ? <><CheckCircle2 className="h-4 w-4" /> Cập nhật & Gửi duyệt</> : <><Rocket className="h-4 w-4" /> Đăng tin (Chờ duyệt)</>}
         </button>
       </div>
     </div>

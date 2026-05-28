@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
-import { Upload, Sparkles, FileText, X, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Upload, Sparkles, FileText, X, ArrowRight, CheckCircle2, AlertCircle, Target, Briefcase, Radar as RadarIcon, BarChart2, Lightbulb, Rocket, GraduationCap, Search, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -53,8 +53,8 @@ function ScoreResult({ result, onReset }) {
             </div>
             <div className="w-full">
               <p className="text-violet-300 text-xs font-bold uppercase tracking-wide mb-2">Kết quả phân tích AI</p>
-              <h2 className="text-white text-2xl font-black mb-3 leading-snug">
-                {result.overall >= 85 ? '🎉 CV rất ấn tượng!' : result.overall >= 70 ? '👍 CV tốt, còn cải thiện được' : '💪 CV cần được cải thiện thêm'}
+              <h2 className="text-white text-2xl font-black mb-3 leading-snug flex items-center justify-center gap-2">
+                {result.overall >= 85 ? <><Sparkles className="h-6 w-6 text-yellow-400" /> CV rất ấn tượng!</> : result.overall >= 70 ? <><CheckCircle2 className="h-6 w-6 text-emerald-400" /> CV tốt, còn cải thiện được</> : <><Target className="h-6 w-6 text-amber-400" /> CV cần được cải thiện thêm</>}
               </h2>
               <p className="text-slate-400 text-sm mb-5 truncate px-2">{result.fileName}</p>
 
@@ -74,7 +74,7 @@ function ScoreResult({ result, onReset }) {
             <Upload className="h-4 w-4" />Upload CV khác
           </Button>
           <Button size="lg" asChild className="w-full gap-2 justify-center">
-            <Link to="/jobs">💼 Tìm việc phù hợp <ArrowRight className="h-4 w-4" /></Link>
+            <Link to="/jobs"><Briefcase className="h-4 w-4" /> Tìm việc phù hợp <ArrowRight className="h-4 w-4" /></Link>
           </Button>
         </div >
       </div >
@@ -85,7 +85,7 @@ function ScoreResult({ result, onReset }) {
         <Card className="shadow-md">
           <CardContent className="p-6 md:p-8">
             <h3 className="font-bold text-foreground mb-4 flex items-center gap-2 text-lg border-b pb-4">
-              🕸️ Phân tích tổng quan
+              <RadarIcon className="h-5 w-5 text-primary" /> Phân tích tổng quan
             </h3>
             <div className="h-[320px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -105,7 +105,7 @@ function ScoreResult({ result, onReset }) {
         <Card className="shadow-md">
           <CardContent className="p-6 md:p-8">
             <h3 className="font-bold text-foreground mb-6 flex items-center gap-2 text-lg border-b pb-4">
-              📊 Chi tiết theo tiêu chí
+              <BarChart2 className="h-5 w-5 text-primary" /> Chi tiết theo tiêu chí
             </h3>
             <div className="space-y-6">
               {result.categories.map(cat => (
@@ -123,7 +123,7 @@ function ScoreResult({ result, onReset }) {
                   <div className="flex flex-wrap gap-2">
                     {cat.suggestions.map(s => (
                       <Badge key={s} variant="ai" className="text-xs font-normal whitespace-normal text-left h-auto py-1.5 px-3 leading-relaxed">
-                        💡 {s}
+                        <Lightbulb className="h-3 w-3 mr-1" />{s}
                       </Badge>
                     ))}
                   </div>
@@ -136,7 +136,7 @@ function ScoreResult({ result, onReset }) {
         {/* Improvements */}
         <Card className="shadow-md">
           <CardContent className="p-6 md:p-8">
-            <h3 className="font-bold text-foreground mb-5 text-lg border-b pb-4">🚀 Cần cải thiện ngay</h3>
+            <h3 className="font-bold text-foreground mb-5 text-lg border-b pb-4 flex items-center gap-2"><Rocket className="h-5 w-5 text-primary" /> Cần cải thiện ngay</h3>
             <div className="space-y-4">
               {result.improvements.map((imp, i) => (
                 <div key={i} className="flex gap-4 items-start py-3 border-b last:border-0">
@@ -262,7 +262,7 @@ export default function CVUploadPage() {
                       ) : (
                         <>
                           <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
-                            {dragging ? '📥' : '📄'}
+                            {dragging ? <Upload className="h-6 w-6 text-primary" /> : <FileText className="h-6 w-6 text-primary" />}
                           </div>
                           <p className="font-bold text-foreground mb-1">{dragging ? 'Thả file vào đây!' : 'Kéo thả CV vào đây'}</p>
                           <p className="text-sm text-muted-foreground mb-3">Hoặc nhấn để chọn từ máy tính</p>
@@ -279,7 +279,7 @@ export default function CVUploadPage() {
                 {/* Target position */}
                 <Card>
                   <CardContent className="p-5">
-                    <Label className="mb-2 block">🎯 Vị trí ứng tuyển <span className="text-muted-foreground font-normal text-xs ml-1">(tuỳ chọn — AI sẽ đánh giá chính xác hơn)</span></Label>
+                    <Label className="mb-2 block flex items-center gap-1.5"><Target className="h-4 w-4 text-primary" /> Vị trí ứng tuyển <span className="text-muted-foreground font-normal text-xs ml-1">(tuỳ chọn — AI sẽ đánh giá chính xác hơn)</span></Label>
                     <Input value={targetPos} onChange={e => setTargetPos(e.target.value)} placeholder="VD: Frontend Developer, Product Manager..." />
                   </CardContent>
                 </Card>
@@ -294,27 +294,30 @@ export default function CVUploadPage() {
                   <Sparkles className="h-5 w-5" /><span>{jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV ngay — Miễn phí'}</span>
                 </Button>
 
-                <p className="text-center text-xs text-muted-foreground">🔒 File được bảo mật và không lưu trữ lâu dài</p>
+                <p className="text-center text-xs text-muted-foreground"><Lock className="inline-block h-3 w-3 mr-1" /> File được bảo mật và không lưu trữ lâu dài</p>
 
                 {/* What AI checks */}
                 <Card>
                   <CardContent className="p-5">
                     <h4 className="font-bold text-sm mb-3">AI đánh giá 5 tiêu chí:</h4>
                     {[
-                      { icon: '🎯', title: 'Kỹ năng phù hợp', desc: 'So sánh với yêu cầu thị trường' },
-                      { icon: '💼', title: 'Kinh nghiệm', desc: 'Chất lượng và tính liên quan' },
-                      { icon: '🎓', title: 'Học vấn & Chứng chỉ', desc: 'Bằng cấp, chứng chỉ chuyên môn' },
-                      { icon: '📄', title: 'Định dạng & Trình bày', desc: 'Bố cục, dễ đọc, chuyên nghiệp' },
-                      { icon: '🔍', title: 'Từ khóa & ATS', desc: 'Tối ưu cho hệ thống lọc tự động' },
-                    ].map(item => (
-                      <div key={item.title} className="flex gap-3 py-2.5 border-b last:border-0 items-start">
-                        <span className="text-lg shrink-0">{item.icon}</span>
-                        <div>
-                          <p className="text-sm font-semibold">{item.title}</p>
-                          <p className="text-xs text-muted-foreground">{item.desc}</p>
+                      { icon: Target, title: 'Kỹ năng phù hợp', desc: 'So sánh với yêu cầu thị trường' },
+                      { icon: Briefcase, title: 'Kinh nghiệm', desc: 'Chất lượng và tính liên quan' },
+                      { icon: GraduationCap, title: 'Học vấn & Chứng chỉ', desc: 'Bằng cấp, chứng chỉ chuyên môn' },
+                      { icon: FileText, title: 'Định dạng & Trình bày', desc: 'Bố cục, dễ đọc, chuyên nghiệp' },
+                      { icon: Search, title: 'Từ khóa & ATS', desc: 'Tối ưu cho hệ thống lọc tự động' },
+                    ].map(item => {
+                      const IconComp = item.icon
+                      return (
+                        <div key={item.title} className="flex gap-3 py-2.5 border-b last:border-0 items-start">
+                          <IconComp className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-semibold">{item.title}</p>
+                            <p className="text-xs text-muted-foreground">{item.desc}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </CardContent>
                 </Card>
               </>

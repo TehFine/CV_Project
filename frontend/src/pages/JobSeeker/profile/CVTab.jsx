@@ -131,7 +131,7 @@ export function CVTab() {
       {cvs.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
-            <div className="text-5xl mb-4">📄</div>
+            <div className="mb-4"><FileText className="h-12 w-12 mx-auto text-muted-foreground/50" /></div>
             <p className="font-semibold mb-1">Bạn chưa phân tích CV nào</p>
             <p className="text-sm text-muted-foreground mb-5">
               Tải lên CV để AI phân tích và đánh giá năng lực của bạn
@@ -145,7 +145,7 @@ export function CVTab() {
         cvs.map(cv => (
           <Card key={cv._id || cv.id}>
             <CardContent className="p-4 flex gap-3 items-center">
-              <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center text-xl shrink-0">📄</div>
+              <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center shrink-0"><FileText className="h-5 w-5 text-primary" /></div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{cv.fileName}</p>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">

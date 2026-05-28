@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { MapPin, DollarSign, Clock, BarChart2, Bookmark, Share2, CheckCircle2, Sparkles, ChevronRight, Eye, Users2 } from 'lucide-react'
+import { MapPin, DollarSign, Clock, BarChart2, Bookmark, Share2, CheckCircle2, Sparkles, ChevronRight, Eye, Users2, Send, FileText, Gift, Lightbulb, Loader2 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -202,7 +202,7 @@ export default function JobDetailPage() {
                     <Button
                       onClick={() => isAuthenticated ? setShowApply(true) : navigate('/login', { state: { from: `/jobs/${id}` } })}
                       className="bg-[#1549B8] hover:bg-[#1240A0] text-white font-bold gap-2 shadow-sm">
-                      🚀 {isAuthenticated ? 'Ứng tuyển ngay' : 'Đăng nhập để ứng tuyển'}
+                      <Send className="h-4 w-4" />{isAuthenticated ? 'Ứng tuyển ngay' : 'Đăng nhập để ứng tuyển'}
                     </Button>
                   )}
                   <Button variant="outline" size="icon" onClick={handleSave} disabled={saving}
@@ -219,8 +219,7 @@ export default function JobDetailPage() {
             {/* Description card */}
             <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 space-y-6">
               <div>
-                <h2 className="font-bold text-[#0F172A] mb-3 flex items-center gap-2 text-base">
-                  <span className="text-lg">📋</span> Mô tả công việc
+                <h2 className="font-bold text-[#0F172A] mb-3 flex items-center gap-2 text-base">                        <FileText className="h-5 w-5 text-primary" /> Mô tả công việc
                 </h2>
                 <p className="text-sm text-[#475569] leading-relaxed whitespace-pre-line">{job.description}</p>
               </div>
@@ -228,8 +227,7 @@ export default function JobDetailPage() {
               <Separator />
 
               <div>
-                <h2 className="font-bold text-[#0F172A] mb-3 flex items-center gap-2 text-base">
-                  <span className="text-lg">✅</span> Yêu cầu công việc
+                <h2 className="font-bold text-[#0F172A] mb-3 flex items-center gap-2 text-base">                        <CheckCircle2 className="h-5 w-5 text-primary" /> Yêu cầu công việc
                 </h2>
                 <ul className="space-y-2.5">
                   {job.requirements.map((req, i) => (
@@ -246,13 +244,12 @@ export default function JobDetailPage() {
               <Separator />
 
               <div>
-                <h2 className="font-bold text-[#0F172A] mb-3 flex items-center gap-2 text-base">
-                  <span className="text-lg">🎁</span> Phúc lợi
+                <h2 className="font-bold text-[#0F172A] mb-3 flex items-center gap-2 text-base">                        <Gift className="h-5 w-5 text-primary" /> Phúc lợi
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {job.benefits.map((b, i) => (
                     <span key={i} className="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
-                      ✨ {b}
+                      <Sparkles className="h-3 w-3" />{b}
                     </span>
                   ))}
                 </div>
@@ -261,7 +258,7 @@ export default function JobDetailPage() {
 
             {/* Deadline */}
             <div className="flex items-center gap-2.5 p-4 bg-[#FFFBEB] border border-amber-200 rounded-xl">
-              <span className="text-xl">⏰</span>
+              <Clock className="h-5 w-5 text-amber-600 shrink-0" />
               <p className="text-sm text-amber-800">
                 <strong>Hạn nộp hồ sơ:</strong> {new Date(job.deadline).toLocaleDateString('vi-VN')}
               </p>
@@ -320,8 +317,9 @@ export default function JobDetailPage() {
             <p className="text-sm text-[#1549B8] font-semibold">{job.title}</p>
             <p className="text-xs text-[#94A3B8]">{job.company}</p>
           </DialogHeader>
-          <div className="p-3 bg-[#F5F3FF] border border-[#DDD6FE] rounded-xl text-xs text-[#7C3AED]">
-            💡 <Link to={`/cv-upload?jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`} className="font-bold hover:underline text-[#7C3AED]">Xem mức độ phù hợp</Link> trước để tăng tỷ lệ đậu
+          <div className="p-3 bg-[#F5F3FF] border border-[#DDD6FE] rounded-xl text-xs text-[#7C3AED] flex items-center gap-1.5">
+            <Lightbulb className="h-4 w-4 shrink-0" />
+            <Link to={`/cv-upload?jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`} className="font-bold hover:underline text-[#7C3AED]">Xem mức độ phù hợp</Link> trước để tăng tỷ lệ đậu
           </div>
           <div className="space-y-4">
             {hasCV ? (
@@ -350,7 +348,7 @@ export default function JobDetailPage() {
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowApply(false)}>Hủy</Button>
             <Button onClick={handleApply} disabled={applying} className="bg-[#1549B8] hover:bg-[#1240A0] gap-2">
-              {applying ? '⏳ Đang xử lý...' : '🚀 Xác nhận ứng tuyển'}
+              {applying ? <><Loader2 className="h-4 w-4 animate-spin" /> Đang xử lý...</> : <><Send className="h-4 w-4" /> Xác nhận ứng tuyển</>}
             </Button>
           </DialogFooter>
         </DialogContent>

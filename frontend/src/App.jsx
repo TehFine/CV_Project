@@ -244,7 +244,9 @@ export default function App() {
             path="/cv-upload"
             element={
               <SeekerLayout>
-                <CVUploadPage />
+                <ProtectedRoute requireRole="candidate">
+                  <CVUploadPage />
+                </ProtectedRoute>
               </SeekerLayout>
             }
           />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Sparkles, Crosshair, Building2, Rocket, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -73,23 +73,25 @@ export default function RegisterPage() {
           <span className="text-white font-black text-2xl tracking-tight">Nex<span className="text-violet-400">CV</span></span>
         </Link>
         <div className="relative">
-          <h2 className="text-4xl font-black text-white mb-4 leading-tight">Tạo tài khoản<br />hoàn toàn miễn phí ✨</h2>
+          <h2 className="text-4xl font-black text-white mb-4 leading-tight">Tạo tài khoản<br />hoàn toàn miễn phí <Sparkles className="inline-block h-6 w-6 text-yellow-300" /></h2>
           <p className="text-slate-300 leading-relaxed mb-8">
             Tham gia 50,000+ người dùng đang dùng NexCV để tối ưu CV và kết nối nhân tài.
           </p>
           {[
-            { icon: '✨', title: 'AI Phân tích CV', desc: 'Phân tích chi tiết trong 30 giây' },
-            { icon: '🎯', title: 'Gợi ý việc làm phù hợp', desc: 'Dựa trên kỹ năng và kinh nghiệm' },
-            { icon: '🏢', title: 'Kết nối nhà tuyển dụng', desc: 'Hàng nghìn công ty hàng đầu VN' },
-          ].map(f => (
+            { icon: Sparkles,   title: 'AI Phân tích CV', desc: 'Phân tích chi tiết trong 30 giây' },
+            { icon: Crosshair,  title: 'Gợi ý việc làm phù hợp', desc: 'Dựa trên kỹ năng và kinh nghiệm' },
+            { icon: Building2,  title: 'Kết nối nhà tuyển dụng', desc: 'Hàng nghìn công ty hàng đầu VN' },
+          ].map(f => {
+            const FeatureIcon = f.icon
+            return (
             <div key={f.title} className="flex gap-3 p-3.5 bg-white/5 rounded-xl border border-white/10 mb-3">
-              <span className="text-xl shrink-0">{f.icon}</span>
+              <FeatureIcon className="h-6 w-6 text-violet-300 shrink-0" />
               <div>
                 <div className="text-white font-semibold text-sm">{f.title}</div>
                 <div className="text-slate-400 text-xs mt-0.5">{f.desc}</div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       </div>
 
@@ -114,7 +116,7 @@ export default function RegisterPage() {
 
           {errors.submit && (
             <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-              ⚠️ {errors.submit}
+              <AlertTriangle className="h-4 w-4 inline-block shrink-0" /> {errors.submit}
             </div>
           )}
 
@@ -168,7 +170,7 @@ export default function RegisterPage() {
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? 'Đang tạo tài khoản...' : '🚀 Tạo tài khoản miễn phí'}
+              {loading ? 'Đang tạo tài khoản...' : <><Rocket className="h-4 w-4" /> Tạo tài khoản miễn phí</>}
             </Button>
           </form>
         </div>

@@ -8,6 +8,7 @@ import {
   Bookmark,
   ChevronDown,
   History,
+  Briefcase,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -55,17 +56,8 @@ export default function Header() {
   const navigate  = useNavigate();
   const headerRef = useRef(null);
 
-  const [scrolled,     setScrolled]     = useState(false);
-
   const isHome   = location.pathname === "/";
-  const isSolid  = scrolled || !isHome;
-
-  // Scroll listener
-  useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
-  }, []);
+  const isSolid  = true;
 
   // Sync --header-height CSS var
   useEffect(() => {
@@ -117,14 +109,6 @@ export default function Header() {
     isSolid
       ? "bg-[#1549B8] text-white shadow-blue-600/20 hover:bg-[#1240A0]"
       : "bg-white text-[#1549B8] hover:bg-white/90"
-  );
-
-  // Dark button (Nhà tuyển dụng)
-  const btnDarkCls = cn(
-    "flex items-center gap-1.5 px-4 py-[7px] rounded-lg text-sm font-semibold transition-all duration-200",
-    isSolid
-      ? "bg-[#0F172A] text-white hover:bg-slate-800"
-      : "bg-white/15 text-white hover:bg-white/25"
   );
 
   // User dropdown trigger
@@ -203,7 +187,8 @@ export default function Header() {
               <>
                 <Link to="/login"    className={btnOutlineCls}>Đăng nhập</Link>
                 <Link to="/register" className={btnPrimaryCls}>Đăng ký</Link>
-                <a href="/employer" target="_blank" rel="noopener noreferrer" className={btnDarkCls}>
+                <a href="/employer" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-4 py-[7px] rounded-lg text-sm font-semibold transition-all duration-200 bg-[#0F172A] text-white hover:bg-slate-800">
+                  <Briefcase className="w-3.5 h-3.5" />
                   Nhà tuyển dụng
                 </a>
               </>
@@ -295,6 +280,7 @@ export default function Header() {
                         </Link>
                       </SheetClose>
                       <a href="/employer" target="_blank" rel="noopener noreferrer" className="block w-full py-2.5 text-center rounded-lg text-sm font-semibold bg-[#0F172A] text-white hover:bg-slate-800 transition-colors no-underline">
+                        <Briefcase className="inline-block w-4 h-4 mr-1.5" />
                         Nhà tuyển dụng
                       </a>
                     </>

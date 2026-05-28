@@ -9,6 +9,7 @@ import { Notification, NotificationDocument } from '../admin/schemas/notificatio
 import { NotificationsGateway } from '../admin/gateways/notifications.gateway';
 import { AppLogger } from '../common/logger.service';
 import { User, UserDocument } from '../users/schemas/user.schema';
+import { Settings, SettingsDocument } from '../admin/schemas/settings.schema';
 
 @Injectable()
 export class JobsService {
@@ -20,13 +21,19 @@ export class JobsService {
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
     @InjectModel(Notification.name) private notificationModel: Model<NotificationDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Settings.name) private settingsModel: Model<SettingsDocument>,
     private notificationsGateway: NotificationsGateway,
   ) {}
 
   async findAll(query: any) {
+    const jobsSettings = await this.getJobsSettings();
     const { keyword, location, category, level, type, page = 1, limit = 20 } = query;
     
     const filter: any = { status: 'active' };
+
+    // Exclude expired jobs based on jobExpiryDays
+    const expiryDate = new Date(Date.now() - jobsSettings.jobExpiryDays * 24 * 60 * 60 * 1000);
+    filter.createdAt = { $gte: expiryDate };
 
     // Helper: Tạo regex khớp cả có dấu và không dấu
     const getLenientRegex = (val: string) => {
@@ -93,6 +100,13 @@ export class JobsService {
     if (!job) {
       throw new NotFoundException('Không tìm thấy công việc');
     }
+
+    // Check if job is expired
+    const jobsSettings = await this.getJobsSettings();
+    const expiryDate = new Date(Date.now() - jobsSettings.jobExpiryDays * 24 * 60 * 60 * 1000);
+    if ((job as any).createdAt < expiryDate) {
+      throw new NotFoundException('Tin tuyển dụng đã hết hạn');
+    }
     
     // Increment views
     job.views += 1;
@@ -109,10 +123,40 @@ export class JobsService {
   }
 
   async create(jobData: any, employerId: string) {
+    const jobsSettings = await this.getJobsSettings();
+    const usersSettings = await this.getUsersSettings();
+
+    // Enforce employerVerificationRequired: NTD phải được xác minh trước khi đăng tin
+    if (usersSettings.employerVerificationRequired) {
+      const employer = await this.userModel.findById(employerId).exec();
+      if (employer && !employer.verified) {
+        throw new BadRequestException(
+          'Tài khoản của bạn chưa được xác minh. Vui lòng hoàn tất xác minh pháp nhân trước khi đăng tin tuyển dụng.'
+        );
+      }
+    }
+
+    // Enforce maxJobsPerEmployer: check số lượng job đang active của NTD TRƯỚC khi tạo
+    const activeJobCount = await this.jobModel.countDocuments({
+      employerId: employerId as any,
+      status: { $in: ['active', 'pending'] },
+    }).exec();
+    if (activeJobCount >= jobsSettings.maxJobsPerEmployer) {
+      throw new BadRequestException(
+        `Bạn đã đạt giới hạn ${jobsSettings.maxJobsPerEmployer} tin tuyển dụng. Vui lòng xóa bớt tin cũ trước khi đăng tin mới.`
+      );
+    }
+
     const newJob = new this.jobModel({
       ...jobData,
       employerId,
     });
+
+    // Enforce requireApproval: nếu không cần duyệt, auto-approve ngay
+    if (!jobsSettings.requireApproval && (!newJob.status || newJob.status === 'pending')) {
+      newJob.status = 'active';
+    }
+
     const saved = await newJob.save();
     this.logger.success('Tạo tin tuyển dụng mới', { userId: employerId, action: 'create_job', jobId: saved._id.toString(), title: jobData.title });
 
@@ -193,6 +237,13 @@ export class JobsService {
       throw new NotFoundException('Không tìm thấy công việc');
     }
 
+    // Check if job is expired
+    const jobsSettings = await this.getJobsSettings();
+    const expiryDate = new Date(Date.now() - jobsSettings.jobExpiryDays * 24 * 60 * 60 * 1000);
+    if ((job as any).createdAt < expiryDate) {
+      throw new BadRequestException('Tin tuyển dụng này đã hết hạn, không thể ứng tuyển.');
+    }
+
     // SPAM PREVENTION: Check if already applied
     const existingApp = await this.applicationModel.findOne({ jobId: jobId as any, candidateId: candidateId as any });
     if (existingApp) {
@@ -200,10 +251,24 @@ export class JobsService {
       throw new BadRequestException('Bạn đã từng ứng tuyển vị trí này rồi.');
     }
 
+    // Check AI settings for file validation
+    const aiSettings = await this.getAiSettings();
+
     let cvId = data.cvId || 'uploaded_cv.pdf';
     let aiScoreId: any = undefined;
 
     if (file) {
+      // Normalize Vietnamese filename before validation
+      file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
+      const maxBytes = aiSettings.maxFileSizeMB * 1024 * 1024;
+      if (file.size > maxBytes) {
+        throw new BadRequestException(`Dung lượng file vượt quá giới hạn ${aiSettings.maxFileSizeMB}MB.`);
+      }
+      const ext = file.originalname.split('.').pop()?.toLowerCase();
+      if (!ext || !aiSettings.supportedFormats.includes(ext)) {
+        throw new BadRequestException(`Định dạng file không được hỗ trợ. Các định dạng: ${aiSettings.supportedFormats.join(', ')}`);
+      }
       const originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
       const newScore = new this.cvScoreModel({
         userId: candidateId as any,
@@ -283,6 +348,54 @@ export class JobsService {
     ]);
   }
 
+  // ─── Settings from DB ────────────────────────────────────────────────
+
+  private async getAiSettings(): Promise<{
+    maxFileSizeMB: number;
+    supportedFormats: string[];
+  }> {
+    const defaults = { maxFileSizeMB: 10, supportedFormats: ['pdf', 'doc', 'docx'] };
+    try {
+      const doc = await this.settingsModel.findOne({ key: 'global' }).exec();
+      if (!doc) return defaults;
+      const ai = (doc as any).ai || {};
+      return { ...defaults, ...ai };
+    } catch {
+      return defaults;
+    }
+  }
+
+  private async getJobsSettings(): Promise<{
+    requireApproval: boolean;
+    maxJobsPerEmployer: number;
+    jobExpiryDays: number;
+  }> {
+    const defaults = { requireApproval: true, maxJobsPerEmployer: 20, jobExpiryDays: 90 };
+    try {
+      const doc = await this.settingsModel.findOne({ key: 'global' }).exec();
+      if (!doc) return defaults;
+      const jobs = (doc as any).jobs || {};
+      return { ...defaults, ...jobs };
+    } catch {
+      return defaults;
+    }
+  }
+
+  private async getUsersSettings(): Promise<{
+    employerVerificationRequired: boolean;
+    maxSavedJobs: number;
+  }> {
+    const defaults = { employerVerificationRequired: true, maxSavedJobs: 50 };
+    try {
+      const doc = await this.settingsModel.findOne({ key: 'global' }).exec();
+      if (!doc) return defaults;
+      const users = (doc as any).users || {};
+      return { ...defaults, ...users };
+    } catch {
+      return defaults;
+    }
+  }
+
   async seedData() {
     await this.jobModel.deleteMany({});
     const result = await this.jobModel.insertMany(SEED_JOBS());
@@ -300,7 +413,15 @@ export class JobsService {
     const idx = (user.savedJobs || []).findIndex(id => id.toString() === jobId);
 
     if (idx === -1) {
-      // Not saved yet → save it
+      // Enforce maxSavedJobs: check limit before saving
+      const usersSettings = await this.getUsersSettings();
+      const currentSavedCount = (user.savedJobs || []).length;
+      if (currentSavedCount >= usersSettings.maxSavedJobs) {
+        throw new BadRequestException(
+          `Bạn chỉ có thể lưu tối đa ${usersSettings.maxSavedJobs} công việc. Vui lòng bỏ lưu công việc cũ trước khi lưu công việc mới.`
+        );
+      }
+
       await this.userModel.findByIdAndUpdate(userId, { $addToSet: { savedJobs: jobObjId } });
       this.logger.log('Lưu việc làm', { userId, jobId, action: 'save_job' });
       return { saved: true };

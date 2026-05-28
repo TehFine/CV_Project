@@ -6,6 +6,7 @@ import { Job, JobDocument } from '../jobs/schemas/job.schema';
 import { Application, ApplicationDocument } from '../jobs/schemas/application.schema';
 import { CvScore, CvScoreDocument } from '../cv-scoring/schemas/cv-score.schema';
 import { Notification, NotificationDocument } from './schemas/notification.schema';
+import { Settings, SettingsDocument } from './schemas/settings.schema';
 import { AppLogger } from '../common/logger.service';
 import { NotificationsGateway } from './gateways/notifications.gateway';
 
@@ -19,6 +20,7 @@ export class AdminService {
     @InjectModel(Application.name) private applicationModel: Model<ApplicationDocument>,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
     @InjectModel(Notification.name) private notificationModel: Model<NotificationDocument>,
+    @InjectModel(Settings.name) private settingsModel: Model<SettingsDocument>,
     private notificationsGateway: NotificationsGateway,
   ) {}
 
@@ -228,6 +230,25 @@ export class AdminService {
     if (!user) throw new NotFoundException('Không tìm thấy người dùng');
     const userObj = user.toObject ? user.toObject() : user;
     const { password, ...safeUser } = userObj;
+
+    // Enrich with real-time stats from other collections
+    if (user.role === 'candidate') {
+      const cvCount = await this.cvScoreModel.countDocuments({ userId: user._id } as any);
+      const appliedJobs = await this.applicationModel.countDocuments({ candidateId: user._id } as any);
+      const savedJobs = (user.savedJobs || []).length;
+      return { ...safeUser, cvCount, appliedJobs, savedJobs };
+    }
+
+    if (user.role === 'employer') {
+      const postedJobs = await this.jobModel.countDocuments({ employerId: user._id } as any);
+      const employerJobs = await this.jobModel.find({ employerId: user._id } as any).select('_id').exec();
+      const jobIds = employerJobs.map(j => j._id);
+      const totalApplicants = await this.applicationModel.countDocuments({
+        jobId: { $in: jobIds },
+      } as any);
+      return { ...safeUser, postedJobs, totalApplicants };
+    }
+
     return safeUser;
   }
 
@@ -417,14 +438,24 @@ export class AdminService {
       const score = s.toObject ? s.toObject() : s;
       const user = score.userId as any;
       const cats = (score as any).analysis?.categories || [];
+      const overallVal = (score as any).overall || (score as any).score || 0;
       const categories: any = { skills: 0, experience: 0, education: 0, format: 0, keywords: 0 };
       const catMap: any = { skills_match: 'skills', skills: 'skills', experience: 'experience', education: 'education', format: 'format', keywords: 'keywords' };
       for (const c of cats) {
         const key = catMap[c.key];
         if (key) categories[key] = c.score;
       }
+      // Fallback: nếu categories vẫn là 0 (dữ liệu cũ không có analysis.categories),
+      // dùng overall score để phân bổ hợp lý
+      const hasRealData = Object.values(categories).some(v => (v as number) > 0);
+      if (!hasRealData && overallVal > 0) {
+        categories.skills = overallVal;
+        categories.experience = Math.min(100, overallVal + 5);
+        categories.education = Math.min(100, overallVal + 10);
+        categories.format = Math.max(0, overallVal - 5);
+        categories.keywords = Math.max(0, overallVal - 10);
+      }
 
-      const overallVal = (score as any).overall || (score as any).score || 0;
       // Compute grade from score if not stored (for old records)
       let computedGrade = (score as any).grade || null;
       if (!computedGrade) {
@@ -539,42 +570,69 @@ export class AdminService {
 
   // ─── Settings ────────────────────────────────────────────────────────
 
+  private readonly DEFAULT_SETTINGS = {
+    site: {
+      siteName: 'NexCV',
+      siteUrl: 'https://nexcv.vn',
+      contactEmail: 'support@nexcv.vn',
+      contactPhone: '0901234567',
+      maintenanceMode: false,
+    },
+    ai: {
+      cvScoreEnabled: true,
+      maxFileSizeMB: 10,
+      supportedFormats: ['pdf', 'doc', 'docx'],
+      processingTimeoutSec: 60,
+      dailyScoreLimit: 5,
+    },
+    jobs: {
+      requireApproval: true,
+      maxJobsPerEmployer: 20,
+      featuredJobPrice: 0,
+      jobExpiryDays: 90,
+      autoCloseExpired: true,
+    },
+    users: {
+      emailVerificationRequired: false,
+      employerVerificationRequired: true,
+      maxSavedJobs: 50,
+    },
+    security: {
+      passwordMinLength: 6,
+      maxLoginAttempts: 5,
+      sessionTimeoutMin: 60,
+      mfaEnabled: false,
+      rbacEnabled: false,
+      auditLogEnabled: true,
+    },
+  };
+
   async getSettings() {
-    // Return default settings (could be stored in DB in production)
+    const doc = await this.settingsModel.findOne({ key: 'global' }).exec();
+    if (!doc) return { ...this.DEFAULT_SETTINGS };
+
+    // Merge DB values over defaults so new sections always have defaults
     return {
-      site: {
-        siteName: 'NexCV',
-        siteUrl: 'https://nexcv.vn',
-        contactEmail: 'support@nexcv.vn',
-        contactPhone: '0901234567',
-        maintenanceMode: false,
-      },
-      ai: {
-        cvScoreEnabled: true,
-        maxFileSizeMB: 10,
-        supportedFormats: ['pdf', 'doc', 'docx'],
-        processingTimeoutSec: 60,
-        dailyScoreLimit: 5,
-      },
-      jobs: {
-        requireApproval: true,
-        maxJobsPerEmployer: 20,
-        featuredJobPrice: 0,
-        jobExpiryDays: 90,
-        autoCloseExpired: true,
-      },
-      users: {
-        emailVerificationRequired: false,
-        employerVerificationRequired: true,
-        maxSavedJobs: 50,
-      },
+      site: { ...this.DEFAULT_SETTINGS.site, ...(doc.site as any) },
+      ai: { ...this.DEFAULT_SETTINGS.ai, ...(doc.ai as any) },
+      jobs: { ...this.DEFAULT_SETTINGS.jobs, ...(doc.jobs as any) },
+      users: { ...this.DEFAULT_SETTINGS.users, ...(doc.users as any) },
+      security: { ...this.DEFAULT_SETTINGS.security, ...(doc.security as any) },
     };
   }
 
   async updateSettings(section: string, data: any) {
     this.logger.success('Cập nhật cài đặt hệ thống', { action: 'admin_update_settings', section });
-    // In production, save to DB. For now, just echo back.
-    return { section, ...data, updatedAt: new Date().toISOString() };
+
+    // Upsert — update the specific section in the global document
+    await this.settingsModel.updateOne(
+      { key: 'global' },
+      { $set: { [section]: data } },
+      { upsert: true },
+    ).exec();
+
+    // Return full updated settings
+    return this.getSettings();
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────

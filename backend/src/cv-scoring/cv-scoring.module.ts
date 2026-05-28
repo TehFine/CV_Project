@@ -7,6 +7,7 @@ import { JobsModule } from '../jobs/jobs.module';
 import { AdminModule } from '../admin/admin.module';
 import { CvScore, CvScoreSchema } from './schemas/cv-score.schema';
 import { ApplicationSchema } from '../jobs/schemas/application.schema';
+import { Settings, SettingsSchema } from '../admin/schemas/settings.schema';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { ApplicationSchema } from '../jobs/schemas/application.schema';
     AdminModule,
     MongooseModule.forFeature([
       { name: CvScore.name, schema: CvScoreSchema },
-      { name: 'Application', schema: ApplicationSchema }
+      { name: 'Application', schema: ApplicationSchema },
+      { name: Settings.name, schema: SettingsSchema },
     ])
   ],
   providers: [CvScoringService],

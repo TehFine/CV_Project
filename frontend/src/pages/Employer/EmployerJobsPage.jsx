@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { MapPin, Briefcase, BarChart3, DollarSign, Edit3, Users, CheckCircle2, PauseCircle, Trash2, Inbox, MoreHorizontal, Plus } from 'lucide-react'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
@@ -61,10 +62,10 @@ function JobCard({ job, onDelete, onStatusChange }) {
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
             {[
-              { icon: '📍', text: job.location },
-              { icon: '💼', text: JOB_TYPE_LABEL[job.job_type] },
-              { icon: '📊', text: LEVEL_LABEL[job.level] },
-              { icon: '💰', text: formatSalary(job.salary_min, job.salary_max) },
+              { icon: <MapPin size={14} />, text: job.location },
+              { icon: <Briefcase size={14} />, text: JOB_TYPE_LABEL[job.job_type] },
+              { icon: <BarChart3 size={14} />, text: LEVEL_LABEL[job.level] },
+              { icon: <DollarSign size={14} />, text: formatSalary(job.salary_min, job.salary_max) },
             ].map(item => (
               <span key={item.text} style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 4 }}>
                 {item.icon} {item.text}
@@ -101,22 +102,22 @@ function JobCard({ job, onDelete, onStatusChange }) {
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setMenuOpen(o => !o)}
-              style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 8, width: 36, height: 36, cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >⋯</button>
+              style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 8, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            ><MoreHorizontal size={16} /></button>
             {menuOpen && (
               <div
                 style={{ position: 'absolute', right: 0, top: 44, zIndex: 50, background: 'white', borderRadius: 10, border: '1.5px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 180, overflow: 'hidden' }}
                 onMouseLeave={() => setMenuOpen(false)}
               >
                 {[
-                  { icon: '✏️', label: 'Chỉnh sửa', action: () => navigate(`/employer/jobs/${job.id}/edit`) },
-                  { icon: '👥', label: 'Xem ứng viên', action: () => navigate(`/employer/jobs/${job.id}/applicants`) },
+                  { icon: <Edit3 size={14} />, label: 'Chỉnh sửa', action: () => navigate(`/employer/jobs/${job.id}/edit`) },
+                  { icon: <Users size={14} />, label: 'Xem ứng viên', action: () => navigate(`/employer/jobs/${job.id}/applicants`) },
                   job.status === 'draft'
-                    ? { icon: '✅', label: 'Gửi duyệt tin', action: () => { onStatusChange(job.id, 'pending'); setMenuOpen(false) } }
+                    ? { icon: <CheckCircle2 size={14} />, label: 'Gửi duyệt tin', action: () => { onStatusChange(job.id, 'pending'); setMenuOpen(false) } }
                     : job.status === 'pending'
                     ? null
-                    : { icon: '⏸️', label: 'Tạm đóng', action: () => { onStatusChange(job.id, 'closed'); setMenuOpen(false) } },
-                  { icon: '🗑️', label: 'Xóa tin', action: handleDelete, danger: true },
+                    : { icon: <PauseCircle size={14} />, label: 'Tạm đóng', action: () => { onStatusChange(job.id, 'closed'); setMenuOpen(false) } },
+                  { icon: <Trash2 size={14} />, label: 'Xóa tin', action: handleDelete, danger: true },
                 ].filter(Boolean).map(item => (
                   <button key={item.label} onClick={() => { item.action(); setMenuOpen(false) }} style={{
                     width: '100%', padding: '10px 16px', background: 'none', border: 'none',
@@ -195,8 +196,7 @@ export default function EmployerJobsPage() {
           background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', color: 'white',
           borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14,
           boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
-        }}>
-          ＋ Đăng tin mới
+        }}>            <Plus size={16} /> Đăng tin mới
         </Link>
       </div>
 
@@ -227,14 +227,14 @@ export default function EmployerJobsPage() {
         <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>Đang tải...</div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+          <div style={{ marginBottom: 12 }}><Inbox size={48} className="text-slate-300" /></div>
           <h3 style={{ color: '#0F172A', fontWeight: 700, marginBottom: 8 }}>Chưa có tin tuyển dụng</h3>
           <p style={{ color: '#64748B', fontSize: 14, marginBottom: 20 }}>Hãy đăng tin đầu tiên để tìm ứng viên phù hợp</p>
           <Link to="/employer/jobs/new" style={{
             padding: '10px 24px', background: '#3B82F6', color: 'white',
             borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14,
           }}>
-            ＋ Đăng tin ngay
+            <Plus size={16} /> Đăng tin ngay
           </Link>
         </div>
       ) : (

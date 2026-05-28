@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { MapPin } from 'lucide-react'
+import { MapPin, DollarSign } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -69,7 +69,7 @@ export default function JobCard({ job, index = 0 }) {
             <MapPin className="h-2.5 w-2.5 text-[#94A3B8]" />{job.location}
           </span>
           <span className="text-[11px] text-[#059669] bg-[#ECFDF5] px-2 py-1 rounded-md font-semibold border border-[#A7F3D0]">
-            💰 {job.salary}
+            <DollarSign className="h-2.5 w-2.5 inline-block" /> {job.salary}
           </span>
           <span
             className="text-[11px] px-2 py-1 rounded-md font-medium border"

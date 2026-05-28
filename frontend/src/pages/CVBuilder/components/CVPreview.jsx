@@ -1,3 +1,5 @@
+import { Mail, Phone, MapPin, Link2, Globe } from 'lucide-react'
+
 export function CVPreview({ cv }) {
   const { personal, experience, education, skills, languages, certifications } = cv
 
@@ -29,11 +31,11 @@ export function CVPreview({ cv }) {
             <h1 className="text-2xl font-black tracking-tight mb-0.5">{personal.name || 'Họ và tên'}</h1>
             <p className="text-blue-200 font-semibold text-sm mb-3">{personal.title || 'Chức danh'}</p>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-blue-100">
-              {personal.email    && <span>✉ {personal.email}</span>}
-              {personal.phone    && <span>📞 {personal.phone}</span>}
-              {personal.location && <span>📍 {personal.location}</span>}
-              {personal.linkedin && <span>🔗 {personal.linkedin}</span>}
-              {personal.website  && <span>🌐 {personal.website}</span>}
+              {personal.email    && <><Mail className="inline-block h-3 w-3 mr-1" />{personal.email}</>}
+              {personal.phone    && <><Phone className="inline-block h-3 w-3 mr-1" />{personal.phone}</>}
+              {personal.location && <><MapPin className="inline-block h-3 w-3 mr-1" />{personal.location}</>}
+              {personal.linkedin && <><Link2 className="inline-block h-3 w-3 mr-1" />{personal.linkedin}</>}
+              {personal.website  && <><Globe className="inline-block h-3 w-3 mr-1" />{personal.website}</>}
             </div>
           </div>
         </div>

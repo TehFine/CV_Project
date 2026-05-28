@@ -1,5 +1,5 @@
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
-import { Upload, ArrowRight, X } from 'lucide-react'
+import { Upload, ArrowRight, X, Sparkles, ThumbsUp, TrendingUp, Briefcase, ClipboardList, Activity, BarChart3, Pin, Lightbulb, Check, AlertTriangle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -164,7 +164,7 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
             <div className="flex-1 text-center md:text-left space-y-3">
               <div className="flex flex-col md:flex-row items-center gap-3">
                 <h2 className="font-black text-2xl leading-tight">
-                  {score >= 85 ? '🎉 CV rất ấn tượng!' : score >= 70 ? '👍 CV tốt, còn cải thiện được' : '💪 CV cần cải thiện thêm'}
+                  {score >= 85 ? <><Sparkles className="inline-block h-5 w-5 text-yellow-300" /> CV rất ấn tượng!</> : score >= 70 ? <><ThumbsUp className="inline-block h-5 w-5" /> CV tốt, còn cải thiện được</> : <><TrendingUp className="inline-block h-5 w-5" /> CV cần cải thiện thêm</>}
                 </h2>
                 <Badge variant={badge.variant} className="text-xs px-2.5 py-0.5 !text-white"
                   style={{ backgroundColor: badge.accent }}>
@@ -187,7 +187,7 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
                 </Button>
               )}
               <Button size="sm" asChild className="flex-1 md:flex-none justify-center gap-1.5 bg-white text-primary hover:bg-gray-100">
-                <Link to="/jobs" onClick={onClose}>💼 Tìm việc <ArrowRight className="h-4 w-4" /></Link>
+                <Link to="/jobs" onClick={onClose}><Briefcase className="h-4 w-4" /> Tìm việc <ArrowRight className="h-4 w-4" /></Link>
               </Button>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
           <div className="p-6">
             {!hasCategories && !hasImprovements ? (
                 <div className="text-center py-12 px-4 rounded-xl border border-dashed border-border bg-background">
-                  <div className="text-5xl mb-3">📋</div>
+                  <ClipboardList className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
                   <p className="text-sm font-semibold text-foreground mb-1">Chưa có dữ liệu phân tích chi tiết</p>
                   <p className="text-xs text-muted-foreground">
                     Kết quả tổng quan: <strong className="text-foreground">{score}/100</strong>
@@ -221,7 +221,7 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
                     <Card className="shadow-sm border-emerald-100/50">
                       <CardContent className="p-5">
                         <h3 className="font-bold text-emerald-600 mb-4 flex items-center gap-2 text-sm border-b border-emerald-50 pb-3">
-                          <span className="bg-emerald-100 p-1.5 rounded-md text-emerald-600 leading-none">✓</span> Điểm mạnh
+                          <span className="bg-emerald-100 p-1.5 rounded-md text-emerald-600 leading-none"><Check className="h-4 w-4" /></span> Điểm mạnh
                         </h3>
                         <div className="space-y-3">
                           {strengths.map(s => (
@@ -239,7 +239,7 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
                     <Card className="shadow-sm border-amber-100/50">
                       <CardContent className="p-5">
                         <h3 className="font-bold text-amber-600 mb-4 flex items-center gap-2 text-sm border-b border-amber-50 pb-3">
-                          <span className="bg-amber-100 p-1.5 rounded-md text-amber-600 leading-none">⚠️</span> Cần cải thiện
+                          <span className="bg-amber-100 p-1.5 rounded-md text-amber-600 leading-none"><AlertTriangle className="h-4 w-4" /></span> Cần cải thiện
                         </h3>
                         <div className="space-y-3.5">
                           {improvements.map((imp, i) => (
@@ -264,7 +264,7 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
                     <Card className="shadow-sm border">
                       <CardContent className="p-5">
                         <h3 className="font-bold text-foreground mb-4 flex items-center gap-2 text-sm border-b pb-3">
-                          <span className="bg-primary/10 p-1.5 rounded-md text-primary leading-none">🕸️</span> Phân tích tổng quan
+                          <span className="bg-primary/10 p-1.5 rounded-md text-primary leading-none"><Activity className="h-4 w-4" /></span> Phân tích tổng quan
                         </h3>
                         <div className="h-[260px] w-full">
                           <ResponsiveContainer width="100%" height="100%">
@@ -285,14 +285,14 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
                     <Card className="shadow-sm border">
                       <CardContent className="p-5">
                         <h3 className="font-bold text-foreground mb-5 flex items-center gap-2 text-sm border-b pb-3">
-                          <span className="bg-blue-100 p-1.5 rounded-md text-blue-600 leading-none">📊</span> Chi tiết theo tiêu chí
+                          <span className="bg-blue-100 p-1.5 rounded-md text-blue-600 leading-none"><BarChart3 className="h-4 w-4" /></span> Chi tiết theo tiêu chí
                         </h3>
                         <div className="space-y-6">
                           {categories.map((cat, i) => (
                             <div key={cat.key || cat.label || `cat-${i}`}>
                               <div className="flex justify-between items-center mb-2">
                                 <span className="flex items-center gap-2 font-semibold text-sm">
-                                  <span className="text-lg leading-none">{cat.icon || '📌'}</span>
+                                  <span className="text-lg leading-none">{cat.icon ? cat.icon : <Pin className="h-4 w-4 text-muted-foreground" />}</span>
                                   {cat.label || cat.key || 'Tiêu chí'}
                                 </span>
                                 <span className="font-bold text-sm" style={{ color: catColor(cat.score ?? 0) }}>
@@ -312,7 +312,7 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
                                 <div className="flex flex-wrap gap-2 mt-2">
                                   {cat.suggestions.map(s => (
                                     <Badge key={s} variant="secondary" className="text-xs font-normal bg-blue-50 text-blue-700 hover:bg-blue-100 border-0 whitespace-normal text-left h-auto py-1 px-2.5 leading-relaxed">
-                                      💡 {s}
+                                      <Lightbulb className="h-3 w-3 inline-block mr-1" />{s}
                                     </Badge>
                                   ))}
                                 </div>

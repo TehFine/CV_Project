@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { authService } from '../../services/authService'
-import { Building, Mail, Phone, Globe, Briefcase, Camera, CheckCircle2 } from 'lucide-react'
+import { Building, Mail, Phone, Globe, Briefcase, Camera, CheckCircle2, Loader2, Save } from 'lucide-react'
 
 function Field({ label, required, children, icon: Icon }) {
   return (
@@ -229,7 +229,7 @@ export default function EmployerProfilePage() {
               opacity: saving ? 0.7 : 1, flex: 1, minWidth: 160
             }}
           >
-            {saving ? '⏳ Đang lưu...' : '💾 Lưu thay đổi'}
+            {saving ? <><Loader2 className="animate-spin inline-block" size={16} /> Đang lưu...</> : <><Save size={16} /> Lưu thay đổi</>}
           </button>
         </div>
       </div>

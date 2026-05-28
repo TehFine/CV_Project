@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PlusCircle, Menu, X, ChevronDown, LogOut, LayoutDashboard, Briefcase, Plus, User } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -29,18 +29,10 @@ export default function EmployerHeader() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isHome = location.pathname === "/employer";
-  const isSolid = scrolled || !isHome;
-
-  // Scroll listener
-  useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
-  }, []);
+  const isSolid = true;
 
   const isActive = (href) =>
     href === "/employer/jobs"

@@ -33,8 +33,10 @@ export default function UserDropdown({
     const close = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    // Dùng "click" thay vì "mousedown" để tránh xung đột với React Router Link navigation
+    // Mousedown fire trước click, có thể gây re-render unmount dropdown trước khi Link kịp navigate
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
   }, []);
 
   const handleLogout = () => {

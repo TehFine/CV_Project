@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Separator } from '@/components/ui/separator'
+import { MapPin, Phone, Mail, Clock, Facebook, Linkedin, Play } from 'lucide-react'
 
 const FOOTER_LINKS = {
   candidate: [
@@ -35,11 +36,15 @@ export default function Footer() {
               Nền tảng tuyển dụng thông minh với AI, giúp ứng viên tối ưu CV và nhà tuyển dụng tìm kiếm nhân tài phù hợp.
             </p>
             <div className="flex gap-2">
-              {['FB', 'in', '▶'].map((s, i) => (
-                <a key={i} href="#" className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-400 hover:text-white transition-colors">
-                  {s}
-                </a>
-              ))}
+              <a href="#" className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <Facebook size={14} />
+              </a>
+              <a href="#" className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <Linkedin size={14} />
+              </a>
+              <a href="#" className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <Play size={14} />
+              </a>
             </div>
           </div>
 
@@ -76,16 +81,19 @@ export default function Footer() {
             <h4 className="text-sm font-semibold text-white mb-4">Liên hệ</h4>
             <ul className="space-y-2.5">
               {[
-                { icon: '📍', text: '123 Nguyễn Văn Linh, Q7, TP.HCM' },
-                { icon: '📞', text: '0901 234 567' },
-                { icon: '✉️', text: 'support@nexcv.vn' },
-                { icon: '🕐', text: 'T2 - T6: 8:00 - 18:00' },
-              ].map(item => (
-                <li key={item.text} className="flex items-start gap-2 text-sm text-slate-500">
-                  <span className="mt-0.5 flex-shrink-0">{item.icon}</span>
-                  <span>{item.text}</span>
-                </li>
-              ))}
+                { icon: MapPin, text: '123 Nguyễn Văn Linh, Q7, TP.HCM' },
+                { icon: Phone, text: '0901 234 567' },
+                { icon: Mail, text: 'support@nexcv.vn' },
+                { icon: Clock, text: 'T2 - T6: 8:00 - 18:00' },
+              ].map(item => {
+                const IconComp = item.icon
+                return (
+                  <li key={item.text} className="flex items-start gap-2 text-sm text-slate-500">
+                    <IconComp size={14} className="mt-0.5 shrink-0 text-slate-600" />
+                    <span>{item.text}</span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
         </div>

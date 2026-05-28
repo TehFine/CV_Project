@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Shield, Eye, EyeOff, Loader2, Lock } from 'lucide-react'
+import { Shield, Eye, EyeOff, Loader2, Lock, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -84,7 +84,7 @@ export default function AdminLoginPage() {
                     {/* Error */}
                     {error && (
                         <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400">
-                            ⚠️ {error}
+                            <AlertTriangle className="h-4 w-4 inline-block shrink-0" /> {error}
                         </div>
                     )}
 

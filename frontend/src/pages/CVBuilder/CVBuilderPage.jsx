@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Download, Eye, Edit3, Save, AlertCircle, X } from 'lucide-react'
+import { Download, Eye, Edit3, Save, AlertCircle, X, Loader2, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PDFDownloadLink } from '@react-pdf/renderer'
@@ -155,7 +155,7 @@ export default function CVBuilderPage() {
       <div className="bg-white border-b border-[#E2E8F0] shadow-sm sticky top-16 z-10">
         <div className="container-app h-12 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-sm text-[#0F172A]">✏️ Tạo CV</span>
+            <span className="font-bold text-sm text-[#0F172A] flex items-center gap-1.5"><Edit3 className="h-4 w-4" /> Tạo CV</span>
             <span className="text-[#94A3B8] text-xs">— Template cơ bản</span>
           </div>
 
@@ -177,7 +177,7 @@ export default function CVBuilderPage() {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 border-[#E2E8F0] text-xs">
               <Save className="h-3.5 w-3.5" />
-              {saving ? '⏳ Đang lưu...' : saved ? '✅ Đã lưu' : isAuthenticated ? '☁️ Lưu' : 'Lưu'}
+              {saving ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang lưu...</> : saved ? <><CheckCircle2 className="h-3.5 w-3.5" /> Đã lưu</> : <><Save className="h-3.5 w-3.5" />{isAuthenticated ? 'Lưu' : 'Lưu'}</>}
             </Button>
 
             {/* Export button — always re-checks current cv state */}
@@ -190,7 +190,7 @@ export default function CVBuilderPage() {
                 {({ loading }) => (
                   <>
                     <Download className="h-3.5 w-3.5" />
-                    {loading ? '⏳ Đang tạo...' : 'Xuất PDF'}
+                    {loading ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo...</> : 'Xuất PDF'}
                   </>
                 )}
               </PDFDownloadLink>
@@ -204,8 +204,7 @@ export default function CVBuilderPage() {
                     : 'bg-[#1549B8] hover:bg-[#1240A0] text-white'
                 )}
               >
-                <Download className="h-3.5 w-3.5" />
-                {showErrors ? `⚠️ ${currentErrors.length} thiếu` : 'Xuất PDF'}
+                <Download className="h-3.5 w-3.5" />                  {showErrors ? <><AlertCircle className="h-3.5 w-3.5" />{currentErrors.length} thiếu</> : 'Xuất PDF'}
               </button>
             )}
           </div>

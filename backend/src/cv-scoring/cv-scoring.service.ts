@@ -9,6 +9,7 @@ import { ROLE_MAPPING, analyzeCVLocal, CVAnalysisResult } from './constants/know
 import { ApplicationDocument } from '../jobs/schemas/application.schema';
 import { NotificationsGateway } from '../admin/gateways/notifications.gateway';
 import { AppLogger } from '../common/logger.service';
+import { Settings, SettingsDocument } from '../admin/schemas/settings.schema';
 
 @Injectable()
 export class CvScoringService {
@@ -21,6 +22,7 @@ export class CvScoringService {
     private configService: ConfigService,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
     @InjectModel('Application') private applicationModel: Model<ApplicationDocument>,
+    @InjectModel(Settings.name) private settingsModel: Model<SettingsDocument>,
     private notificationsGateway: NotificationsGateway,
   ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
@@ -30,6 +32,56 @@ export class CvScoringService {
     } else {
       this.logger.warn('GEMINI_API_KEY không được cấu hình. Sẽ dùng local fallback.', { action: 'init' });
     }
+  }
+
+  // ─── AI Settings from DB ──────────────────────────────────────────────
+
+  async getAiSettings(): Promise<{
+    cvScoreEnabled: boolean;
+    maxFileSizeMB: number;
+    supportedFormats: string[];
+    processingTimeoutSec: number;
+    dailyScoreLimit: number;
+  }> {
+    const defaults = {
+      cvScoreEnabled: true,
+      maxFileSizeMB: 10,
+      supportedFormats: ['pdf', 'doc', 'docx'],
+      processingTimeoutSec: 60,
+      dailyScoreLimit: 5,
+    };
+    try {
+      const doc = await this.settingsModel.findOne({ key: 'global' }).exec();
+      if (!doc) return defaults;
+      const ai = (doc as any).ai || {};
+      return { ...defaults, ...ai };
+    } catch {
+      return defaults;
+    }
+  }
+
+  async checkDailyScoreLimit(userId: string): Promise<{ allowed: boolean; used: number; limit: number }> {
+    const settings = await this.getAiSettings();
+    if (!settings.cvScoreEnabled) {
+      return { allowed: false, used: 0, limit: 0 };
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const count = await this.cvScoreModel.countDocuments({
+      userId: userId as any,
+      createdAt: { $gte: today, $lt: tomorrow } as any,
+    }).exec();
+
+    const remaining = settings.dailyScoreLimit - count;
+    return {
+      allowed: remaining > 0,
+      used: count,
+      limit: settings.dailyScoreLimit,
+    };
   }
 
   async findScoreById(id: string): Promise<CvScoreDocument | null> {
@@ -289,8 +341,8 @@ Trả về JSON theo cấu trúc sau:
             const overall = finalScore * 10;
             const mockAnalysis = {
               overall,
-              grade: overall >= 85 ? 'A' : overall >= 75 ? 'B' : overall >= 65 ? 'C' : 'D',
-              gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : 'Trung bình',
+              grade: overall >= 85 ? 'A' : overall >= 70 ? 'B' : overall >= 55 ? 'C' : 'D',
+              gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : overall >= 55 ? 'Trung bình' : 'Yếu',
               strengths: ['Đáp ứng tốt yêu cầu kỹ năng công việc', 'Có kinh nghiệm chuyên môn tương đương'],
               improvements: ['Cần rà soát và bổ sung chi tiết theo yêu cầu tuyển dụng'],
               review,
@@ -331,8 +383,8 @@ Trả về JSON theo cấu trúc sau:
       const overall = localScore * 10;
       const mockAnalysis = {
         overall,
-        grade: overall >= 85 ? 'A' : overall >= 75 ? 'B' : overall >= 65 ? 'C' : 'D',
-        gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : 'Trung bình',
+        grade: overall >= 85 ? 'A' : overall >= 70 ? 'B' : overall >= 55 ? 'C' : 'D',
+        gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : overall >= 55 ? 'Trung bình' : 'Yếu',
         strengths: ['Khớp từ khóa tốt'],
         improvements: ['Cần rà soát và bổ sung chi tiết theo yêu cầu tuyển dụng'],
         review: fallbackReview,
@@ -434,13 +486,11 @@ Hãy trả về JSON theo định dạng chính xác sau:
       analysisResult.overallScore = Math.min(Math.max(Math.round(rawTotal), 0), 100);
 
       // Recalculate grade to match the adjusted overall score
+      // Standard thresholds: A≥85, B≥70, C≥55, D<55
       const g = analysisResult.overallScore;
-      if (g >= 90) analysisResult.grade = 'A+';
-      else if (g >= 80) analysisResult.grade = 'A';
-      else if (g >= 70) analysisResult.grade = 'B+';
-      else if (g >= 60) analysisResult.grade = 'B';
-      else if (g >= 50) analysisResult.grade = 'C+';
-      else if (g >= 40) analysisResult.grade = 'C';
+      if (g >= 85) analysisResult.grade = 'A';
+      else if (g >= 70) analysisResult.grade = 'B';
+      else if (g >= 55) analysisResult.grade = 'C';
       else analysisResult.grade = 'D';
     }
 
@@ -459,10 +509,10 @@ Hãy trả về JSON theo định dạng chính xác sau:
   ): any {
     const { overallScore, grade, breakdown, strengths, improvements } = result;
 
-    // Grade label mapping
+    // Grade label mapping — consistent with system-wide standard
+    // A≥85: Tốt, B≥70: Khá, C≥55: Trung bình, D<55: Yếu
     const gradeLabelMap: Record<string, string> = {
-      'A+': 'Xuất sắc', 'A': 'Xuất sắc', 'B+': 'Tốt', 'B': 'Tốt',
-      'C+': 'Khá', 'C': 'Khá', 'D': 'Cần cải thiện'
+      'A': 'Tốt', 'B': 'Khá', 'C': 'Trung bình', 'D': 'Yếu'
     };
 
     // Simplify grade: A+ → A, B+ → B, C+ → C (frontend uses simple grades)
@@ -536,7 +586,7 @@ Hãy trả về JSON theo định dạng chính xác sau:
       scoredAt: new Date().toISOString(),
       overall: overallScore ?? 50,
       grade: simpleGrade,
-      gradeLabel: gradeLabelMap[grade] || 'N/A',
+      gradeLabel: gradeLabelMap[simpleGrade] || 'N/A',
       categories,
       strengths: strengths ?? [],
       improvements: improvements ?? []
@@ -568,7 +618,7 @@ Nếu nội dung là rác, spam, sách, báo, bài viết ngẫu nhiên, hoặc 
 Nếu nội dung là CV/Resume hợp lệ, hãy phân tích mức độ phù hợp của CV đó.
 Vị trí: ${jobContext ? jobContext.title : targetPosition}
 ${jobContext ? `Mô tả công việc (JD): ${jobContext.description}` : ''}
-${jobContext && jobContext.requirements && jobContext.requirements.length > 0 ? `Yêu cầu công việc:\n- ${jobContext.requirements.join('\n- ')}` : ''}
+${jobContext && jobContext.requirements && jobContext.requirements.length > 0 ? `Yêu cầu công việc:\\n- ${jobContext.requirements.join('\\n- ')}` : ''}
 ${jobContext && jobContext.tags && jobContext.tags.length > 0 ? `Từ khóa/Kỹ năng yêu cầu: ${jobContext.tags.join(', ')}` : ''}
 
 Nội dung CV ứng viên:
@@ -740,4 +790,3 @@ Hãy trả về JSON theo định dạng sau:
     return !!result;
   }
 }
-

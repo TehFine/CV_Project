@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { Sparkles, Search, Inbox, FileText, BarChart3, Activity, CheckCircle2, AlertTriangle, MessageSquare, Lightbulb, Trash2, RefreshCw, Eye, EyeOff, X, Plus, MoreVertical, ChevronDown, ChevronUp, Users } from 'lucide-react'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
@@ -225,8 +226,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
           </div>
           <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
             {app.seeker.email} • Nộp {new Date(app.applied_at).toLocaleDateString('vi-VN')}
-          </div>
-          <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 1 }}>📄 {app.resume.title}</div>
+          </div>                    <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 1, display: 'flex', alignItems: 'center', gap: 4 }}><FileText size={12} /> {app.resume.title}</div>
         </div>
 
         {/* AI Score */}
@@ -256,7 +256,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
             background: '#FDF2F8', color: '#DB2777', cursor: 'pointer', fontSize: 12, fontWeight: 700,
             display: 'flex', alignItems: 'center', gap: 4
           }}>
-            <span>✨</span> {app.ai_score ? 'Chấm lại' : 'Chấm điểm'}
+            <Sparkles size={14} /> {app.ai_score ? 'Chấm lại' : 'Chấm điểm'}
           </button>
           {cfg.next && (
             <button onClick={() => handleStatus(cfg.next)} disabled={updating} style={{
@@ -286,13 +286,13 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
             onMouseLeave={e => { e.currentTarget.style.background = '#FEF2F2'; e.currentTarget.style.color = '#EF4444' }}
             title="Xóa hồ sơ này"
           >
-            🗑️
+            <Trash2 size={14} />
           </button>
           <button onClick={() => setExpanded(e => !e)} style={{
             padding: '7px 12px', borderRadius: 8, border: '1.5px solid #E2E8F0',
             background: expanded ? '#F1F5F9' : 'white', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit',
           }}>
-            {expanded ? '▲' : '▼'}
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
         </div>
       </div>
@@ -305,10 +305,9 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
             {app.ai_score && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24, background: '#F8FAFC', padding: 20, borderRadius: 12, border: '1.5px solid #E2E8F0' }}>
                 {/* 1. Score bars */}
-                <div>
-                  <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>📊</span> Điểm chi tiết
-                  </h4>
+                <div>                    <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <BarChart3 size={16} /> Điểm chi tiết
+                    </h4>
                   <ScoreBar label="Kỹ năng" value={app.ai_score.breakdown.skills} color="#3B82F6" />
                   <ScoreBar label="Kinh nghiệm" value={app.ai_score.breakdown.experience} color="#8B5CF6" />
                   <ScoreBar label="Học vấn" value={app.ai_score.breakdown.education} color="#10B981" />
@@ -316,10 +315,9 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
                 </div>
 
                 {/* 2. Spider Chart */}
-                <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 12, width: '100%', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>🕸️</span> Biểu đồ năng lực
-                  </h4>
+                <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>                    <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 12, width: '100%', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Activity size={16} /> Biểu đồ năng lực
+                    </h4>
                   <RadarChart
                     skills={app.ai_score.breakdown.skills}
                     experience={app.ai_score.breakdown.experience}
@@ -335,7 +333,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
               {/* Recruiter Review or Placeholder */}
               <div>
                 <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>✨</span> Đánh giá góc nhìn tuyển dụng (AI):
+                  <Sparkles size={16} /> Đánh giá góc nhìn tuyển dụng (AI):
                 </h4>
                 {app.ai_score?.review ? (
                   <p style={{
@@ -351,7 +349,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
                     background: '#F1F5F9', borderRadius: 10, border: '1.5px solid #E2E8F0',
                     display: 'flex', gap: 8, alignItems: 'center'
                   }}>
-                    <span>💡</span>
+                    <Lightbulb size={16} className="shrink-0" />
                     <span>Hãy nhấn nút <b>Chấm điểm</b> hoặc <b>Chấm lại</b> để AI tự động phân tích CV này dưới góc nhìn nhà tuyển dụng!</span>
                   </div>
                 )}
@@ -363,7 +361,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
                   background: '#ECFDF5', border: '1.5px solid #A7F3D0', borderRadius: 10, padding: '14px 16px'
                 }}>
                   <h5 style={{ margin: '0 0 8px 0', fontSize: 13.5, fontWeight: 700, color: '#065F46', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span>✅</span> Ưu điểm nổi bật (ATS):
+                    <CheckCircle2 size={14} /> Ưu điểm nổi bật (ATS):
                   </h5>
                   <ul style={{ margin: 0, paddingLeft: 16, fontSize: 13, color: '#065F46', lineHeight: 1.6 }}>
                     {app.ai_score.analysis.strengths.map((str, idx) => (
@@ -378,7 +376,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
                   background: '#FFF5F5', border: '1.5px solid #FED7D7', borderRadius: 10, padding: '14px 16px'
                 }}>
                   <h5 style={{ margin: '0 0 8px 0', fontSize: 13.5, fontWeight: 700, color: '#9B2C2C', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span>⚠️</span> Điểm cần cải thiện (ATS):
+                    <AlertTriangle size={14} /> Điểm cần cải thiện (ATS):
                   </h5>
                   <ul style={{ margin: 0, paddingLeft: 16, fontSize: 13, color: '#9B2C2C', lineHeight: 1.6 }}>
                     {app.ai_score.analysis.improvements.map((imp, idx) => (
@@ -390,7 +388,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
 
               <div>
                 <h4 style={{ fontSize: 14.5, fontWeight: 700, color: '#0F172A', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>💬</span> Thư giới thiệu
+                  <MessageSquare size={16} /> Thư giới thiệu
                 </h4>
                 {app.cover_letter ? (
                   <p style={{
@@ -412,7 +410,7 @@ function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onD
                   background: '#EFF6FF', color: '#2563EB', border: '1.5px solid #BFDBFE',
                   textDecoration: 'none',
                 }}>
-                  📄 Xem CV ứng viên
+                  <FileText size={14} /> Xem CV ứng viên
                 </a>
               </div>
             </div>
@@ -562,7 +560,7 @@ export default function EmployerApplicantsPage() {
             ← Quay lại danh sách tin
           </button>
           <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>
-            👥 Ứng viên — {jobTitle}
+            <Users size={20} className="inline-block" /> Ứng viên — {jobTitle}
           </h1>
           <p style={{ fontSize: 13, color: '#64748B' }}>{applications.length} hồ sơ ứng tuyển</p>
         </div>
@@ -584,8 +582,7 @@ export default function EmployerApplicantsPage() {
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             transform: 'translateY(0)'
           }}
-        >
-          <span style={{ fontSize: '1.3em' }}>✨</span>
+        >            <Sparkles size={20} />
           <span>Chấm Điểm CV Bằng AI</span>
         </button>
       </div>
@@ -593,7 +590,7 @@ export default function EmployerApplicantsPage() {
       {/* Filter + Sort */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 300, width: '100%' }}>
-          <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>🔍</span>
+          <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
           <input
             type="text"
             placeholder="Tìm kiếm ứng viên theo tên hoặc email..."
@@ -635,7 +632,7 @@ export default function EmployerApplicantsPage() {
         <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>Đang tải...</div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
+          <div style={{ marginBottom: 12 }}><Inbox size={48} className="text-slate-300" /></div>
           <h3 style={{ color: '#0F172A', fontWeight: 700 }}>Chưa có ứng viên nào</h3>
           <p style={{ color: '#64748B', fontSize: 14 }}>Hãy chờ ứng viên nộp hồ sơ nhé!</p>
         </div>
@@ -668,7 +665,7 @@ export default function EmployerApplicantsPage() {
                 onMouseEnter={e => e.currentTarget.style.background = '#DC2626'}
                 onMouseLeave={e => e.currentTarget.style.background = '#EF4444'}
               >
-                🗑️ Xóa đã chọn ({selectedIds.length})
+                <Trash2 size={14} /> Xóa đã chọn ({selectedIds.length})
               </button>
             )}
           </div>
@@ -704,7 +701,7 @@ export default function EmployerApplicantsPage() {
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
           }}>
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: 18, color: '#0F172A' }}>✨ Chấm điểm CV Bằng AI</h3>
+              <h3 style={{ margin: 0, fontSize: 18, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}><Sparkles size={18} /> Chấm điểm CV Bằng AI</h3>
               <button onClick={() => { setShowScoringModal(false); setScoringResult(null); setScoringFile(null); }} style={{
                 background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#94A3B8'
               }}>×</button>
@@ -720,7 +717,7 @@ export default function EmployerApplicantsPage() {
                   background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12,
                   padding: '14px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12
                 }}>
-                  <div style={{ fontSize: 24 }}>📄</div>
+                  <FileText size={24} className="shrink-0 text-blue-600" />
                   <div style={{ flex: 1 }}>
                     <h5 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1E40AF' }}>
                       Đã tìm thấy CV của ứng viên trong hệ thống
@@ -770,13 +767,13 @@ export default function EmployerApplicantsPage() {
                     {scoringResult.reused && (
                       <div style={{ marginTop: 8 }}>
                         <span style={{ fontSize: 10, padding: '2px 8px', background: '#DBEAFE', color: '#1E40AF', borderRadius: 4, fontWeight: 700 }}>
-                          ♻️ TÁI SỬ DỤNG ĐIỂM SỐ CỦA ỨNG VIÊN (TIẾT KIỆM TOKEN)
+                          <RefreshCw size={10} /> TÁI SỬ DỤNG ĐIỂM SỐ CỦA ỨNG VIÊN (TIẾT KIỆM TOKEN)
                         </span>
                       </div>
                     )}
                   </div>
 
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: '#0F172A' }}>📝 Nhận xét chi tiết:</h4>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}><FileText size={14} /> Nhận xét chi tiết:</h4>
                   <p style={{ margin: 0, fontSize: 14, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                     {scoringResult.review}
                   </p>

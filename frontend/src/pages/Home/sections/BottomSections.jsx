@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import { Sparkles, ArrowRight, Users, FileEdit } from "lucide-react";
+import { Sparkles, ArrowRight, Users, FileEdit, Upload, Bot, BarChart3, Rocket, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const HOW_IT_WORKS = [
-  { num: "01", icon: "📤", title: "Upload CV", desc: "Tải lên CV dạng PDF hoặc DOCX từ máy tính." },
-  { num: "02", icon: "🤖", title: "AI Phân tích", desc: "Hệ thống AI phân tích theo 5 tiêu chí trong 30 giây." },
-  { num: "03", icon: "📊", title: "Nhận kết quả", desc: "Xem điểm số chi tiết và gợi ý cải thiện cụ thể." },
-  { num: "04", icon: "🚀", title: "Ứng tuyển", desc: "Cải thiện CV và tự tin ứng tuyển vị trí mơ ước." },
+  { num: "01", icon: Upload, title: "Upload CV", desc: "Tải lên CV dạng PDF hoặc DOCX từ máy tính." },
+  { num: "02", icon: Bot, title: "AI Phân tích", desc: "Hệ thống AI phân tích theo 5 tiêu chí trong 30 giây." },
+  { num: "03", icon: BarChart3, title: "Nhận kết quả", desc: "Xem điểm số chi tiết và gợi ý cải thiện cụ thể." },
+  { num: "04", icon: Rocket, title: "Ứng tuyển", desc: "Cải thiện CV và tự tin ứng tuyển vị trí mơ ước." },
 ];
 
 const SCORE_BARS = [
@@ -77,14 +77,19 @@ export function HowItWorksSection() {
           <p className="text-[#475569]">Chỉ 4 bước đơn giản để có CV hoàn hảo</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-          {HOW_IT_WORKS.map((step, i) => (
+          {HOW_IT_WORKS.map((step, i) => {
+            const StepIcon = step.icon
+            return (
             <div key={step.num} className="bg-white rounded-2xl border border-[#E2E8F0] p-6 text-center relative overflow-hidden" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="absolute top-3 right-4 text-5xl font-black text-[#F1F5F9] leading-none select-none">{step.num}</div>
-              <div className="w-14 h-14 bg-[#EEF2FF] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">{step.icon}</div>
+              <div className="w-14 h-14 bg-[#EEF2FF] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <StepIcon size={28} className="text-[#1549B8]" />
+              </div>
               <h3 className="font-bold text-[#0F172A] mb-2">{step.title}</h3>
               <p className="text-sm text-[#475569] leading-relaxed">{step.desc}</p>
             </div>
-          ))}
+          )
+          })}
         </div>
       </div>
     </section>
@@ -113,7 +118,7 @@ export function CTASplitSection({ onCreateCV }) {
           </div>
 
           <div className="bg-linear-to-br from-[#0F172A] to-[#1E293B] rounded-2xl p-6 md:p-8 text-white">
-            <span className="text-3xl mb-4 block">🏢</span>
+            <Building2 className="h-8 w-8 mb-4 opacity-80" />
             <h3 className="text-xl md:text-2xl font-black mb-2">Dành cho nhà tuyển dụng</h3>
             <p className="text-slate-300 text-sm leading-relaxed mb-5">
               Đăng tin tuyển dụng, tìm kiếm ứng viên phù hợp và quản lý toàn bộ quy trình tuyển dụng với AI.

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { Loader2, ClipboardList, Inbox, Eye, Hourglass, TrendingUp, FolderOpen } from 'lucide-react'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
@@ -51,11 +52,10 @@ export default function EmployerDashboard() {
   }, [])
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 36, marginBottom: 12, animation: 'spin 1s linear infinite', display: 'inline-block' }}>⚙️</div>
-        <p style={{ color: '#64748B', fontSize: 14 }}>Đang tải dữ liệu...</p>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>        <div style={{ textAlign: 'center' }}>
+          <Loader2 className="inline-block h-9 w-9 animate-spin text-slate-400 mb-3" />
+          <p style={{ color: '#64748B', fontSize: 14 }}>Đang tải dữ liệu...</p>
+        </div>
     </div>
   )
 
@@ -82,16 +82,18 @@ export default function EmployerDashboard() {
 
       {/* Stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
-        <StatCard icon="📋" label="Tin tuyển dụng" value={stats.total_jobs} sub={`${stats.active_jobs} đang hoạt động`} color="#3B82F6" to="/employer/jobs" />
-        <StatCard icon="📩" label="Tổng ứng tuyển" value={stats.total_applications} sub={`${stats.pending_applications} chờ xử lý`} color="#8B5CF6" />
-        <StatCard icon="👁️" label="Lượt xem JD" value={stats.total_views.toLocaleString()} color="#10B981" />
-        <StatCard icon="⏳" label="Chờ xem xét" value={stats.pending_applications} sub="Cần xử lý" color="#F59E0B" />
+        <StatCard icon={<ClipboardList size={20} />} label="Tin tuyển dụng" value={stats.total_jobs} sub={`${stats.active_jobs} đang hoạt động`} color="#3B82F6" to="/employer/jobs" />
+        <StatCard icon={<Inbox size={20} />} label="Tổng ứng tuyển" value={stats.total_applications} sub={`${stats.pending_applications} chờ xử lý`} color="#8B5CF6" />
+        <StatCard icon={<Eye size={20} />} label="Lượt xem JD" value={stats.total_views.toLocaleString()} color="#10B981" />
+        <StatCard icon={<Hourglass size={20} />} label="Chờ xem xét" value={stats.pending_applications} sub="Cần xử lý" color="#F59E0B" />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
         {/* Chart */}
         <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: 24 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 15, color: '#0F172A', marginBottom: 20 }}>📈 Ứng tuyển 7 ngày qua</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 15, color: '#0F172A', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <TrendingUp size={18} /> Ứng tuyển 7 ngày qua
+          </h3>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 120 }}>
             {stats.applications_chart.map((d, i) => (
               <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -111,7 +113,9 @@ export default function EmployerDashboard() {
 
         {/* Status breakdown */}
         <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: 24 }}>
-          <h3 style={{ fontWeight: 700, fontSize: 15, color: '#0F172A', marginBottom: 20 }}>📂 Trạng thái ứng viên</h3>
+          <h3 style={{ fontWeight: 700, fontSize: 15, color: '#0F172A', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <FolderOpen size={18} /> Trạng thái ứng viên
+          </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {Object.entries(stats.status_breakdown).map(([key, count]) => {
               const cfg = STATUS_CONFIG[key]
@@ -135,8 +139,8 @@ export default function EmployerDashboard() {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {[
-            { label: '📋 Xem tin đã đăng', to: '/employer/jobs' },
-            { label: '📩 Hồ sơ ứng tuyển', to: '/employer/jobs' },
+            { icon: ClipboardList, label: 'Xem tin đã đăng', to: '/employer/jobs' },
+            { icon: Inbox, label: 'Hồ sơ ứng tuyển', to: '/employer/jobs' },
           ].map(link => (
             <Link key={link.to + link.label} to={link.to} style={{
               padding: '10px 18px', borderRadius: 10, fontSize: 13, fontWeight: 700,
@@ -144,7 +148,7 @@ export default function EmployerDashboard() {
               border: '1px solid rgba(255,255,255,0.2)', textDecoration: 'none',
               transition: 'background 0.2s',
             }}>
-              {link.label}
+              <link.icon size={16} className="inline-block mr-1.5" />{link.label}
             </Link>
           ))}
         </div>

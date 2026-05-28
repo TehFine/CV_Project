@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
@@ -28,6 +28,17 @@ export default function ProfilePage() {
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'info')
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+
+  // ── Đồng bộ tab khi URL thay đổi ─────────────────────────────────────────
+  // Khi click Link từ UserDropdown (ví dụ: /profile?tab=saved → /profile?tab=cvs),
+  // component không remount vì cùng route. useState chỉ đọc searchParams 1 lần
+  // khi mount, nên activeTab không tự cập nhật. Effect này đảm bảo đồng bộ.
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab')
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl)
+    }
+  }, [searchParams, activeTab])
 
   const currentTab = TABS.find(t => t.key === activeTab)
 

@@ -15,6 +15,27 @@ export class CvScoringController {
     private readonly jobsService: JobsService,
   ) { }
 
+  // ─── Validation helper ─────────────────────────────────────────────
+
+  private async validateAiEnabled() {
+    const settings = await this.cvScoringService.getAiSettings();
+    if (!settings.cvScoreEnabled) {
+      throw new BadRequestException('Tính năng chấm điểm CV hiện đang bị tắt trong cài đặt hệ thống.');
+    }
+    return settings;
+  }
+
+  private validateFile(file: Express.Multer.File, settings: { maxFileSizeMB: number; supportedFormats: string[] }) {
+    const maxBytes = settings.maxFileSizeMB * 1024 * 1024;
+    if (file.size > maxBytes) {
+      throw new BadRequestException(`Dung lượng file vượt quá giới hạn ${settings.maxFileSizeMB}MB.`);
+    }
+    const ext = file.originalname.split('.').pop()?.toLowerCase();
+    if (!ext || !settings.supportedFormats.includes(ext)) {
+      throw new BadRequestException(`Định dạng file không được hỗ trợ. Các định dạng: ${settings.supportedFormats.join(', ')}`);
+    }
+  }
+
   @Get('view/:id')
   @UseGuards(JwtAuthGuard)
   async viewCv(@Param('id') id: string, @Req() req: any, @Res() res: any) {
@@ -45,12 +66,15 @@ export class CvScoringController {
     @UploadedFile() file: Express.Multer.File,
     @Body('candidateId') candidateId?: string,
   ) {
+    const settings = await this.validateAiEnabled();
+
+    // Check daily score limit for the employer (req.user is the admin/employer doing the scoring)
+    // Note: candidateId here is the target candidate being scored, not the requester
+
     let pdfBuffer: Buffer | undefined = undefined;
 
     if (file) {
-      if (file.mimetype !== 'application/pdf') {
-        throw new BadRequestException('Chỉ hỗ trợ file PDF');
-      }
+      this.validateFile(file, settings);
       pdfBuffer = file.buffer;
     } else if (candidateId) {
       const dbBuffer = await this.cvScoringService.getCandidatePdfBuffer(jobId, candidateId);
@@ -83,15 +107,23 @@ export class CvScoringController {
     @Body('jobId') jobId?: string,
   ) {
     try {
+      const settings = await this.validateAiEnabled();
+
       if (!file) {
-        throw new BadRequestException('Vui lòng tải lên file CV (PDF)');
+        throw new BadRequestException('Vui lòng tải lên file CV');
       }
       
       // Fix Vietnamese font encoding issue caused by multer using latin1 by default
       file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
       
-      if (file.mimetype !== 'application/pdf' && !file.mimetype.includes('word') && !file.originalname.match(/\.(pdf|doc|docx)$/i)) {
-        throw new BadRequestException('Hiện tại hệ thống AI chỉ hỗ trợ định dạng PDF và Word (DOC/DOCX).');
+      this.validateFile(file, settings);
+
+      // Check daily score limit
+      if (req.user) {
+        const limit = await this.cvScoringService.checkDailyScoreLimit(req.user._id || req.user.id);
+        if (!limit.allowed) {
+          throw new BadRequestException(`Bạn đã đạt giới hạn ${limit.limit} lượt chấm điểm CV trong ngày hôm nay. Vui lòng quay lại vào ngày mai.`);
+        }
       }
 
       let jobContext: JobDocument | undefined = undefined;

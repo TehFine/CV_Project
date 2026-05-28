@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
+import { Sparkles, Rocket, Building2, Bot, Users, Zap } from "lucide-react";
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export function HeroSection() {
       <div className="container-app" style={{ position: "relative" }}>
         <div style={{ marginBottom: 20 }}>
           <Badge style={{ backgroundColor: "rgba(124,58,237,0.25)", color: "#C4B5FD", border: "1px solid rgba(124,58,237,0.4)", padding: "5px 14px", fontSize: 13, fontWeight: 500 }}>
-            ✨ Nền tảng tuyển dụng thông minh với AI
+            <Sparkles className="inline-block h-3.5 w-3.5 mr-1" />Nền tảng tuyển dụng thông minh với AI
           </Badge>
         </div>
 
@@ -53,7 +54,7 @@ export function HeroSection() {
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 40 }}>
           <Button size="lg" onClick={() => navigate(isAuthenticated ? "/employer/dashboard" : "/employer/register")}
             style={{ background: "white", color: "#4C1D95", fontWeight: 700, fontSize: 15, height: 48, padding: "0 28px" }}>
-            🚀 {isAuthenticated ? "Vào Dashboard" : "Đăng ký miễn phí"}
+            <Rocket className="h-4 w-4" /> {isAuthenticated ? "Vào Dashboard" : "Đăng ký miễn phí"}
           </Button>
           {!isAuthenticated && (
             <Button size="lg" variant="outline" onClick={() => navigate("/employer/login")}
@@ -82,19 +83,21 @@ export function HeroSection() {
         <div className="container-app" style={{ paddingTop: 28, paddingBottom: 0 }}>
           <div style={{ display: "flex", gap: 48, flexWrap: "wrap" }} className="gap-4 md:gap-12">
             {[
-              { value: "2,000+", label: "Nhà tuyển dụng tin dùng", icon: "🏢" },
-              { value: "50,000+", label: "CV đã được chấm điểm", icon: "🤖" },
-              { value: "12,000+", label: "Ứng viên chất lượng", icon: "👥" },
-              { value: "30s", label: "Chấm điểm CV tự động", icon: "⚡" },
-            ].map((stat) => (
+              { value: "2,000+", label: "Nhà tuyển dụng tin dùng", icon: Building2 },
+              { value: "50,000+", label: "CV đã được chấm điểm", icon: Bot },
+              { value: "12,000+", label: "Ứng viên chất lượng", icon: Users },
+              { value: "30s", label: "Chấm điểm CV tự động", icon: Zap },
+            ].map((stat) => {
+              const StatIcon = stat.icon
+              return (
               <div key={stat.value} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 20 }}>{stat.icon}</span>
+                <StatIcon className="h-5 w-5 text-violet-300" />
                 <div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: "white", lineHeight: 1 }}>{stat.value}</div>
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>{stat.label}</div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
       </div>

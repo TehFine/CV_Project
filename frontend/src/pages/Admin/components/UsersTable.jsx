@@ -1,4 +1,4 @@
-import { UserX, UserCheck, Eye, Trash2, Shield, Building2, MapPin, Clock, Mail, Phone, Briefcase, FileText, Users, User, CircleCheck, CircleX, CircleAlert } from 'lucide-react'
+import { UserX, UserCheck, Eye, Trash2, Shield, Building2, MapPin, Clock, Mail, Phone, Briefcase, FileText, Users, User, CircleCheck, CircleX, CircleAlert, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -26,28 +26,31 @@ const timeSince = iso => {
 }
 
 // ─── Detail Dialog ─────────────────────────────────────────────────────────
-export function UserDetailDialog({ user, open, onClose, onStatusChange }) {
+export function UserDetailDialog({ user, open, onClose, onStatusChange, detailLoading = false }) {
   const [banReason, setBanReason] = useState('')
   const [showBanForm, setShowBanForm] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  if (!user) return null
-  const s = STATUS_STYLE[user.status] || STATUS_STYLE.active
+  if (!user && !detailLoading) return null
+  const s = user ? (STATUS_STYLE[user.status] || STATUS_STYLE.active) : STATUS_STYLE.active
   const StatusIcon = s.icon
 
   const handleBan = async () => {
+    if (!user) return
     setLoading(true)
     await adminService.updateUserStatus(user.id, 'banned', banReason)
     onStatusChange(user.id, 'banned', banReason)
     setLoading(false); setShowBanForm(false); onClose()
   }
   const handleUnban = async () => {
+    if (!user) return
     setLoading(true)
     await adminService.updateUserStatus(user.id, 'active')
     onStatusChange(user.id, 'active')
     setLoading(false); onClose()
   }
   const handleApprove = async () => {
+    if (!user) return
     setLoading(true)
     await adminService.updateUserStatus(user.id, 'active')
     onStatusChange(user.id, 'active')
@@ -56,11 +59,17 @@ export function UserDetailDialog({ user, open, onClose, onStatusChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg rounded-3xl">
+      <DialogContent className="sm:max-w-lg rounded-3xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-black">Chi tiết người dùng</DialogTitle>
         </DialogHeader>
 
+        {!user && detailLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          </div>
+        ) : user ? (
+        <>
         {/* User Info Header */}
         <div className="flex gap-5 items-start">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center font-black text-xl text-blue-700 shrink-0 shadow-sm border border-blue-200">
@@ -86,9 +95,13 @@ export function UserDetailDialog({ user, open, onClose, onStatusChange }) {
             </div>
           </div>
           <Badge variant="outline" className={`text-xs font-bold px-3 py-1 flex items-center gap-1 ${
-            user.role === 'candidate' ? 'text-emerald-600 border-emerald-200 bg-emerald-50' : 'text-violet-600 border-violet-200 bg-violet-50'
+            user.role === 'candidate' ? 'text-emerald-600 border-emerald-200 bg-emerald-50' 
+            : user.role === 'admin' ? 'text-amber-600 border-amber-200 bg-amber-50'
+            : 'text-violet-600 border-violet-200 bg-violet-50'
           }`}>
-            {user.role === 'candidate' ? <><User size={12} /> Ứng viên</> : <><Building2 size={12} /> Nhà tuyển dụng</>}
+            {user.role === 'candidate' ? <><User size={12} /> Ứng viên</> 
+            : user.role === 'admin' ? <><Shield size={12} /> Quản trị viên</> 
+            : <><Building2 size={12} /> Nhà tuyển dụng</>}
           </Badge>
         </div>
 
@@ -182,6 +195,8 @@ export function UserDetailDialog({ user, open, onClose, onStatusChange }) {
           )}
           <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl h-11">Đóng</Button>
         </DialogFooter>
+        </>
+        ) : null}
       </DialogContent>
     </Dialog>
   )
@@ -236,9 +251,11 @@ function UserCard({ user, onView, onStatusChange, onDelete }) {
             <Badge variant="outline" className={`text-[10px] font-bold px-1.5 py-0 ${
               user.role === 'candidate'
                 ? 'text-emerald-600 border-emerald-200 bg-emerald-50/50'
-                : 'text-violet-600 border-violet-200 bg-violet-50/50'
+                : user.role === 'admin'
+                  ? 'text-amber-600 border-amber-200 bg-amber-50/50'
+                  : 'text-violet-600 border-violet-200 bg-violet-50/50'
             }`}>
-              {user.role === 'candidate' ? 'Ứng viên' : 'NTD'}
+              {user.role === 'candidate' ? 'Ứng viên' : user.role === 'admin' ? 'Admin' : 'NTD'}
             </Badge>
           </div>
           <p className="text-xs text-slate-400 flex items-center gap-1">

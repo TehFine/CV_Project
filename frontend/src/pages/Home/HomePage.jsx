@@ -37,7 +37,7 @@ export default function HomePage() {
             ...c, 
             id: c.name, 
             name: iconMatch ? iconMatch.name : c.name, // Ưu tiên dùng tên có dấu từ frontend
-            icon: iconMatch ? iconMatch.icon : "📁" 
+            icon: iconMatch ? iconMatch.icon : "folder" 
           };
         });
         setCategories(mapped);

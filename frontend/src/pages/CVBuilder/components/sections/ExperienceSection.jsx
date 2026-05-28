@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -49,7 +49,7 @@ export function ExperienceSection({ items, onChange }) {
     }))
 
   return (
-    <Section title="Kinh nghiệm làm việc" icon="💼">
+    <Section title="Kinh nghiệm làm việc" icon={<Briefcase className="h-4 w-4 text-[#1549B8]" />}>
       {items.map(exp => (
         <div key={exp.id} className="border border-[#E2E8F0] rounded-lg p-3 space-y-2.5 relative">
           <button

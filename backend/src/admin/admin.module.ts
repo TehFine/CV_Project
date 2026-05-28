@@ -7,6 +7,7 @@ import { Job, JobSchema } from '../jobs/schemas/job.schema';
 import { Application, ApplicationSchema } from '../jobs/schemas/application.schema';
 import { CvScore, CvScoreSchema } from '../cv-scoring/schemas/cv-score.schema';
 import { Notification, NotificationSchema } from './schemas/notification.schema';
+import { Settings, SettingsSchema } from './schemas/settings.schema';
 import { NotificationsGateway } from './gateways/notifications.gateway';
 
 @Module({
@@ -17,6 +18,7 @@ import { NotificationsGateway } from './gateways/notifications.gateway';
       { name: Application.name, schema: ApplicationSchema },
       { name: CvScore.name, schema: CvScoreSchema },
       { name: Notification.name, schema: NotificationSchema },
+      { name: Settings.name, schema: SettingsSchema },
     ]),
   ],
   controllers: [AdminController],

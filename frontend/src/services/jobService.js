@@ -37,6 +37,17 @@ export const jobService = {
         jobs = jobs.filter(j => j.type === params.type);
       }
       
+      // Sort
+      if (params.sort === 'salary') {
+        jobs.sort((a, b) => (b.salary_min || 0) - (a.salary_min || 0));
+      } else if (params.sort === 'relevant') {
+        // Ưu tiên jobs có AI score cao hoặc keyword match nhiều
+        jobs.sort((a, b) => (b.ai_score?.overall_score || 0) - (a.ai_score?.overall_score || 0));
+      } else {
+        // 'newest' — mới nhất lên đầu
+        jobs.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      }
+
       // Map to frontend format
       const formatted = jobs.map(j => ({
         ...j,
@@ -237,18 +248,18 @@ export const jobService = {
 };
 
 export const JOB_CATEGORIES = [
-  { id: "it", name: "Công nghệ thông tin", icon: "💻", count: 1240 },
-  { id: "design", name: "Thiết kế", icon: "🎨", count: 340 },
-  { id: "marketing", name: "Marketing", icon: "📢", count: 580 },
-  { id: "finance", name: "Kế toán / Tài chính", icon: "💰", count: 420 },
-  { id: "hr", name: "Nhân sự", icon: "👥", count: 290 },
-  { id: "sales", name: "Kinh doanh / Sales", icon: "📈", count: 760 },
-  { id: "data", name: "Dữ liệu & AI", icon: "🤖", count: 310 },
-  { id: "pm", name: "Quản lý sản phẩm", icon: "🗂️", count: 180 },
-  { id: "engineering", name: "Kỹ thuật / Cơ khí", icon: "⚙️", count: 250 },
-  { id: "realestate", name: "Bất động sản", icon: "🏢", count: 320 },
-  { id: "healthcare", name: "Y tế / Sức khỏe", icon: "⚕️", count: 410 },
-  { id: "media", name: "Truyền thông / Báo chí", icon: "📰", count: 150 },
-  { id: "education", name: "Giáo dục / Đào tạo", icon: "📚", count: 380 },
-  { id: "logistics", name: "Logistics / Xuất nhập khẩu", icon: "🚢", count: 270 },
+  { id: "it", name: "Công nghệ thông tin", icon: "monitor", count: 1240 },
+  { id: "design", name: "Thiết kế", icon: "palette", count: 340 },
+  { id: "marketing", name: "Marketing", icon: "megaphone", count: 580 },
+  { id: "finance", name: "Kế toán / Tài chính", icon: "wallet", count: 420 },
+  { id: "hr", name: "Nhân sự", icon: "users", count: 290 },
+  { id: "sales", name: "Kinh doanh / Sales", icon: "trending-up", count: 760 },
+  { id: "data", name: "Dữ liệu & AI", icon: "bot", count: 310 },
+  { id: "pm", name: "Quản lý sản phẩm", icon: "folder-kanban", count: 180 },
+  { id: "engineering", name: "Kỹ thuật / Cơ khí", icon: "settings", count: 250 },
+  { id: "realestate", name: "Bất động sản", icon: "building2", count: 320 },
+  { id: "healthcare", name: "Y tế / Sức khỏe", icon: "heart-pulse", count: 410 },
+  { id: "media", name: "Truyền thông / Báo chí", icon: "newspaper", count: 150 },
+  { id: "education", name: "Giáo dục / Đào tạo", icon: "book-open", count: 380 },
+  { id: "logistics", name: "Logistics / Xuất nhập khẩu", icon: "ship", count: 270 },
 ];

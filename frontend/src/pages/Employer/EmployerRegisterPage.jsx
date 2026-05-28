@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Sparkles, Bot, Mail, User, Building2, Lock, Rocket, AlertTriangle, Info, Eye, EyeOff } from 'lucide-react'
 
 function PasswordStrength({ password }) {
   const checks = [password.length >= 8, /[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password)]
@@ -37,12 +38,12 @@ const Field = ({ name, label, type = 'text', placeholder, required, form, errors
       />
       {(name === 'password' || name === 'confirmPassword') && (
         <button type="button" onClick={() => setShowPass(v => !v)} className="employer-auth-eye">
-          {showPass ? '🙈' : '👁️'}
+          {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       )}
     </div>
     {name === 'password' && <PasswordStrength password={form.password} />}
-    {errors[name] && <p style={{ fontSize: 12, color: '#EF4444', margin: '4px 0 0' }}>⚠️ {errors[name]}</p>}
+    {errors[name] && <p style={{ fontSize: 12, color: '#EF4444', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}><AlertTriangle className="h-3 w-3 shrink-0" />{errors[name]}</p>}
   </div>
 )
 
@@ -120,18 +121,18 @@ export default function EmployerRegisterPage() {
             <div className="employer-auth-logo-icon">N</div>
             <span>Nex<span style={{ color: '#A78BFA' }}>CV</span></span>
           </Link>
-          <h2 className="employer-auth-title">Bắt đầu tuyển dụng<br />thông minh hơn ✨</h2>
+          <h2 className="employer-auth-title">Bắt đầu tuyển dụng<br />thông minh hơn{' '}<Sparkles className="inline-block h-6 w-6 text-yellow-300" /></h2>
           <p className="employer-auth-subtitle">
             Tham gia cùng 2,000+ nhà tuyển dụng đang dùng NexCV để tìm ứng viên chất lượng nhanh hơn với AI.
           </p>
           <div className="employer-auth-features">
             {[
-              { icon: '🆓', title: 'Miễn phí hoàn toàn', desc: 'Không mất phí để đăng ký và sử dụng' },
-              { icon: '🤖', title: 'AI matching tự động', desc: 'Tìm ứng viên phù hợp trong vài giây' },
-              { icon: '📬', title: 'Quản lý hồ sơ dễ dàng', desc: 'Xem, lọc và liên hệ ứng viên tiện lợi' },
+              { icon: <Sparkles className="h-5 w-5" />, title: 'Miễn phí hoàn toàn', desc: 'Không mất phí để đăng ký và sử dụng' },
+              { icon: <Bot className="h-5 w-5" />, title: 'AI matching tự động', desc: 'Tìm ứng viên phù hợp trong vài giây' },
+              { icon: <Mail className="h-5 w-5" />, title: 'Quản lý hồ sơ dễ dàng', desc: 'Xem, lọc và liên hệ ứng viên tiện lợi' },
             ].map(f => (
               <div key={f.title} className="employer-auth-feature-item">
-                <span className="employer-auth-feature-icon">{f.icon}</span>
+                <span className="employer-auth-feature-icon" style={{ color: '#A78BFA' }}>{f.icon}</span>
                 <div>
                   <div className="employer-auth-feature-title">{f.title}</div>
                   <div className="employer-auth-feature-desc">{f.desc}</div>
@@ -141,7 +142,7 @@ export default function EmployerRegisterPage() {
           </div>
           <div className="employer-auth-divider-note">
             <Link to="/register" className="employer-auth-switch-link">
-              👤 Bạn là ứng viên? Đăng ký tại đây
+              <User className="inline-block h-3.5 w-3.5 mr-1" /> Bạn là ứng viên? Đăng ký tại đây
             </Link>
           </div>
         </div>
@@ -156,7 +157,7 @@ export default function EmployerRegisterPage() {
           </Link>
 
           <div style={{ marginBottom: 24 }}>
-            <div className="employer-auth-tag">🏢 Đăng ký nhà tuyển dụng</div>
+            <div className="employer-auth-tag"><Building2 className="h-3.5 w-3.5" /> Đăng ký nhà tuyển dụng</div>
             <h1 className="employer-auth-form-title">Tạo tài khoản</h1>
             <p className="employer-auth-form-sub">
               Đã có tài khoản?{' '}
@@ -165,13 +166,13 @@ export default function EmployerRegisterPage() {
           </div>
 
           {errors.submit && (
-            <div className="employer-auth-error" style={{ marginBottom: 16 }}>⚠️ {errors.submit}</div>
+            <div className="employer-auth-error" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle className="h-3.5 w-3.5 shrink-0" />{errors.submit}</div>
           )}
 
           {/* Thông báo nếu được điền sẵn từ trang chủ */}
           {(prefill.name || prefill.email) && (
             <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#3730A3', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>ℹ️</span>
+              <Info className="h-4 w-4 shrink-0" />
               <span>Thông tin cá nhân đã được điền sẵn từ tài khoản ứng viên của bạn. Vui lòng kiểm tra lại trước khi gửi.</span>
             </div>
           )}
@@ -179,7 +180,7 @@ export default function EmployerRegisterPage() {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Thông tin cá nhân */}
             <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>👤 Thông tin cá nhân</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}><User className="h-3.5 w-3.5" /> Thông tin cá nhân</p>
               <Field {...fieldProps} name="name" label="Họ và tên" placeholder="Nguyễn Văn An" required />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <Field {...fieldProps} name="email" label="Email" type="email" placeholder="hr@company.com" required />
@@ -189,7 +190,7 @@ export default function EmployerRegisterPage() {
 
             {/* Thông tin công ty */}
             <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>🏢 Thông tin công ty</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}><Building2 className="h-3.5 w-3.5" /> Thông tin công ty</p>
               <Field {...fieldProps} name="companyName" label="Tên công ty" placeholder="Công ty TNHH ABC" required />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <Field {...fieldProps} name="companyWebsite" label="Website" placeholder="https://company.com" />
@@ -208,7 +209,7 @@ export default function EmployerRegisterPage() {
 
             {/* Mật khẩu */}
             <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>🔒 Bảo mật</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}><Lock className="h-3.5 w-3.5" /> Bảo mật</p>
               <Field {...fieldProps} name="password" label="Mật khẩu" placeholder="Tối thiểu 6 ký tự" required />
               <Field {...fieldProps} name="confirmPassword" label="Xác nhận mật khẩu" placeholder="Nhập lại mật khẩu" required />
             </div>
@@ -222,7 +223,7 @@ export default function EmployerRegisterPage() {
                   Tôi đồng ý với <a href="#" style={{ color: '#7C3AED', textDecoration: 'none', fontWeight: 500 }}>Điều khoản dịch vụ</a> và <a href="#" style={{ color: '#7C3AED', textDecoration: 'none', fontWeight: 500 }}>Chính sách bảo mật</a>
                 </span>
               </label>
-              {errors.agreed && <p style={{ fontSize: 12, color: '#EF4444', margin: '4px 0 0 26px' }}>⚠️ {errors.agreed}</p>}
+              {errors.agreed && <p style={{ fontSize: 12, color: '#EF4444', margin: '4px 0 0 26px', display: 'flex', alignItems: 'center', gap: 4 }}><AlertTriangle className="h-3 w-3 shrink-0" />{errors.agreed}</p>}
             </div>
 
             <Button type="submit" disabled={loading}
@@ -230,7 +231,7 @@ export default function EmployerRegisterPage() {
             >
               {loading ? (
                 <><svg style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>Đang tạo tài khoản...</>
-              ) : '🚀 Tạo tài khoản nhà tuyển dụng'}
+              ) : <><Rocket className="h-4 w-4" /> Tạo tài khoản nhà tuyển dụng</>}
             </Button>
           </form>
         </div>

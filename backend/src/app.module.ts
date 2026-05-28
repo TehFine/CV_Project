@@ -9,6 +9,7 @@ import { EmployerModule } from './employer/employer.module';
 import { JobsModule } from './jobs/jobs.module';
 import { CvScoringModule } from './cv-scoring/cv-scoring.module';
 import { AdminModule } from './admin/admin.module';
+import { EmailModule } from './common/email.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { AdminModule } from './admin/admin.module';
     JobsModule,
     CvScoringModule,
     AdminModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

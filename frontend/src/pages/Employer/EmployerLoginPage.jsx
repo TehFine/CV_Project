@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Building2, ClipboardList, Bot, BarChart3, User, FlaskConical, Eye, EyeOff, AlertTriangle } from "lucide-react";
 
 export default function EmployerLoginPage() {
   const { login, logout } = useAuth();
@@ -59,7 +60,8 @@ export default function EmployerLoginPage() {
             <h2 className="employer-auth-title">
               Chào mừng nhà
               <br />
-              tuyển dụng trở lại 🏢
+              tuyển dụng trở lại{' '}
+              <Building2 className="inline-block h-7 w-7 text-violet-300" />
             </h2>
             <p className="employer-auth-subtitle">
               Đăng nhập để quản lý tin tuyển dụng và tìm kiếm ứng viên phù hợp
@@ -70,23 +72,23 @@ export default function EmployerLoginPage() {
           <div className="employer-auth-features">
             {[
               {
-                icon: "📋",
+                icon: <ClipboardList className="h-5 w-5" />,
                 title: "Quản lý tin tuyển dụng",
                 desc: "Đăng, chỉnh sửa và theo dõi hiệu quả",
               },
               {
-                icon: "🤖",
+                icon: <Bot className="h-5 w-5" />,
                 title: "AI chấm điểm CV tự động",
                 desc: "Lọc ứng viên chất lượng trong vài giây",
               },
               {
-                icon: "📊",
+                icon: <BarChart3 className="h-5 w-5" />,
                 title: "Dashboard thống kê",
                 desc: "Theo dõi toàn bộ quá trình tuyển dụng",
               },
             ].map((f) => (
               <div key={f.title} className="employer-auth-feature-item">
-                <span className="employer-auth-feature-icon">{f.icon}</span>
+                <span className="employer-auth-feature-icon" style={{ color: '#A78BFA' }}>{f.icon}</span>
                 <div>
                   <div className="employer-auth-feature-title">{f.title}</div>
                   <div className="employer-auth-feature-desc">{f.desc}</div>
@@ -97,7 +99,7 @@ export default function EmployerLoginPage() {
 
           <div className="employer-auth-divider-note">
             <Link to="/login" className="employer-auth-switch-link">
-              👤 Bạn là ứng viên? Đăng nhập tại đây
+              <User className="inline-block h-3.5 w-3.5 mr-1" /> Bạn là ứng viên? Đăng nhập tại đây
             </Link>
           </div>
         </div>
@@ -115,7 +117,9 @@ export default function EmployerLoginPage() {
           </Link>
 
           <div style={{ marginBottom: 28 }}>
-            <div className="employer-auth-tag">🏢 Cổng nhà tuyển dụng</div>
+            <div className="employer-auth-tag">
+              <Building2 className="h-3.5 w-3.5" /> Cổng nhà tuyển dụng
+            </div>
             <h1 className="employer-auth-form-title">Đăng nhập</h1>
             <p className="employer-auth-form-sub">
               Chưa có tài khoản?{" "}
@@ -125,7 +129,7 @@ export default function EmployerLoginPage() {
             </p>
           </div>
 
-          {error && <div className="employer-auth-error">⚠️ {error}</div>}
+          {error && <div className="employer-auth-error"><AlertTriangle className="inline-block h-3.5 w-3.5 mr-1" />{error}</div>}
           {/* Demo account hint */}
           <div
             onClick={() =>
@@ -153,17 +157,19 @@ export default function EmployerLoginPage() {
                 "linear-gradient(135deg, rgba(124,58,237,0.08), rgba(21,73,184,0.08))")
             }
           >
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "#7C3AED",
-                  marginBottom: 2,
-                }}
-              >
-                🧪 Tài khoản demo
-              </div>
+            <div>                  <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: "#7C3AED",
+                        marginBottom: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <FlaskConical className="h-3.5 w-3.5" /> Tài khoản demo
+                    </div>
               <div style={{ fontSize: 12, color: "#64748B" }}>
                 employer_demo@nexcv.vn · demo123
               </div>
@@ -228,7 +234,7 @@ export default function EmployerLoginPage() {
                   onClick={() => setShowPass((v) => !v)}
                   className="employer-auth-eye"
                 >
-                  {showPass ? "🙈" : "👁️"}
+                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
@@ -263,7 +269,7 @@ export default function EmployerLoginPage() {
                   Đang đăng nhập...
                 </>
               ) : (
-                "🏢 Đăng nhập nhà tuyển dụng"
+                <><Building2 className="h-4 w-4" /> Đăng nhập nhà tuyển dụng</>
               )}
             </Button>
           </form>

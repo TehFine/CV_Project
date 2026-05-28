@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { adminService, MOCK_SETTINGS } from '../../services/adminService'
+import { adminService } from '../../services/adminService'
 import { 
   Globe, Shield, Cpu, Briefcase, Users, 
   Save, RefreshCw, CheckCircle2, AlertCircle,
@@ -13,18 +13,60 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState(MOCK_SETTINGS)
+  const [settings, setSettings] = useState(null)
   const [activeTab, setActiveTab] = useState('site')
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
 
-  const handleSave = () => {
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
+  // Fetch settings from API on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      setLoading(true)
+      try {
+        const res = await adminService.getSettings()
+        setSettings(res?.data || res)
+      } catch (err) {
+        console.error('Failed to fetch settings:', err)
+        setFetchError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSettings()
+  }, [])
+
+  const handleSave = async () => {
+    setSaving(true)
+    setSaved(false)
+    try {
+      // Save all sections in parallel
+      const results = await Promise.allSettled(
+        Object.entries(settings || {})
+          .filter(([_, data]) => typeof data === 'object' && data !== null)
+          .map(([section, data]) => adminService.updateSettings(section, data))
+      )
+
+      const failed = results.filter(r => r.status === 'rejected')
+      if (failed.length > 0) {
+        console.error('Failed to save some settings:', failed.map(r => r.reason))
+        return // Don't show success toast if any section failed
+      }
+
+      // Refresh local state from backend response (first success result)
+      const firstOk = results.find(r => r.status === 'fulfilled')
+      if (firstOk?.value) {
+        setSettings(firstOk.value)
+      }
+
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    }, 1000)
+    } catch (err) {
+      console.error('Failed to save settings:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const updateSetting = (group, field, value) => {
@@ -37,18 +79,20 @@ export default function AdminSettingsPage() {
     }))
   }
 
-  const Toggle = ({ checked, onChange, label, description }) => (
+  const Toggle = ({ checked, onChange, label, description, disabled }) => (
     <div className="flex items-center justify-between py-6 first:pt-0 last:pb-0">
       <div className="space-y-1">
         <Label className="text-[15px] font-black text-slate-900">{label}</Label>
         {description && <p className="text-xs text-slate-400 font-medium">{description}</p>}
       </div>
       <button 
-        onClick={() => onChange(!checked)}
+        onClick={() => !disabled && onChange(!checked)}
         className={cn(
           "relative inline-flex h-6 w-11 items-center rounded-full transition-all focus:outline-none",
-          checked ? 'bg-[#1549B8] shadow-lg shadow-blue-200' : 'bg-slate-200'
+          checked ? 'bg-[#1549B8] shadow-lg shadow-blue-200' : 'bg-slate-200',
+          disabled && 'opacity-50 cursor-not-allowed'
         )}
+        disabled={disabled}
       >
         <span className={cn(
           "inline-block h-4 w-4 transform rounded-full bg-white transition-all shadow-sm",
@@ -82,11 +126,11 @@ export default function AdminSettingsPage() {
            )}
            <Button 
             onClick={handleSave} 
-            disabled={loading}
-            className="rounded-2xl h-12 px-8 font-black bg-[#1549B8] hover:bg-[#1e40af] shadow-xl shadow-blue-200 transition-all active:scale-95"
+            disabled={saving || !settings}
+            className="rounded-2xl h-12 px-8 font-black bg-[#1549B8] hover:bg-[#1e40af] shadow-xl shadow-blue-200 transition-all active:scale-95 disabled:opacity-50"
           >
-            {loading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            {loading ? 'Đang lưu...' : 'Lưu tất cả thay đổi'}
+            {saving ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            {saving ? 'Đang lưu...' : 'Lưu tất cả thay đổi'}
           </Button>
         </div>
       </div>
@@ -167,6 +211,20 @@ export default function AdminSettingsPage() {
         {/* Right Content Area */}
         <div className="flex-1 animate-in fade-in duration-500 min-w-0">
           <div className="bg-white rounded-[24px] lg:rounded-[48px] border border-slate-100 shadow-2xl shadow-slate-100/50 p-5 md:p-8 lg:p-10 min-h-[400px] lg:min-h-[600px]">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-full py-20">
+                <RefreshCw className="h-10 w-10 animate-spin text-blue-600 mb-4" />
+                <p className="text-slate-400 font-medium">Đang tải cấu hình...</p>
+              </div>
+            ) : fetchError ? (
+              <div className="flex flex-col items-center justify-center h-full py-20 text-center">
+                <AlertCircle size={48} className="text-red-400 mb-4" />
+                <h3 className="text-lg font-black text-slate-900 mb-2">Không thể tải cấu hình</h3>
+                <p className="text-slate-400 text-sm max-w-xs mb-6">Có lỗi xảy ra khi kết nối đến máy chủ. Vui lòng thử lại sau.</p>
+                <Button onClick={() => window.location.reload()} variant="outline" className="rounded-2xl h-11">Tải lại trang</Button>
+              </div>
+            ) : !settings ? null : (
+            <>
             {activeTab === 'site' && (
               <div className="space-y-8 animate-in fade-in duration-300">
                 <div>
@@ -272,18 +330,53 @@ export default function AdminSettingsPage() {
                   checked={settings.users.emailVerificationRequired} 
                   onChange={val => updateSetting('users', 'emailVerificationRequired', val)} 
                 />
+                <Separator className="bg-slate-50" />
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-700 ml-1">Số CV đã lưu tối đa / Ứng viên</Label>
+                    <Input type="number" value={settings.users.maxSavedJobs} onChange={e => updateSetting('users', 'maxSavedJobs', +e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Security Tab Placeholder */}
             {activeTab === 'security' && (
-               <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-                  <div className="w-20 h-20 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mb-6">
-                     <Lock size={40} />
+              <div className="space-y-8 animate-in fade-in duration-300">
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900">Bảo mật & Quyền hạn</h3>
+                  <p className="text-sm text-slate-400 font-medium">Cấu hình các tham số bảo mật và kiểm soát truy cập hệ thống</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-700 ml-1">Độ dài mật khẩu tối thiểu</Label>
+                    <Input type="number" value={settings.security?.passwordMinLength ?? 6} onChange={e => updateSetting('security', 'passwordMinLength', +e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
                   </div>
-                  <h3 className="text-xl font-black text-slate-900 mb-2">Bảo mật & Quyền hạn</h3>
-                  <p className="text-slate-400 text-sm max-w-xs">Phần này đang được cập nhật các quy tắc bảo mật nâng cao và phân quyền chi tiết (RBAC).</p>
-               </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-700 ml-1">Số lần đăng nhập sai tối đa</Label>
+                    <Input type="number" value={settings.security?.maxLoginAttempts ?? 5} onChange={e => updateSetting('security', 'maxLoginAttempts', +e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-slate-700 ml-1">Thời gian hết phiên (Phút)</Label>
+                    <Input type="number" value={settings.security?.sessionTimeoutMin ?? 60} onChange={e => updateSetting('security', 'sessionTimeoutMin', +e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                  </div>
+                </div>
+                <Separator className="bg-slate-50" />
+                <Toggle 
+                  label="Nhật ký kiểm toán (Audit Log)"
+                  description="Ghi lại tất cả hành động quản trị và thay đổi hệ thống."
+                  checked={settings.security?.auditLogEnabled ?? true}
+                  onChange={val => updateSetting('security', 'auditLogEnabled', val)}
+                />
+                <Toggle 
+                  label="Xác thực đa yếu tố (MFA)"
+                  description="Yêu cầu mã xác thực bổ sung khi đăng nhập (đang phát triển)."
+                  checked={settings.security?.mfaEnabled ?? false}
+                  onChange={val => updateSetting('security', 'mfaEnabled', val)}
+                  disabled
+                />
+              </div>
+            )}
+            </>
             )}
           </div>
         </div>

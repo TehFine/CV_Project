@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Section } from '../Section'
@@ -20,7 +20,7 @@ export function SkillsSection({ items, onChange }) {
     onChange(cv => ({ ...cv, skills: [...cv.skills, { id: uid(), ...EMPTY_SKILL }] }))
 
   return (
-    <Section title="Kỹ năng" icon="🛠️">
+    <Section title="Kỹ năng" icon={<Wrench className="h-4 w-4 text-[#1549B8]" />}>
       {items.map(s => (
         <div key={s.id} className="flex gap-2 items-center">
           <Input

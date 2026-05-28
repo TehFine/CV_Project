@@ -3,11 +3,16 @@ import { adminService } from '../../services/adminService'
 import { 
   FileText, Search, Trash2, 
   Clock, FileSearch, MoreHorizontal,
-  Briefcase
+  Briefcase, Eye, AlertTriangle,
+  RefreshCw
 } from 'lucide-react'
 import { connectSocket, onDashboardUpdateNeeded } from '../../services/socket.js'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+
+// API base URL for debugging display
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 const GRADE_CONFIG = {
   A: { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
@@ -19,17 +24,27 @@ const GRADE_CONFIG = {
 export default function AdminCVScoresPage() {
   const [scores, setScores] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(null)
   const [search, setSearch] = useState('')
   const [activeGrade, setActiveGrade] = useState('all')
+  const [menuOpenId, setMenuOpenId] = useState(null)
+  const [detailScore, setDetailScore] = useState(null)
+  const [showDetailDialog, setShowDetailDialog] = useState(false)
 
   const fetchScores = async (keyword, grade) => {
     setLoading(true)
+    setFetchError(null)
     try {
       const params = {}
       if (keyword || search) params.keyword = keyword || search
       if ((grade || activeGrade) !== 'all') params.grade = grade || activeGrade
       const res = await adminService.getCVScores(params)
       setScores(res.data)
+    } catch (err) {
+      console.error('Lỗi tải lịch sử chấm CV:', err)
+      const message = err?.message || 'Không thể kết nối đến máy chủ'
+      setFetchError(message)
+      setScores([])
     } finally {
       setLoading(false)
     }
@@ -47,14 +62,19 @@ export default function AdminCVScoresPage() {
   }, [search, activeGrade])
 
   // Compute average score from the loaded scores
-  const avgScore = scores.length > 0
-    ? (scores.reduce((sum, s) => sum + Number(s.overall), 0) / scores.length).toFixed(1)
+  const filteredScores = scores.filter(s => s.overall != null)
+  const avgScore = filteredScores.length > 0
+    ? (filteredScores.reduce((sum, s) => sum + Number(s.overall), 0) / filteredScores.length).toFixed(1)
     : '—'
 
   const handleDelete = async (id) => {
-    if (confirm('Bạn có chắc muốn xóa lịch sử chấm điểm này?')) {
+    if (!confirm('Bạn có chắc muốn xóa lịch sử chấm điểm này?')) return
+    try {
       await adminService.deleteCVScore(id)
       setScores(scores.filter(s => s.id !== id))
+    } catch (err) {
+      console.error('Lỗi xóa điểm CV:', err)
+      alert('Không thể xóa điểm CV. Vui lòng thử lại sau.')
     }
   }
 
@@ -110,7 +130,7 @@ export default function AdminCVScoresPage() {
       </div>
 
       {/* Desktop Table */}
-      <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden hidden md:block">
+      <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-visible hidden md:block">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-slate-50/50 border-b border-slate-100">
@@ -127,6 +147,29 @@ export default function AdminCVScoresPage() {
                 <td colSpan="5" className="py-20 text-center">
                   <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
                   <span className="text-slate-400 font-medium">Đang tải lịch sử...</span>
+                </td>
+              </tr>
+            ) : fetchError ? (
+              <tr>
+                <td colSpan="5" className="py-16 text-center">
+                  <AlertTriangle className="w-12 h-12 text-red-200 mx-auto mb-4" />
+                  <div className="text-slate-800 font-bold mb-2">Không thể tải dữ liệu</div>
+                  <div className="text-sm text-slate-400 max-w-md mx-auto mb-4 leading-relaxed">
+                    {fetchError.includes('401') || fetchError.includes('403') ? (
+                      'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.'
+                    ) : fetchError.includes('Network') || fetchError.includes('Failed to fetch') ? (
+                      <span>
+                        Máy chủ backend không phản hồi. Hãy đảm bảo backend đang chạy và kiểm tra biến môi trường{' '}
+                        <code className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 text-xs">VITE_API_URL</code>
+                        {' '}(hiện tại: <code className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 text-xs">{API_URL}</code>).
+                      </span>
+                    ) : (
+                      fetchError
+                    )}
+                  </div>
+                  <Button onClick={fetchScores} className="rounded-2xl bg-[#1549B8] hover:bg-[#1e40af] font-bold gap-2">
+                    <RefreshCw size={15} /> Thử lại
+                  </Button>
                 </td>
               </tr>
             ) : scores.length === 0 ? (
@@ -180,9 +223,28 @@ export default function AdminCVScoresPage() {
                     </td>
                     <td className="px-6 py-5 text-right">
                        <div className="flex items-center justify-end gap-2">
-                         <button className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-slate-200 text-slate-400 hover:text-[#1549B8] transition-all">
-                           <MoreHorizontal size={18} />
-                         </button>
+                         <div className="relative">
+                           <button
+                             onClick={() => setMenuOpenId(menuOpenId === s.id ? null : s.id)}
+                             className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-slate-200 text-slate-400 hover:text-[#1549B8] transition-all"
+                           >
+                             <MoreHorizontal size={18} />
+                           </button>
+                           {menuOpenId === s.id && (
+                             <div
+                               className="absolute right-0 top-10 z-50 bg-white rounded-xl border border-slate-200 shadow-xl min-w-[160px] overflow-hidden"
+                               onMouseLeave={() => setMenuOpenId(null)}
+                             >
+                               <button
+                                 onClick={() => { setDetailScore(s); setShowDetailDialog(true); setMenuOpenId(null) }}
+                                 className="w-full px-4 py-2.5 text-left text-sm font-medium flex items-center gap-2.5 text-slate-700 hover:bg-slate-50 transition-colors"
+                               >
+                                 <Eye size={14} className="text-slate-400" />
+                                 Xem chi tiết
+                               </button>
+                             </div>
+                           )}
+                         </div>
                          <button 
                            onClick={() => handleDelete(s.id)}
                            className="p-2 hover:bg-white rounded-xl border border-transparent hover:border-red-100 text-slate-400 hover:text-red-600 transition-all"
@@ -206,10 +268,20 @@ export default function AdminCVScoresPage() {
             <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
             <span className="text-slate-400 font-medium">Đang tải lịch sử...</span>
           </div>
-        ) : scores.length === 0 ? (
-          <div className="py-20 text-center bg-white rounded-[24px] border border-slate-200">
-            <FileSearch className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-            <span className="text-slate-400 font-medium">Không tìm thấy kết quả nào</span>
+        ) : fetchError ? (
+          <div className="py-12 text-center bg-white rounded-[24px] border border-slate-200">
+            <AlertTriangle className="w-10 h-10 text-red-200 mx-auto mb-3" />
+            <div className="text-slate-800 font-bold mb-1">Không thể tải dữ liệu</div>
+            <p className="text-sm text-slate-400 max-w-xs mx-auto mb-4">
+              {fetchError.includes('401') || fetchError.includes('403')
+                ? 'Phiên đăng nhập hết hạn.'
+                : fetchError.includes('Network') || fetchError.includes('Failed to fetch')
+                  ? 'Máy chủ backend không phản hồi.'
+                  : fetchError}
+            </p>
+            <Button onClick={fetchScores} className="rounded-2xl bg-[#1549B8] hover:bg-[#1e40af] font-bold gap-2 text-sm">
+              <RefreshCw size={14} /> Thử lại
+            </Button>
           </div>
         ) : (
           scores.map(s => {
@@ -240,9 +312,28 @@ export default function AdminCVScoresPage() {
                     <Clock size={12} /> {new Date(s.scoredAt).toLocaleDateString('vi-VN')} · {s.processingTime}s
                   </div>
                   <div className="flex gap-1">
-                    <button className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-[#1549B8] transition-all">
-                      <MoreHorizontal size={16} />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setMenuOpenId(menuOpenId === s.id ? null : s.id)}
+                        className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-[#1549B8] transition-all"
+                      >
+                        <MoreHorizontal size={16} />
+                      </button>
+                      {menuOpenId === s.id && (
+                        <div
+                          className="absolute right-0 top-9 z-50 bg-white rounded-xl border border-slate-200 shadow-xl min-w-[160px] overflow-hidden"
+                          onMouseLeave={() => setMenuOpenId(null)}
+                        >
+                          <button
+                            onClick={() => { setDetailScore(s); setShowDetailDialog(true); setMenuOpenId(null) }}
+                            className="w-full px-4 py-2.5 text-left text-sm font-medium flex items-center gap-2.5 text-slate-700 hover:bg-slate-50 transition-colors"
+                          >
+                            <Eye size={14} className="text-slate-400" />
+                            Xem chi tiết
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     <button 
                       onClick={() => handleDelete(s.id)}
                       className="p-2 hover:bg-red-50 rounded-xl text-slate-400 hover:text-red-600 transition-all"
@@ -256,6 +347,82 @@ export default function AdminCVScoresPage() {
           })
         )}
       </div>
+
+      {/* Score Detail Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={(open) => { if (!open) { setShowDetailDialog(false); setDetailScore(null) } }}>
+        <DialogContent className="sm:max-w-md rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black">Chi tiết điểm CV</DialogTitle>
+          </DialogHeader>
+          {detailScore && (
+            <div className="space-y-4">
+              {/* User Info */}
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-black text-xs uppercase">
+                  {detailScore.userName?.split(' ').pop()?.[0] || '?'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-slate-900 text-sm">{detailScore.userName}</div>
+                  <div className="text-xs text-slate-400">{detailScore.userEmail}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-black text-slate-900">{detailScore.overall}</div>
+                  <Badge className={`${(GRADE_CONFIG[detailScore.grade] || GRADE_CONFIG.B).bg} ${(GRADE_CONFIG[detailScore.grade] || GRADE_CONFIG.B).color} border text-[10px] py-0 px-2`}>
+                    Hạng {detailScore.grade}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* File Info */}
+              <div className="flex items-center gap-2 text-[#1549B8] font-semibold text-sm">
+                <FileText size={14} />
+                <span className="truncate">{detailScore.fileName}</span>
+              </div>
+              {detailScore.targetPosition && (
+                <div className="flex items-center gap-2 text-slate-500 text-sm">
+                  <Briefcase size={14} className="text-slate-400" />
+                  Vị trí: {detailScore.targetPosition}
+                </div>
+              )}
+
+              {/* Category Breakdown */}
+              {detailScore.categories && Object.keys(detailScore.categories).length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-bold text-sm text-slate-700">Phân tích theo tiêu chí</h4>
+                  {Object.entries(detailScore.categories).map(([key, score]) => {
+                    const catColor = score >= 80 ? '#10B981' : score >= 65 ? '#3B82F6' : score >= 50 ? '#F59E0B' : '#EF4444'
+                    const labels = { skills: 'Kỹ năng', experience: 'Kinh nghiệm', education: 'Học vấn', format: 'Định dạng', keywords: 'Từ khóa' }
+                    return (
+                      <div key={key}>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium text-slate-600">{labels[key] || key}</span>
+                          <span className="text-sm font-bold" style={{ color: catColor }}>{score}/100</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, Math.max(0, score))}%`, backgroundColor: catColor }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Time Info */}
+              <div className="pt-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-100">
+                <span className="flex items-center gap-1">
+                  <Clock size={12} /> {detailScore.scoredAt ? new Date(detailScore.scoredAt).toLocaleDateString('vi-VN') : '—'}
+                </span>
+                <span>{detailScore.processingTime} giây xử lý</span>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end pt-2">
+            <Button variant="outline" onClick={() => { setShowDetailDialog(false); setDetailScore(null) }} className="rounded-xl">
+              Đóng
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

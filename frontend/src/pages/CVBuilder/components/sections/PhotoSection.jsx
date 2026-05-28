@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { Upload, Trash2, User } from 'lucide-react'
+import { Upload, Trash2, User, Image as ImageIcon } from 'lucide-react'
 import { Section } from '../Section'
 
 export function PhotoSection({ photo, onChange }) {
@@ -19,7 +19,7 @@ export function PhotoSection({ photo, onChange }) {
   }
 
   return (
-    <Section title="Ảnh CV" icon="🖼️">
+    <Section title="Ảnh CV" icon={<ImageIcon className="h-4 w-4 text-[#1549B8]" />}>
       <div className="flex items-center gap-4">
         {/* Preview */}
         <div

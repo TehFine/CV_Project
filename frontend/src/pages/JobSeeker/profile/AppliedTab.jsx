@@ -68,12 +68,12 @@ export function AppliedTab() {
               Đã ứng tuyển: {new Date(app.createdAt).toLocaleDateString('vi-VN')}
             </p>
 
-            {isRejected && (
-              <p className="text-[11px] text-red-500 mt-1.5 font-medium">
-                {isJobDeleted
-                  ? '⚠️ Tin tuyển dụng đã bị gỡ — đơn ứng tuyển đã tự động bị từ chối.'
-                  : '❌ Nhà tuyển dụng đã từ chối đơn ứng tuyển của bạn.'}
-              </p>
+            {isRejected && (                    <p className="text-[11px] text-red-500 mt-1.5 font-medium flex items-center gap-1">
+                        <XCircle className="h-3 w-3 shrink-0" />
+                        {isJobDeleted
+                          ? 'Tin tuyển dụng đã bị gỡ — đơn ứng tuyển đã tự động bị từ chối.'
+                          : 'Nhà tuyển dụng đã từ chối đơn ứng tuyển của bạn.'}
+                      </p>
             )}
           </div>
 
@@ -104,8 +104,8 @@ export function AppliedTab() {
         <>
           {active.length > 0 && (
             <div className="space-y-2.5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                🔄 Đang xử lý ({active.length})
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                <Clock className="h-3 w-3" /> Đang xử lý ({active.length})
               </p>
               {active.map(renderCard)}
             </div>
@@ -113,8 +113,8 @@ export function AppliedTab() {
 
           {resolved.length > 0 && (
             <div className="space-y-2.5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                📋 Đã xử lý ({resolved.length})
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                <CheckCircle className="h-3 w-3" /> Đã xử lý ({resolved.length})
               </p>
               {resolved.map(renderCard)}
             </div>

@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, Plus } from 'lucide-react'
-
-const MOCK_CVS_COUNT = 2
-const SAVED_COUNT = 2
+import { Loader2, Plus, Save, Edit3, FileText, Bookmark, Send, Wrench, MapPin, Mail, X, Check } from 'lucide-react'
+import { cvService } from '@/services/cvService'
+import { jobService } from '@/services/jobService'
+import { authService } from '@/services/authService'
 
 const initials = name => {
   if (!name) return 'U'
@@ -22,12 +22,50 @@ export function ProfileTab({ user, updateUser }) {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ name: user?.name || '', phone: user?.phone || '', location: user?.location || '', title: user?.title || '', bio: user?.bio || '' })
   const [saving, setSaving] = useState(false)
+  const [skills, setSkills] = useState(user?.skills || [])
+  const [newSkill, setNewSkill] = useState('')
+  const [isAddingSkill, setIsAddingSkill] = useState(false)
+  const [stats, setStats] = useState({ cvsCount: 0, savedCount: 0, appliedCount: 0 })
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
+
+  useEffect(() => {
+    Promise.allSettled([
+      cvService.getMyCVs().then(data => Array.isArray(data) ? data.length : (data?.data?.length || 0)),
+      jobService.getSavedJobs().then(data => Array.isArray(data) ? data.length : (data?.data?.length || 0)),
+      jobService.getAppliedJobs().then(data => Array.isArray(data) ? data.length : (data?.data?.length || 0)),
+    ]).then(([cvs, saved, applied]) => {
+      setStats({
+        cvsCount: cvs.status === 'fulfilled' ? cvs.value : 0,
+        savedCount: saved.status === 'fulfilled' ? saved.value : 0,
+        appliedCount: applied.status === 'fulfilled' ? applied.value : 0,
+      })
+    })
+  }, [])
+
+  const addSkill = () => {
+    const trimmed = newSkill.trim()
+    if (trimmed && !skills.includes(trimmed)) {
+      setSkills(prev => [...prev, trimmed])
+      setNewSkill('')
+    }
+  }
+
+  const startAddSkill = () => {
+    setIsAddingSkill(true)
+    setNewSkill('')
+  }
+
+  const removeSkill = skill => setSkills(prev => prev.filter(s => s !== skill))
 
   const handleSave = async () => {
     setSaving(true)
+    const data = { ...form, skills }
+    updateUser(data)
+    try {
+      await authService.updateProfile(data)
+    } catch { /* ignore */ }
     await new Promise(r => setTimeout(r, 700))
-    updateUser(form); setEditing(false); setSaving(false)
+    setEditing(false); setSaving(false); setIsAddingSkill(false)
   }
 
   return (
@@ -41,20 +79,28 @@ export function ProfileTab({ user, updateUser }) {
             <div className="flex-1 min-w-0">
               <h2 className="text-lg font-black text-foreground leading-tight">{user?.name}</h2>
               <p className="text-primary font-semibold text-sm">{user?.title || 'Chưa cập nhật chức danh'}</p>
-              <p className="text-muted-foreground text-xs mt-1 truncate">📍 {user?.location || '—'} · 📧 {user?.email}</p>
+              <p className="text-muted-foreground text-xs mt-1 truncate flex items-center gap-1 flex-wrap">
+                <MapPin className="h-3 w-3" /> {user?.location || '—'}
+                <span className="text-muted-foreground/50 mx-0.5">·</span>
+                <Mail className="h-3 w-3" /> {user?.email}
+              </p>
             </div>
             <Button variant={editing ? 'default' : 'outline'} size="sm"
-              onClick={editing ? handleSave : () => setEditing(true)} disabled={saving}>
+              onClick={editing ? handleSave : () => { setEditing(true); setIsAddingSkill(false) }} disabled={saving}>
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
-              {saving ? 'Lưu...' : editing ? '💾 Lưu' : '✏️ Chỉnh sửa'}
+              {saving ? 'Lưu...' : editing ? <><Save className="h-3.5 w-3.5 mr-1" />Lưu</> : <><Edit3 className="h-3.5 w-3.5 mr-1" />Chỉnh sửa</>}
             </Button>
           </div>
 
           <div className="grid grid-cols-3 gap-3 mb-6 p-3 bg-muted/50 rounded-xl">
-            {[['📄', MOCK_CVS_COUNT, 'CV đã phân tích'], ['🔖', SAVED_COUNT, 'Việc đã lưu'], ['📨', 3, 'Đã ứng tuyển']].map(([icon, val, label]) => (
+            {[
+              { icon: FileText, value: stats.cvsCount, label: 'CV đã phân tích' },
+              { icon: Bookmark, value: stats.savedCount, label: 'Việc đã lưu' },
+              { icon: Send, value: stats.appliedCount, label: 'Đã ứng tuyển' },
+            ].map(({ icon: Icon, value, label }) => (
               <div key={label} className="text-center">
-                <div className="text-base mb-0.5">{icon}</div>
-                <div className="text-xl font-black text-foreground">{val}</div>
+                <div className="mb-0.5"><Icon className="h-5 w-5 mx-auto text-primary" /></div>
+                <div className="text-xl font-black text-foreground">{value}</div>
                 <div className="text-[11px] text-muted-foreground leading-tight">{label}</div>
               </div>
             ))}
@@ -81,13 +127,41 @@ export function ProfileTab({ user, updateUser }) {
       <Card>
         <CardContent className="p-5">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="font-bold text-sm">🛠️ Kỹ năng</h3>
-            <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs"><Plus className="h-3 w-3" />Thêm</Button>
+            <h3 className="font-bold text-sm flex items-center gap-2"><Wrench className="h-4 w-4" /> Kỹ năng</h3>
+            {editing && (
+              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs" onClick={startAddSkill}>
+                <Plus className="h-3 w-3" />Thêm
+              </Button>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {(user?.skills || []).map(s => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
-            {!user?.skills?.length && <p className="text-sm text-muted-foreground italic">Chưa có kỹ năng nào...</p>}
+            {skills.map(s => (
+              <Badge key={s} variant="secondary" className={`text-xs ${editing ? 'pr-1' : ''}`}>
+                {s}
+                {editing && (
+                  <button onClick={() => removeSkill(s)} className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5 transition-colors">
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </Badge>
+            ))}
+            {!skills.length && <p className="text-sm text-muted-foreground italic">Chưa có kỹ năng nào...</p>}
           </div>
+          {editing && isAddingSkill && (
+            <div className="flex gap-2 mt-3">
+              <Input
+                value={newSkill}
+                onChange={e => setNewSkill(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { addSkill() } }}
+                placeholder="Nhập kỹ năng..."
+                className="h-8 text-sm flex-1"
+                autoFocus
+              />
+              <Button size="sm" className="h-8 gap-1 text-xs" onClick={addSkill}>
+                <Check className="h-3 w-3" />Thêm
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

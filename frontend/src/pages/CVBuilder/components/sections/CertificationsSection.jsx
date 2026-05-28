@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Section } from '../Section'
@@ -20,7 +20,7 @@ export function CertificationsSection({ items, onChange }) {
     onChange(cv => ({ ...cv, certifications: [...cv.certifications, { id: uid(), ...EMPTY_CERT }] }))
 
   return (
-    <Section title="Chứng chỉ" icon="🏆">
+    <Section title="Chứng chỉ" icon={<Trophy className="h-4 w-4 text-[#1549B8]" />}>
       {items.map(c => (
         <div key={c.id} className="flex gap-2 items-center">
           <Input

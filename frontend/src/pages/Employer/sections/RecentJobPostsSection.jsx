@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
+import { Plus, MapPin, Briefcase, BarChart3, Eye, Inbox } from "lucide-react";
 
 const SAMPLE_POSTS = [
   { id: 1, title: "Senior Frontend Developer", company: "TechCorp Vietnam", location: "TP. HCM", type: "Full-time", level: "Senior", applications: 24, views: 312, postedDays: 1 },
@@ -27,7 +28,7 @@ export function RecentJobPostsSection() {
             <p style={{ color: "var(--text-secondary)", fontSize: 15 }}>Các vị trí đang có nhiều ứng viên quan tâm nhất</p>
           </div>
           <Button variant="outline" onClick={() => navigate(isAuthenticated ? "/employer/jobs/new" : "/employer/register")}>
-            ➕ Đăng tin ngay
+            <><Plus size={16} /> Đăng tin ngay</>
           </Button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
@@ -47,18 +48,20 @@ export function RecentJobPostsSection() {
                   <Badge style={{ backgroundColor: "#D1FAE5", color: "#065F46", border: "none", fontSize: 11 }}>Đang tuyển</Badge>
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
-                  {[{ icon: "📍", text: job.location }, { icon: "💼", text: job.type }, { icon: "📊", text: job.level }].map((info) => (
-                    <span key={info.text} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--text-secondary)", backgroundColor: "var(--bg-subtle)", padding: "3px 8px", borderRadius: 6 }}>
-                      {info.icon} {info.text}
+                  {[{ icon: MapPin, text: job.location }, { icon: Briefcase, text: job.type }, { icon: BarChart3, text: job.level }].map((info, idx) => {
+                    const InfoIcon = info.icon
+                    return (
+                    <span key={idx} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--text-secondary)", backgroundColor: "var(--bg-subtle)", padding: "3px 8px", borderRadius: 6 }}>
+                      <InfoIcon size={12} /> {info.text}
                     </span>
-                  ))}
+                  )})}
                 </div>
                 <Separator style={{ marginBottom: 12 }} />
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{job.postedDays === 0 ? "Hôm nay" : `${job.postedDays} ngày trước`}</span>
                   <div style={{ display: "flex", gap: 12 }}>
-                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>👁 {job.views}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "#7C3AED" }}>📩 {job.applications} ứng tuyển</span>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}><Eye size={12} /> {job.views}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#7C3AED", display: "flex", alignItems: "center", gap: 4 }}><Inbox size={12} /> {job.applications} ứng tuyển</span>
                   </div>
                 </div>
               </CardContent>

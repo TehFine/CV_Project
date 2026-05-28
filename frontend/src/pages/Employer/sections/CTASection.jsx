@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { BarChart3, Rocket, ClipboardList } from "lucide-react";
 
 export function CTASection() {
   const navigate = useNavigate();
@@ -20,12 +21,12 @@ export function CTASection() {
             <Button size="lg"
               onClick={() => navigate(isAuthenticated ? "/employer/dashboard" : "/employer/register")}
               style={{ background: "linear-gradient(135deg, #1549B8, #1E40AF)", color: "white", fontWeight: 700, padding: "0 28px", height: 48 }}>
-              {isAuthenticated ? "📊 Vào Dashboard" : "🚀 Đăng ký nhà tuyển dụng miễn phí"}
+              {isAuthenticated ? <><BarChart3 size={16} /> Vào Dashboard</> : <><Rocket size={16} /> Đăng ký nhà tuyển dụng miễn phí</>}
             </Button>
             <Button size="lg" variant="outline"
               onClick={() => navigate(isAuthenticated ? "/employer/jobs/new" : "/employer/register")}
               style={{ fontWeight: 600, height: 48, padding: "0 28px" }}>
-              📋 Đăng tin tuyển dụng ngay
+              <><ClipboardList size={16} /> Đăng tin tuyển dụng ngay</>
             </Button>
           </div>
         </div>

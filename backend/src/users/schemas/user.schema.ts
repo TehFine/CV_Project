@@ -62,6 +62,16 @@ export class User {
   @Prop({ default: 'active', enum: ['active', 'banned', 'pending', 'inactive'] })
   status?: string;
 
+  // Verification fields
+  @Prop({ default: true })
+  emailVerified?: boolean;
+
+  @Prop({ default: false })
+  verified?: boolean; // employer verification (business license)
+
+  @Prop({ type: [String], default: [] })
+  businessDocuments?: string[];
+
   // CV Builder saved data
   @Prop({ type: Object, default: null })
   cvBuilderData?: Record<string, any>;

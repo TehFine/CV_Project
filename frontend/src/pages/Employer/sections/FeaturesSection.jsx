@@ -1,14 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { ClipboardList, Bot, BarChart3, Users, Search, Bell, Calendar, Sparkles } from "lucide-react";
 
 const FEATURES = [
-  { icon: "📋", title: "Đăng tin dễ dàng", desc: "Tạo tin tuyển dụng chuyên nghiệp trong vài phút với template có sẵn" },
-  { icon: "🤖", title: "AI chấm điểm CV", desc: "Tự động phân tích và xếp hạng ứng viên theo mức độ phù hợp" },
-  { icon: "📊", title: "Dashboard thống kê", desc: "Theo dõi lượt xem, ứng tuyển và hiệu quả từng tin đăng" },
-  { icon: "👥", title: "Quản lý ứng viên", desc: "Xem hồ sơ, cập nhật trạng thái và liên hệ ứng viên tiện lợi" },
-  { icon: "🔍", title: "Tìm hồ sơ chủ động", desc: "Tìm kiếm trong kho 50,000+ CV theo kỹ năng và kinh nghiệm" },
-  { icon: "🔔", title: "Thông báo realtime", desc: "Nhận thông báo ngay khi có ứng viên mới nộp hồ sơ" },
-  { icon: "📅", title: "Lịch phỏng vấn", desc: "Đặt lịch và quản lý buổi phỏng vấn trực tiếp trên hệ thống" },
-  { icon: "🆓", title: "Miễn phí hoàn toàn", desc: "Không mất phí đăng ký, không giới hạn số tin đăng cơ bản" },
+  { icon: ClipboardList, title: "Đăng tin dễ dàng", desc: "Tạo tin tuyển dụng chuyên nghiệp trong vài phút với template có sẵn" },
+  { icon: Bot, title: "AI chấm điểm CV", desc: "Tự động phân tích và xếp hạng ứng viên theo mức độ phù hợp" },
+  { icon: BarChart3, title: "Dashboard thống kê", desc: "Theo dõi lượt xem, ứng tuyển và hiệu quả từng tin đăng" },
+  { icon: Users, title: "Quản lý ứng viên", desc: "Xem hồ sơ, cập nhật trạng thái và liên hệ ứng viên tiện lợi" },
+  { icon: Search, title: "Tìm hồ sơ chủ động", desc: "Tìm kiếm trong kho 50,000+ CV theo kỹ năng và kinh nghiệm" },
+  { icon: Bell, title: "Thông báo realtime", desc: "Nhận thông báo ngay khi có ứng viên mới nộp hồ sơ" },
+  { icon: Calendar, title: "Lịch phỏng vấn", desc: "Đặt lịch và quản lý buổi phỏng vấn trực tiếp trên hệ thống" },
+  { icon: Sparkles, title: "Miễn phí hoàn toàn", desc: "Không mất phí đăng ký, không giới hạn số tin đăng cơ bản" },
 ];
 
 export function FeaturesSection() {
@@ -29,7 +30,9 @@ export function FeaturesSection() {
               onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 20px rgba(21,73,184,0.1)")}
               onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}>
               <CardContent style={{ padding: "20px", display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>{feat.icon}</span>
+                <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#1549B8" }}>
+                  <feat.icon size={22} />
+                </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>{feat.title}</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{feat.desc}</div>

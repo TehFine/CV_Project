@@ -194,12 +194,12 @@ export const MOCK_REPORTS = {
         { city: 'Khác', jobs: 250, users: 35 },
     ],
     recentActivities: [
-        { id: 1, type: 'new_user', message: 'Ứng viên mới đăng ký: Nguyễn Văn X', time: '2 phút trước', icon: '👤' },
-        { id: 2, type: 'new_job', message: 'Tin tuyển dụng mới cần duyệt: UI/UX Designer', time: '8 phút trước', icon: '📋' },
-        { id: 3, type: 'cv_score', message: 'CV được chấm điểm: 91/100 (Xuất sắc)', time: '15 phút trước', icon: '✨' },
-        { id: 4, type: 'report', message: 'Tin đăng bị báo cáo: "Nhân viên Marketing"', time: '32 phút trước', icon: '🚨' },
-        { id: 5, type: 'new_employer', message: 'NTD mới cần xác minh: Startup ABC', time: '1 giờ trước', icon: '🏢' },
-        { id: 6, type: 'application', message: '87 lượt ứng tuyển mới trong hôm nay', time: '2 giờ trước', icon: '📨' },
+        { id: 1, type: 'new_user', message: 'Ứng viên mới đăng ký: Nguyễn Văn X', time: '2 phút trước' },
+        { id: 2, type: 'new_job', message: 'Tin tuyển dụng mới cần duyệt: UI/UX Designer', time: '8 phút trước' },
+        { id: 3, type: 'cv_score', message: 'CV được chấm điểm: 91/100 (Xuất sắc)', time: '15 phút trước' },
+        { id: 4, type: 'report', message: 'Tin đăng bị báo cáo: "Nhân viên Marketing"', time: '32 phút trước' },
+        { id: 5, type: 'new_employer', message: 'NTD mới cần xác minh: Startup ABC', time: '1 giờ trước' },
+        { id: 6, type: 'application', message: '87 lượt ứng tuyển mới trong hôm nay', time: '2 giờ trước' },
     ],
 }
 

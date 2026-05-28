@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Section } from '../Section'
@@ -20,7 +20,7 @@ export function LanguagesSection({ items, onChange }) {
     onChange(cv => ({ ...cv, languages: [...cv.languages, { id: uid(), ...EMPTY_LANGUAGE }] }))
 
   return (
-    <Section title="Ngôn ngữ" icon="🌐">
+    <Section title="Ngôn ngữ" icon={<Globe className="h-4 w-4 text-[#1549B8]" />}>
       {items.map(l => (
         <div key={l.id} className="flex gap-2 items-center">
           <Input

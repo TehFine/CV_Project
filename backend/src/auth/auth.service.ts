@@ -5,6 +5,10 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { AppLogger } from '../common/logger.service';
 import { NotificationsGateway } from '../admin/gateways/notifications.gateway';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Settings, SettingsDocument } from '../admin/schemas/settings.schema';
+import { EmailService } from '../common/email.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +16,8 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private notificationsGateway: NotificationsGateway,
+    private emailService: EmailService,
+    @InjectModel(Settings.name) private settingsModel: Model<SettingsDocument>,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -24,6 +30,14 @@ export class AuthService {
       throw new ConflictException('Email đã tồn tại');
     }
 
+    // Read security & users settings
+    const settings = await this.getSettings();
+
+    // Enforce passwordMinLength
+    if (password.length < settings.security.passwordMinLength) {
+      throw new BadRequestException(`Mật khẩu phải có ít nhất ${settings.security.passwordMinLength} ký tự.`);
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -32,6 +46,8 @@ export class AuthService {
     const user = await this.usersService.create({
       ...userData,
       password: hashedPassword,
+      emailVerified: !settings.users.emailVerificationRequired, // auto-verified if setting disabled
+      verified: userData.role === 'employer' ? !settings.users.employerVerificationRequired : true, // employers need verification only if setting enabled
     });
 
     // Generate token
@@ -97,6 +113,7 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       this.logger.log('Yêu cầu reset mật khẩu cho email không tồn tại', { email, action: 'forgot_password' });
+      // Vẫn trả về message chung để không lộ danh sách email
       return { message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.' };
     }
 
@@ -114,6 +131,15 @@ export class AuthService {
     });
 
     this.logger.success('Đã tạo token reset mật khẩu', { userId: user._id.toString(), email, action: 'forgot_password' });
+
+    // Send email with reset link
+    const userName = user.name || email.split('@')[0];
+    try {
+      await this.emailService.sendPasswordResetEmail(email, resetToken, userName);
+    } catch (e) {
+      this.logger.error('Gửi email reset mật khẩu thất bại', e as any, { email, action: 'forgot_password' });
+      // Không throw lỗi ra ngoài — vẫn trả về message chung để bảo mật
+    }
 
     return {
       message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.',
@@ -183,6 +209,29 @@ export class AuthService {
     this.logger.success('Đổi mật khẩu thành công', { userId, action: 'change_password' });
 
     return { message: 'Đổi mật khẩu thành công' };
+  }
+
+  // ─── Settings from DB ────────────────────────────────────────────────
+
+  private async getSettings(): Promise<{
+    users: { emailVerificationRequired: boolean; employerVerificationRequired: boolean; maxSavedJobs: number };
+    security: { passwordMinLength: number; maxLoginAttempts: number; sessionTimeoutMin: number; mfaEnabled: boolean; rbacEnabled: boolean; auditLogEnabled: boolean };
+  }> {
+    const defaults = {
+      users: { emailVerificationRequired: false, employerVerificationRequired: true, maxSavedJobs: 50 },
+      security: { passwordMinLength: 6, maxLoginAttempts: 5, sessionTimeoutMin: 60, mfaEnabled: false, rbacEnabled: false, auditLogEnabled: true },
+    };
+    try {
+      const doc = await this.settingsModel.findOne({ key: 'global' }).exec();
+      if (!doc) return defaults;
+      const docAny = doc as any;
+      return {
+        users: { ...defaults.users, ...(docAny.users || {}) },
+        security: { ...defaults.security, ...(docAny.security || {}) },
+      };
+    } catch {
+      return defaults;
+    }
   }
 
   private readonly logger = AppLogger.forContext(AuthService.name);

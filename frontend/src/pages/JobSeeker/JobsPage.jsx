@@ -96,6 +96,7 @@ export default function JobsPage() {
   const [total,   setTotal]   = useState(0)
   const [loading, setLoading] = useState(true)
   const [showMobileFilter, setShowMobileFilter] = useState(false)
+  const [sort, setSort] = useState('newest')
   const [searchInput, setSearchInput] = useState(searchParams.get('keyword') || '')
   const [filters, setFilters] = useState({
     keyword:  searchParams.get('keyword')  || '',
@@ -115,12 +116,12 @@ export default function JobsPage() {
   const fetchJobs = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await jobService.getJobs(filters)
+      const res = await jobService.getJobs({ ...filters, sort })
       setJobs(res.data); setTotal(res.total)
     } catch (err) {
       console.error('Fetch error:', err)
     } finally { setLoading(false) }
-  }, [filters])
+  }, [filters, sort])
 
   useEffect(() => { fetchJobs() }, [fetchJobs])
 
@@ -164,7 +165,7 @@ export default function JobsPage() {
                   <><span className="font-bold text-[#0F172A]">{total}</span> việc làm{filters.keyword && ` cho "${filters.keyword}"`}</>
                 )}
               </p>
-              <Select defaultValue="newest">
+              <Select value={sort} onValueChange={setSort}>
                 <SelectTrigger className="w-36 h-8 text-xs border-[#E2E8F0]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="newest">Mới nhất</SelectItem>
@@ -180,7 +181,7 @@ export default function JobsPage() {
               </div>
             ) : jobs.length === 0 ? (
               <div className="bg-white rounded-xl border border-[#E2E8F0] py-16 text-center">
-                <p className="text-4xl mb-3">🔍</p>
+                <div className="mb-3"><Search className="h-10 w-10 mx-auto text-muted-foreground/50" /></div>
                 <p className="font-semibold text-[#0F172A] mb-1">Không tìm thấy kết quả</p>
                 <p className="text-sm text-[#94A3B8] mb-4">Thử thay đổi từ khóa hoặc bỏ bớt bộ lọc</p>
                 <Button variant="outline" size="sm"
@@ -198,7 +199,7 @@ export default function JobsPage() {
             {!loading && jobs.length > 0 && (
               <div className="mt-5 rounded-2xl bg-linear-to-r from-[#1E1B4B] to-[#4C1D95] p-5 flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                  <p className="text-violet-300 text-xs font-bold mb-1">✨ AI CV SCORING</p>
+                  <p className="text-violet-300 text-xs font-bold mb-1"><Sparkles className="inline-block h-3.5 w-3.5 mr-1" />AI CV SCORING</p>
                   <p className="text-white font-bold text-base">Tăng cơ hội được tuyển lên 3x với CV tối ưu</p>
                   <p className="text-slate-400 text-xs mt-0.5">Nhận phân tích chi tiết từ AI — Miễn phí</p>
                 </div>
