@@ -2,12 +2,13 @@ import { Inbox } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function EmptyState({
-  icon: Icon = Inbox,
+  icon,
   title,
   description,
   action,
   className,
 }) {
+  const Icon = icon || Inbox
   return (
     <div className={cn(
       "text-center py-14 bg-white rounded-xl border border-dashed border-slate-300",

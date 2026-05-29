@@ -11,8 +11,8 @@ export default function StatCard({ icon, label, value, sub, color = '#3B82F6', t
       )}
     >
       <div
-        className="flex items-center justify-center rounded-xl size-11 shrink-0"
-        style={{ backgroundColor: color + '18', fontSize: 20 }}
+        className="flex items-center justify-center rounded-xl size-11 shrink-0 text-xl"
+        style={{ backgroundColor: color + '18' }}
       >
         {icon}
       </div>

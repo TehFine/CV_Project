@@ -117,8 +117,7 @@ export default function ScoringModal({
           <button
             onClick={onScore}
             disabled={scoringLoading || (!scoringFile && !scoringTargetApplicant)}
-            className="px-5 py-[10px] rounded-lg border-none text-white font-bold cursor-pointer transition-all disabled:opacity-70 disabled:cursor-not-allowed hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}
+            className="px-5 py-[10px] rounded-lg border-none text-white font-bold cursor-pointer transition-all disabled:opacity-70 disabled:cursor-not-allowed hover:opacity-90 bg-gradient-to-br from-emerald-500 to-emerald-700"
           >
             {scoringLoading
               ? 'Đang phân tích AI...'

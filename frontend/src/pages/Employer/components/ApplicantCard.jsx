@@ -57,8 +57,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
 
         {/* Avatar */}
         <div
-          className="size-11 rounded-full shrink-0 flex items-center justify-center text-white font-extrabold text-[15px]"
-          style={{ background: 'linear-gradient(135deg, #1E40AF, #7C3AED)' }}
+          className="size-11 rounded-full shrink-0 flex items-center justify-center text-white font-extrabold text-[15px] bg-gradient-to-br from-blue-800 to-violet-700"
         >
           {initials}
         </div>
@@ -112,8 +111,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
             <button
               onClick={() => handleStatus(cfg.next)}
               disabled={updating}
-              className="px-[14px] py-[7px] rounded-lg border-none text-white cursor-pointer text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}
+              className="px-[14px] py-[7px] rounded-lg border-none text-white cursor-pointer text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-blue-800 to-blue-500"
             >
               → {STATUS_CONFIG[cfg.next]?.label}
             </button>

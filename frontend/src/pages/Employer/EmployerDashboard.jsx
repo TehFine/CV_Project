@@ -53,8 +53,7 @@ export default function EmployerDashboard() {
         </div>
         <Link
           to="/employer/jobs/new"
-          className="inline-flex items-center gap-2 px-5 py-[10px] text-white rounded-xl no-underline font-bold text-sm shadow-lg shadow-blue-500/35 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-200"
-          style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}
+          className="inline-flex items-center gap-2 px-5 py-[10px] text-white rounded-xl no-underline font-bold text-sm shadow-lg shadow-blue-500/35 hover:shadow-blue-500/50 hover:-translate-y-0.5 transition-all duration-200 bg-gradient-to-br from-blue-800 to-blue-500"
         >
           ＋ Đăng tin mới
         </Link>
@@ -103,10 +102,9 @@ export default function EmployerDashboard() {
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <span className="text-[10px] text-muted-foreground font-semibold">{d.count}</span>
                 <div
-                  className="w-full rounded-t min-h-[4px] transition-all duration-600 ease-out"
+                  className="w-full rounded-t min-h-[4px] transition-all duration-600 ease-out bg-gradient-to-b from-blue-500 to-blue-800"
                   style={{
                     height: `${(d.count / maxChart) * 90}px`,
-                    background: 'linear-gradient(180deg, #3B82F6, #1E40AF)',
                   }}
                 />
                 <span className="text-[10px] text-slate-300">{d.date.split('/')[0]}</span>
@@ -144,8 +142,7 @@ export default function EmployerDashboard() {
 
       {/* Quick links */}
       <div
-        className="rounded-2xl p-5 flex gap-4 flex-wrap items-center justify-between"
-        style={{ background: 'linear-gradient(135deg, #0F172A, #1E3A6E)' }}
+        className="rounded-2xl p-5 flex gap-4 flex-wrap items-center justify-between bg-gradient-to-br from-slate-900 to-blue-900"
       >
         <div className="min-w-[200px]">
           <p className="text-[rgba(255,255,255,0.5)] text-xs font-semibold uppercase mb-1">Thao tác nhanh</p>
@@ -159,8 +156,7 @@ export default function EmployerDashboard() {
             <Link
               key={link.to + link.label}
               to={link.to}
-              className="px-[18px] py-[10px] rounded-xl text-sm font-bold text-white border border-[rgba(255,255,255,0.2)] no-underline transition-colors duration-200 hover:bg-white/20"
-              style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
+              className="px-[18px] py-[10px] rounded-xl text-sm font-bold text-white border border-white/20 no-underline transition-colors duration-200 hover:bg-white/20 bg-white/10"
             >
               <link.icon size={16} className="inline-block mr-1.5" />
               {link.label}

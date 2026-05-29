@@ -157,11 +157,7 @@ export default function EmployerApplicantsPage() {
             setScoringTargetApplicant(null)
             setShowScoringModal(true)
           }}
-          className="px-7 py-[14px] rounded-xl border-none text-white cursor-pointer text-[15px] font-extrabold uppercase tracking-wide flex items-center gap-2.5 transition-all duration-300 hover:-translate-y-0.5"
-          style={{
-            background: 'linear-gradient(135deg, #6366F1, #A855F7, #EC4899)',
-            boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.5), 0 8px 10px -6px rgba(168, 85, 247, 0.3)',
-          }}
+          className="px-7 py-[14px] rounded-xl border-none text-white cursor-pointer text-[15px] font-extrabold uppercase tracking-wide flex items-center gap-2.5 transition-all duration-300 hover:-translate-y-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-purple-500/50"
         >
           <Sparkles size={20} />
           <span>Chấm Điểm CV Bằng AI</span>
