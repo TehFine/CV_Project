@@ -3,8 +3,8 @@ import {
   Sparkles, FileText, BarChart3, Activity, CheckCircle2, AlertTriangle,
   MessageSquare, Lightbulb, ChevronDown, ChevronUp, Trash2
 } from 'lucide-react'
-import ScoreBar from './ScoreBar'
-import RadarChart from './RadarChart'
+import ScoreBar from '@/components/ui/ScoreBar'
+import RadarChart from '@/components/ui/RadarChart'
 
 const STATUS_CONFIG = {
   pending: { label: 'Chờ xem', color: '#F59E0B', bg: '#FEF3C7', next: 'reviewing' },

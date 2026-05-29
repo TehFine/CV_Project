@@ -1,3 +1,7 @@
+/**
+ * RadarChart — biểu đồ radar SVG 4 chiều (Kỹ năng, Kinh nghiệm, Học vấn, Từ khóa)
+ * Dùng để trực quan hóa điểm số đánh giá CV / năng lực ứng viên.
+ */
 export default function RadarChart({ skills, experience, education, keywords }) {
   const size = 260
   const center = size / 2
