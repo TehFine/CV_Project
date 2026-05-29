@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, UseGuards, Request, Patch, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Request,
+  Patch,
+  Param,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -30,7 +39,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   async updateProfile(@Request() req, @Body() updateData: any) {
-    const updatedUser = await this.usersService.update(req.user._id, updateData);
+    const updatedUser = await this.usersService.update(
+      req.user._id,
+      updateData,
+    );
     return this.authService.sanitizeUser(updatedUser);
   }
 
@@ -56,6 +68,10 @@ export class AuthController {
     @Body('currentPassword') currentPassword: string,
     @Body('newPassword') newPassword: string,
   ) {
-    return this.authService.changePassword(req.user._id, currentPassword, newPassword);
+    return this.authService.changePassword(
+      req.user._id,
+      currentPassword,
+      newPassword,
+    );
   }
 }

@@ -14,7 +14,11 @@ export class User {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true, enum: ['candidate', 'employer', 'admin'], default: 'candidate' })
+  @Prop({
+    required: true,
+    enum: ['candidate', 'employer', 'admin'],
+    default: 'candidate',
+  })
   role: string;
 
   // General fields
@@ -59,7 +63,10 @@ export class User {
   resetPasswordExpires?: Date;
 
   // User status (for admin management)
-  @Prop({ default: 'active', enum: ['active', 'banned', 'pending', 'inactive'] })
+  @Prop({
+    default: 'active',
+    enum: ['active', 'banned', 'pending', 'inactive'],
+  })
   status?: string;
 
   // Verification fields

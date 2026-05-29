@@ -1,4 +1,19 @@
-import { Controller, Post, Param, UseInterceptors, UploadedFile, BadRequestException, Body, UseGuards, Req, Get, Res, Delete, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Param,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  Res,
+  Delete,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CvScoringService } from './cv-scoring.service';
 import { JobsService } from '../jobs/jobs.service';
@@ -13,26 +28,35 @@ export class CvScoringController {
   constructor(
     private readonly cvScoringService: CvScoringService,
     private readonly jobsService: JobsService,
-  ) { }
+  ) {}
 
   // ─── Validation helper ─────────────────────────────────────────────
 
   private async validateAiEnabled() {
     const settings = await this.cvScoringService.getAiSettings();
     if (!settings.cvScoreEnabled) {
-      throw new BadRequestException('Tính năng chấm điểm CV hiện đang bị tắt trong cài đặt hệ thống.');
+      throw new BadRequestException(
+        'Tính năng chấm điểm CV hiện đang bị tắt trong cài đặt hệ thống.',
+      );
     }
     return settings;
   }
 
-  private validateFile(file: Express.Multer.File, settings: { maxFileSizeMB: number; supportedFormats: string[] }) {
+  private validateFile(
+    file: Express.Multer.File,
+    settings: { maxFileSizeMB: number; supportedFormats: string[] },
+  ) {
     const maxBytes = settings.maxFileSizeMB * 1024 * 1024;
     if (file.size > maxBytes) {
-      throw new BadRequestException(`Dung lượng file vượt quá giới hạn ${settings.maxFileSizeMB}MB.`);
+      throw new BadRequestException(
+        `Dung lượng file vượt quá giới hạn ${settings.maxFileSizeMB}MB.`,
+      );
     }
     const ext = file.originalname.split('.').pop()?.toLowerCase();
     if (!ext || !settings.supportedFormats.includes(ext)) {
-      throw new BadRequestException(`Định dạng file không được hỗ trợ. Các định dạng: ${settings.supportedFormats.join(', ')}`);
+      throw new BadRequestException(
+        `Định dạng file không được hỗ trợ. Các định dạng: ${settings.supportedFormats.join(', ')}`,
+      );
     }
   }
 
@@ -45,10 +69,15 @@ export class CvScoringController {
     }
 
     if (!score || !score.pdfBuffer) {
-      throw new NotFoundException('Không tìm thấy file CV của ứng viên trong cơ sở dữ liệu.');
+      throw new NotFoundException(
+        'Không tìm thấy file CV của ứng viên trong cơ sở dữ liệu.',
+      );
     }
 
-    const hasAccess = await this.cvScoringService.checkCvAccessPermission(score, req.user);
+    const hasAccess = await this.cvScoringService.checkCvAccessPermission(
+      score,
+      req.user,
+    );
     if (!hasAccess) {
       throw new ForbiddenException('Bạn không có quyền truy cập file CV này.');
     }
@@ -56,7 +85,6 @@ export class CvScoringController {
     res.setHeader('Content-Type', 'application/pdf');
     res.send(score.pdfBuffer);
   }
-
 
   @Post('score/:jobId')
   @UseGuards(JwtAuthGuard)
@@ -77,12 +105,17 @@ export class CvScoringController {
       this.validateFile(file, settings);
       pdfBuffer = file.buffer;
     } else if (candidateId) {
-      const dbBuffer = await this.cvScoringService.getCandidatePdfBuffer(jobId, candidateId);
+      const dbBuffer = await this.cvScoringService.getCandidatePdfBuffer(
+        jobId,
+        candidateId,
+      );
       if (dbBuffer) pdfBuffer = dbBuffer;
     }
 
     if (!pdfBuffer) {
-      throw new BadRequestException('Không tìm thấy file CV hiện tại của ứng viên. Vui lòng tải lên file CV (PDF) mới.');
+      throw new BadRequestException(
+        'Không tìm thấy file CV hiện tại của ứng viên. Vui lòng tải lên file CV (PDF) mới.',
+      );
     }
 
     const job = await this.jobsService.findOne(jobId);
@@ -90,10 +123,14 @@ export class CvScoringController {
       throw new BadRequestException('Không tìm thấy công việc');
     }
 
-    const result = await this.cvScoringService.scoreCV(pdfBuffer, job as any, candidateId);
+    const result = await this.cvScoringService.scoreCV(
+      pdfBuffer,
+      job as any,
+      candidateId,
+    );
     return {
       success: true,
-      data: result
+      data: result,
     };
   }
 
@@ -112,17 +149,23 @@ export class CvScoringController {
       if (!file) {
         throw new BadRequestException('Vui lòng tải lên file CV');
       }
-      
+
       // Fix Vietnamese font encoding issue caused by multer using latin1 by default
-      file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
-      
+      file.originalname = Buffer.from(file.originalname, 'latin1').toString(
+        'utf8',
+      );
+
       this.validateFile(file, settings);
 
       // Check daily score limit
       if (req.user) {
-        const limit = await this.cvScoringService.checkDailyScoreLimit(req.user._id || req.user.id);
+        const limit = await this.cvScoringService.checkDailyScoreLimit(
+          req.user._id || req.user.id,
+        );
         if (!limit.allowed) {
-          throw new BadRequestException(`Bạn đã đạt giới hạn ${limit.limit} lượt chấm điểm CV trong ngày hôm nay. Vui lòng quay lại vào ngày mai.`);
+          throw new BadRequestException(
+            `Bạn đã đạt giới hạn ${limit.limit} lượt chấm điểm CV trong ngày hôm nay. Vui lòng quay lại vào ngày mai.`,
+          );
         }
       }
 
@@ -133,7 +176,13 @@ export class CvScoringController {
       }
 
       const userId = req.user?.id || req.user?._id;
-      const result = await this.cvScoringService.scoreCandidateCV(file.buffer, file.originalname, targetPosition, jobContext, userId);
+      const result = await this.cvScoringService.scoreCandidateCV(
+        file.buffer,
+        file.originalname,
+        targetPosition,
+        jobContext,
+        userId,
+      );
       return result;
     } catch (error) {
       throw new BadRequestException(error.message || 'Lỗi khi phân tích CV');
@@ -150,7 +199,8 @@ export class CvScoringController {
   @UseGuards(JwtAuthGuard)
   async getScoreById(@Param('id') id: string) {
     const score = await this.cvScoringService.getScoreById(id);
-    if (!score) throw new NotFoundException('Không tìm thấy kết quả chấm điểm CV');
+    if (!score)
+      throw new NotFoundException('Không tìm thấy kết quả chấm điểm CV');
     return score;
   }
 
@@ -158,7 +208,8 @@ export class CvScoringController {
   @UseGuards(JwtAuthGuard)
   async deleteScoreById(@Param('id') id: string) {
     const deleted = await this.cvScoringService.deleteScoreById(id);
-    if (!deleted) throw new NotFoundException('Không tìm thấy kết quả chấm điểm CV');
+    if (!deleted)
+      throw new NotFoundException('Không tìm thấy kết quả chấm điểm CV');
     return { message: 'Đã xóa kết quả chấm điểm CV thành công' };
   }
 }

@@ -39,7 +39,9 @@ export class NotificationsGateway
 
   emitNotificationCreated(notification: any) {
     this.server.emit('notification.created', notification);
-    this.logger.debug(`Emitted notification.created: ${notification?.id || notification?._id}`);
+    this.logger.debug(
+      `Emitted notification.created: ${notification?.id || notification?._id}`,
+    );
   }
 
   emitNotificationRead(notificationId: string) {
@@ -73,7 +75,9 @@ export class NotificationsGateway
    * Emit event to notify admin dashboard to refresh data (e.g. new user registration)
    */
   emitDashboardUpdateNeeded() {
-    this.server.emit('dashboard.updateNeeded', { timestamp: new Date().toISOString() });
+    this.server.emit('dashboard.updateNeeded', {
+      timestamp: new Date().toISOString(),
+    });
     this.logger.debug('Emitted dashboard.updateNeeded');
   }
 }

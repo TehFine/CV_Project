@@ -18,10 +18,10 @@ import { Settings, SettingsSchema } from '../admin/schemas/settings.schema';
       { name: CvScore.name, schema: CvScoreSchema },
       { name: 'Application', schema: ApplicationSchema },
       { name: Settings.name, schema: SettingsSchema },
-    ])
+    ]),
   ],
   providers: [CvScoringService],
   controllers: [CvScoringController],
-  exports: [CvScoringService]
+  exports: [CvScoringService],
 })
-export class CvScoringModule { }
+export class CvScoringModule {}

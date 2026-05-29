@@ -6,7 +6,10 @@ import { AuthModule } from '../auth/auth.module';
 import { Job, JobSchema } from './schemas/job.schema';
 import { Application, ApplicationSchema } from './schemas/application.schema';
 import { CvScore, CvScoreSchema } from '../cv-scoring/schemas/cv-score.schema';
-import { Notification, NotificationSchema } from '../admin/schemas/notification.schema';
+import {
+  Notification,
+  NotificationSchema,
+} from '../admin/schemas/notification.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Settings, SettingsSchema } from '../admin/schemas/settings.schema';
 import { AdminModule } from '../admin/admin.module';

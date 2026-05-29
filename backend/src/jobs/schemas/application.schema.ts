@@ -17,7 +17,10 @@ export class Application {
   @Prop()
   cvId: string; // ID of the CV used (if any)
 
-  @Prop({ default: 'pending', enum: ['pending', 'reviewing', 'interview', 'offered', 'rejected'] })
+  @Prop({
+    default: 'pending',
+    enum: ['pending', 'reviewing', 'interview', 'offered', 'rejected'],
+  })
   status: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'CvScore' })

@@ -14,7 +14,9 @@ import { Settings, SettingsSchema } from '../admin/schemas/settings.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Settings.name, schema: SettingsSchema }]),
+    MongooseModule.forFeature([
+      { name: Settings.name, schema: SettingsSchema },
+    ]),
     UsersModule,
     AdminModule,
     EmailModule,
@@ -24,7 +26,8 @@ import { Settings, SettingsSchema } from '../admin/schemas/settings.schema';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') || 'fallback_secret',
         signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '7d') as any,
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '7d') as any,
         },
       }),
       inject: [ConfigService],

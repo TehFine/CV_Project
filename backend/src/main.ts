@@ -16,7 +16,10 @@ async function bootstrap() {
 
   // Enable CORS with configurable origins
   const corsOrigin = configService.get<string>('CORS_ORIGIN', '*');
-  const origins = corsOrigin.split(',').map(s => s.trim()).filter(Boolean);
+  const origins = corsOrigin
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   const isWildcard = origins.includes('*');
   app.enableCors({
     origin: isWildcard ? '*' : origins,
@@ -25,11 +28,13 @@ async function bootstrap() {
   });
 
   // Global Validation Pipe
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: false,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+    }),
+  );
 
   // Global HTTP logging interceptor
   app.useGlobalInterceptors(new LogInterceptor());

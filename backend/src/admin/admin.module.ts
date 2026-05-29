@@ -4,9 +4,15 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Job, JobSchema } from '../jobs/schemas/job.schema';
-import { Application, ApplicationSchema } from '../jobs/schemas/application.schema';
+import {
+  Application,
+  ApplicationSchema,
+} from '../jobs/schemas/application.schema';
 import { CvScore, CvScoreSchema } from '../cv-scoring/schemas/cv-score.schema';
-import { Notification, NotificationSchema } from './schemas/notification.schema';
+import {
+  Notification,
+  NotificationSchema,
+} from './schemas/notification.schema';
 import { Settings, SettingsSchema } from './schemas/settings.schema';
 import { NotificationsGateway } from './gateways/notifications.gateway';
 
