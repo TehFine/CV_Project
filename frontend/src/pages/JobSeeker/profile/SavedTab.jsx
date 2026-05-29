@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Bookmark, BookmarkX, MapPin, Banknote, ArrowRight, BriefcaseBusiness } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { jobService } from '@/services/jobService'
 
 export function SavedTab() {
@@ -20,7 +21,7 @@ export function SavedTab() {
       // Handle both direct array and axios-wrapped response
       const list = Array.isArray(data) ? data : (data?.data || [])
       setSaved(list)
-    } catch (err) {
+    } catch {
       setError('Không thể tải danh sách việc đã lưu. Vui lòng thử lại.')
     } finally {
       setLoading(false)
@@ -34,7 +35,7 @@ export function SavedTab() {
       setRemovingId(jobId)
       await jobService.toggleSaveJob(jobId)
       setSaved(prev => prev.filter(j => (j._id || j.id) !== jobId))
-    } catch (err) {
+    } catch {
       // silent fail — item stays in list
     } finally {
       setRemovingId(null)
@@ -72,20 +73,16 @@ export function SavedTab() {
       </div>
 
       {saved.length === 0 ? (
-        <Card>
-          <CardContent className="py-14 text-center">
-            <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Bookmark className="h-8 w-8 text-primary/40" />
-            </div>
-            <p className="font-semibold text-foreground mb-1">Bạn chưa lưu công việc nào</p>
-            <p className="text-sm text-muted-foreground mb-5">
-              Lưu các công việc yêu thích để xem lại sau
-            </p>
+        <EmptyState
+          icon={Bookmark}
+          title="Bạn chưa lưu công việc nào"
+          description="Lưu các công việc yêu thích để xem lại sau"
+          action={
             <Button asChild>
               <Link to="/jobs"><BriefcaseBusiness className="h-4 w-4 mr-2" />Khám phá việc làm</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
         saved.map(job => {
           const id = job._id || job.id

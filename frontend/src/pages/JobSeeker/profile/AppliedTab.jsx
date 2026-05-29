@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, XCircle, Clock, Eye, CheckCircle, Mic, BriefcaseBusiness, Send } from 'lucide-react'
+import { Loader2, XCircle, Clock, Eye, CheckCircle, Mic, BriefcaseBusiness, Send, Inbox } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { jobService } from '@/services/jobService'
 
 const STATUS_MAP = {
@@ -95,11 +96,11 @@ export function AppliedTab() {
       </h3>
 
       {apps.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Bạn chưa ứng tuyển công việc nào.
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Inbox}
+          title="Bạn chưa ứng tuyển công việc nào"
+          description="Khi bạn ứng tuyển, đơn ứng tuyển sẽ xuất hiện ở đây"
+        />
       ) : (
         <>
           {active.length > 0 && (

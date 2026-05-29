@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Plus, Loader2, FileText, Eye, Trash2 } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { cvService } from '@/services/cvService'
 import CVScoreModal from '@/components/CVScoreModal'
 
@@ -16,7 +17,7 @@ function fixEncoding(str) {
   try {
     // If the string contains mojibake like "Nguyá»…n", escape and decodeURIComponent will fix it
     return decodeURIComponent(escape(str));
-  } catch (e) {
+  } catch {
     return str; // Return original if not valid encoded string
   }
 }
@@ -51,7 +52,7 @@ export function CVTab() {
       setError(null)
       const data = await cvService.getMyCVs()
       setCvs(Array.isArray(data) ? data.map(normalizeCV) : [])
-    } catch (err) {
+    } catch {
       setError('Không thể tải danh sách CV. Vui lòng thử lại sau.')
     } finally {
       setLoading(false)
@@ -75,11 +76,9 @@ export function CVTab() {
         overall: scoreData.overall ?? scoreData.score ?? cv.overall,
         grade: scoreData.grade || cv.grade,
         gradeLabel: scoreData.gradeLabel || cv.gradeLabel,
-      })
-    } catch (err) {
+      })    } catch {
       // If detail fetch fails, show what we have
-      setSelectedCv({
-        ...cv,
+      setSelectedCv({...cv,
         categories: [],
         strengths: [],
         improvements: [],
@@ -94,7 +93,7 @@ export function CVTab() {
       setDeletingId(id)
       await cvService.deleteCVScore(id)
       setCvs(prev => prev.filter(cv => (cv._id || cv.id) !== id))
-    } catch (err) {
+    } catch {
       setError('Xóa thất bại. Vui lòng thử lại.')
     } finally {
       setDeletingId(null)
@@ -129,18 +128,16 @@ export function CVTab() {
       </div>
 
       {cvs.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <div className="mb-4"><FileText className="h-12 w-12 mx-auto text-muted-foreground/50" /></div>
-            <p className="font-semibold mb-1">Bạn chưa phân tích CV nào</p>
-            <p className="text-sm text-muted-foreground mb-5">
-              Tải lên CV để AI phân tích và đánh giá năng lực của bạn
-            </p>
+        <EmptyState
+          icon={FileText}
+          title="Bạn chưa phân tích CV nào"
+          description="Tải lên CV để AI phân tích và đánh giá năng lực của bạn"
+          action={
             <Button asChild>
               <Link to="/cv-upload"><FileText className="h-4 w-4 mr-2" />Phân tích CV ngay</Link>
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
         cvs.map(cv => (
           <Card key={cv._id || cv.id}>

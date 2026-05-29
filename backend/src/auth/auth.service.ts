@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -26,7 +32,11 @@ export class AuthService {
     // Check if user exists
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
-      this.logger.fail('Đăng ký thất bại', { email, action: 'register', reason: 'Email đã tồn tại' });
+      this.logger.fail('Đăng ký thất bại', {
+        email,
+        action: 'register',
+        reason: 'Email đã tồn tại',
+      });
       throw new ConflictException('Email đã tồn tại');
     }
 
@@ -35,7 +45,9 @@ export class AuthService {
 
     // Enforce passwordMinLength
     if (password.length < settings.security.passwordMinLength) {
-      throw new BadRequestException(`Mật khẩu phải có ít nhất ${settings.security.passwordMinLength} ký tự.`);
+      throw new BadRequestException(
+        `Mật khẩu phải có ít nhất ${settings.security.passwordMinLength} ký tự.`,
+      );
     }
 
     // Hash password
@@ -47,19 +59,27 @@ export class AuthService {
       ...userData,
       password: hashedPassword,
       emailVerified: !settings.users.emailVerificationRequired, // auto-verified if setting disabled
-      verified: userData.role === 'employer' ? !settings.users.employerVerificationRequired : true, // employers need verification only if setting enabled
+      verified:
+        userData.role === 'employer'
+          ? !settings.users.employerVerificationRequired
+          : true, // employers need verification only if setting enabled
     });
 
     // Generate token
     const token = this.generateToken(user);
 
-    this.logger.success('Đăng ký thành công', { userId: user._id.toString(), email, userRole: user.role, action: 'register' });
+    this.logger.success('Đăng ký thành công', {
+      userId: user._id.toString(),
+      email,
+      userRole: user.role,
+      action: 'register',
+    });
 
     // Notify admin dashboard to refresh data (new user needs approval)
     try {
       this.notificationsGateway.emitDashboardUpdateNeeded();
     } catch (e) {
-      this.logger.warn('Failed to emit dashboard update via WebSocket', e as any);
+      this.logger.warn('Failed to emit dashboard update via WebSocket', e);
     }
 
     return {
@@ -74,21 +94,35 @@ export class AuthService {
     // Find user
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      this.logger.fail('Đăng nhập thất bại', { email, action: 'login', reason: 'Email không tồn tại' });
+      this.logger.fail('Đăng nhập thất bại', {
+        email,
+        action: 'login',
+        reason: 'Email không tồn tại',
+      });
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
 
     // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      this.logger.fail('Đăng nhập thất bại', { userId: user._id.toString(), email, action: 'login', reason: 'Sai mật khẩu' });
+      this.logger.fail('Đăng nhập thất bại', {
+        userId: user._id.toString(),
+        email,
+        action: 'login',
+        reason: 'Sai mật khẩu',
+      });
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
 
     // Generate token
     const token = this.generateToken(user);
 
-    this.logger.success('Đăng nhập thành công', { userId: user._id.toString(), email, userRole: user.role, action: 'login' });
+    this.logger.success('Đăng nhập thành công', {
+      userId: user._id.toString(),
+      email,
+      userRole: user.role,
+      action: 'login',
+    });
 
     return {
       token,
@@ -112,9 +146,15 @@ export class AuthService {
   async forgotPassword(email: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      this.logger.log('Yêu cầu reset mật khẩu cho email không tồn tại', { email, action: 'forgot_password' });
+      this.logger.log('Yêu cầu reset mật khẩu cho email không tồn tại', {
+        email,
+        action: 'forgot_password',
+      });
       // Vẫn trả về message chung để không lộ danh sách email
-      return { message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.' };
+      return {
+        message:
+          'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.',
+      };
     }
 
     // Generate a short-lived reset token (valid for 1 hour)
@@ -130,19 +170,31 @@ export class AuthService {
       resetPasswordExpires: new Date(Date.now() + 3600000), // 1 hour
     });
 
-    this.logger.success('Đã tạo token reset mật khẩu', { userId: user._id.toString(), email, action: 'forgot_password' });
+    this.logger.success('Đã tạo token reset mật khẩu', {
+      userId: user._id.toString(),
+      email,
+      action: 'forgot_password',
+    });
 
     // Send email with reset link
     const userName = user.name || email.split('@')[0];
     try {
-      await this.emailService.sendPasswordResetEmail(email, resetToken, userName);
+      await this.emailService.sendPasswordResetEmail(
+        email,
+        resetToken,
+        userName,
+      );
     } catch (e) {
-      this.logger.error('Gửi email reset mật khẩu thất bại', e as any, { email, action: 'forgot_password' });
+      this.logger.error('Gửi email reset mật khẩu thất bại', e, {
+        email,
+        action: 'forgot_password',
+      });
       // Không throw lỗi ra ngoài — vẫn trả về message chung để bảo mật
     }
 
     return {
-      message: 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.',
+      message:
+        'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.',
       ...(process.env.NODE_ENV !== 'production' && { resetToken }),
     };
   }
@@ -152,29 +204,50 @@ export class AuthService {
     try {
       payload = this.jwtService.verify(token);
     } catch {
-      this.logger.fail('Reset mật khẩu thất bại - token không hợp lệ/hết hạn', { action: 'reset_password' });
-      throw new BadRequestException('Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+      this.logger.fail('Reset mật khẩu thất bại - token không hợp lệ/hết hạn', {
+        action: 'reset_password',
+      });
+      throw new BadRequestException(
+        'Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn',
+      );
     }
 
     if (payload.type !== 'password_reset') {
-      this.logger.fail('Reset mật khẩu thất bại - sai loại token', { action: 'reset_password', sub: payload.sub });
+      this.logger.fail('Reset mật khẩu thất bại - sai loại token', {
+        action: 'reset_password',
+        sub: payload.sub,
+      });
       throw new BadRequestException('Token không hợp lệ');
     }
 
     const user = await this.usersService.findById(payload.sub);
     if (!user || !user.resetPasswordToken) {
-      this.logger.fail('Reset mật khẩu thất bại - không tìm thấy user hoặc token đã dùng', { action: 'reset_password', sub: payload.sub });
-      throw new BadRequestException('Token đặt lại mật khẩu không hợp lệ hoặc đã được sử dụng');
+      this.logger.fail(
+        'Reset mật khẩu thất bại - không tìm thấy user hoặc token đã dùng',
+        { action: 'reset_password', sub: payload.sub },
+      );
+      throw new BadRequestException(
+        'Token đặt lại mật khẩu không hợp lệ hoặc đã được sử dụng',
+      );
     }
 
     const isValid = await bcrypt.compare(token, user.resetPasswordToken);
     if (!isValid) {
-      this.logger.fail('Reset mật khẩu thất bại - token sai', { action: 'reset_password', userId: user._id.toString() });
+      this.logger.fail('Reset mật khẩu thất bại - token sai', {
+        action: 'reset_password',
+        userId: user._id.toString(),
+      });
       throw new BadRequestException('Token đặt lại mật khẩu không hợp lệ');
     }
 
-    if (!user.resetPasswordExpires || new Date() > new Date(user.resetPasswordExpires)) {
-      this.logger.fail('Reset mật khẩu thất bại - token hết hạn', { action: 'reset_password', userId: user._id.toString() });
+    if (
+      !user.resetPasswordExpires ||
+      new Date() > new Date(user.resetPasswordExpires)
+    ) {
+      this.logger.fail('Reset mật khẩu thất bại - token hết hạn', {
+        action: 'reset_password',
+        userId: user._id.toString(),
+      });
       throw new BadRequestException('Token đặt lại mật khẩu đã hết hạn');
     }
 
@@ -185,28 +258,47 @@ export class AuthService {
       resetPasswordExpires: undefined,
     });
 
-    this.logger.success('Reset mật khẩu thành công', { userId: user._id.toString(), action: 'reset_password' });
+    this.logger.success('Reset mật khẩu thành công', {
+      userId: user._id.toString(),
+      action: 'reset_password',
+    });
 
     return { message: 'Mật khẩu đã được đặt lại thành công' };
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
     const user = await this.usersService.findById(userId);
     if (!user) {
-      this.logger.fail('Đổi mật khẩu thất bại - không tìm thấy user', { userId, action: 'change_password' });
+      this.logger.fail('Đổi mật khẩu thất bại - không tìm thấy user', {
+        userId,
+        action: 'change_password',
+      });
       throw new NotFoundException('Không tìm thấy người dùng');
     }
 
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
     if (!isPasswordValid) {
-      this.logger.fail('Đổi mật khẩu thất bại - sai mật khẩu hiện tại', { userId, action: 'change_password' });
+      this.logger.fail('Đổi mật khẩu thất bại - sai mật khẩu hiện tại', {
+        userId,
+        action: 'change_password',
+      });
       throw new UnauthorizedException('Mật khẩu hiện tại không đúng');
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await this.usersService.update(userId, { password: hashedPassword });
 
-    this.logger.success('Đổi mật khẩu thành công', { userId, action: 'change_password' });
+    this.logger.success('Đổi mật khẩu thành công', {
+      userId,
+      action: 'change_password',
+    });
 
     return { message: 'Đổi mật khẩu thành công' };
   }
@@ -214,12 +306,34 @@ export class AuthService {
   // ─── Settings from DB ────────────────────────────────────────────────
 
   private async getSettings(): Promise<{
-    users: { emailVerificationRequired: boolean; employerVerificationRequired: boolean; maxSavedJobs: number };
-    security: { passwordMinLength: number; maxLoginAttempts: number; sessionTimeoutMin: number; mfaEnabled: boolean; rbacEnabled: boolean; auditLogEnabled: boolean };
+    users: {
+      emailVerificationRequired: boolean;
+      employerVerificationRequired: boolean;
+      maxSavedJobs: number;
+    };
+    security: {
+      passwordMinLength: number;
+      maxLoginAttempts: number;
+      sessionTimeoutMin: number;
+      mfaEnabled: boolean;
+      rbacEnabled: boolean;
+      auditLogEnabled: boolean;
+    };
   }> {
     const defaults = {
-      users: { emailVerificationRequired: false, employerVerificationRequired: true, maxSavedJobs: 50 },
-      security: { passwordMinLength: 6, maxLoginAttempts: 5, sessionTimeoutMin: 60, mfaEnabled: false, rbacEnabled: false, auditLogEnabled: true },
+      users: {
+        emailVerificationRequired: false,
+        employerVerificationRequired: true,
+        maxSavedJobs: 50,
+      },
+      security: {
+        passwordMinLength: 6,
+        maxLoginAttempts: 5,
+        sessionTimeoutMin: 60,
+        mfaEnabled: false,
+        rbacEnabled: false,
+        auditLogEnabled: true,
+      },
     };
     try {
       const doc = await this.settingsModel.findOne({ key: 'global' }).exec();

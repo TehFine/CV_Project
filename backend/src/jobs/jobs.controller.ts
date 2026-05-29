@@ -1,6 +1,17 @@
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete,
-  Query, UseGuards, Request, ForbiddenException, UseInterceptors, UploadedFile
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+  Request,
+  ForbiddenException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JobsService } from './jobs.service';
@@ -58,13 +69,15 @@ export class JobsController {
   @Post(':id/apply')
   @UseInterceptors(FileInterceptor('cv'))
   async apply(
-    @Param('id') id: string, 
-    @Request() req, 
+    @Param('id') id: string,
+    @Request() req,
     @Body() data: any,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     if (req.user.role !== 'candidate') {
-      throw new ForbiddenException('Chỉ ứng viên mới được ứng tuyển vào công việc');
+      throw new ForbiddenException(
+        'Chỉ ứng viên mới được ứng tuyển vào công việc',
+      );
     }
     return this.jobsService.apply(id, req.user._id, data, file);
   }
@@ -81,8 +94,17 @@ export class JobsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('employer', 'admin')
   @Patch(':id')
-  async update(@Param('id') id: string, @Request() req, @Body() updateJobDto: any) {
-    return this.jobsService.update(id, updateJobDto, req.user._id.toString(), req.user.role);
+  async update(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() updateJobDto: any,
+  ) {
+    return this.jobsService.update(
+      id,
+      updateJobDto,
+      req.user._id.toString(),
+      req.user.role,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

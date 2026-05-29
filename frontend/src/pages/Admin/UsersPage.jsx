@@ -59,7 +59,7 @@ export default function AdminUsersPage() {
       // getUser may return data directly (mock) or wrapped in axios response
       const freshData = res?.data || res
       setSelectedUser({ ...user, ...freshData })
-    } catch (err) {
+    } catch {
       // Fallback to cached data from list if API fails
       setSelectedUser(user)
     } finally {

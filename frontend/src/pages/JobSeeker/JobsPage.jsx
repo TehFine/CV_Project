@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { Search, Filter, X, Sparkles, SlidersHorizontal } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -180,15 +181,17 @@ export default function JobsPage() {
                 {[1,2,3,4].map(i => <div key={i} className="h-52 shimmer-bg" />)}
               </div>
             ) : jobs.length === 0 ? (
-              <div className="bg-white rounded-xl border border-[#E2E8F0] py-16 text-center">
-                <div className="mb-3"><Search className="h-10 w-10 mx-auto text-muted-foreground/50" /></div>
-                <p className="font-semibold text-[#0F172A] mb-1">Không tìm thấy kết quả</p>
-                <p className="text-sm text-[#94A3B8] mb-4">Thử thay đổi từ khóa hoặc bỏ bớt bộ lọc</p>
-                <Button variant="outline" size="sm"
-                  onClick={() => setFilters({ keyword:'', category:'', level:'', type:'', location:'' })}>
-                  <X className="h-3.5 w-3.5 mr-1" />Xóa tất cả bộ lọc
-                </Button>
-              </div>
+              <EmptyState
+                icon={Search}
+                title="Không tìm thấy kết quả"
+                description="Thử thay đổi từ khóa hoặc bỏ bớt bộ lọc"
+                action={
+                  <Button variant="outline" size="sm"
+                    onClick={() => setFilters({ keyword:'', category:'', level:'', type:'', location:'' })}>
+                    <X className="h-3.5 w-3.5 mr-1" />Xóa tất cả bộ lọc
+                  </Button>
+                }
+              />
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
                 {jobs.map((job, i) => <JobCard key={job.id} job={job} index={i} />)}

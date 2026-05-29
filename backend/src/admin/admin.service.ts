@@ -3,9 +3,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Job, JobDocument } from '../jobs/schemas/job.schema';
-import { Application, ApplicationDocument } from '../jobs/schemas/application.schema';
-import { CvScore, CvScoreDocument } from '../cv-scoring/schemas/cv-score.schema';
-import { Notification, NotificationDocument } from './schemas/notification.schema';
+import {
+  Application,
+  ApplicationDocument,
+} from '../jobs/schemas/application.schema';
+import {
+  CvScore,
+  CvScoreDocument,
+} from '../cv-scoring/schemas/cv-score.schema';
+import {
+  Notification,
+  NotificationDocument,
+} from './schemas/notification.schema';
 import { Settings, SettingsDocument } from './schemas/settings.schema';
 import { AppLogger } from '../common/logger.service';
 import { NotificationsGateway } from './gateways/notifications.gateway';
@@ -17,9 +26,11 @@ export class AdminService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Job.name) private jobModel: Model<JobDocument>,
-    @InjectModel(Application.name) private applicationModel: Model<ApplicationDocument>,
+    @InjectModel(Application.name)
+    private applicationModel: Model<ApplicationDocument>,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
-    @InjectModel(Notification.name) private notificationModel: Model<NotificationDocument>,
+    @InjectModel(Notification.name)
+    private notificationModel: Model<NotificationDocument>,
     @InjectModel(Settings.name) private settingsModel: Model<SettingsDocument>,
     private notificationsGateway: NotificationsGateway,
   ) {}
@@ -27,32 +38,68 @@ export class AdminService {
   // ─── Dashboard ──────────────────────────────────────────────────────
 
   async getDashboardStats() {
-    this.logger.log('Xem thống kê dashboard admin', { action: 'admin_dashboard' });
+    this.logger.log('Xem thống kê dashboard admin', {
+      action: 'admin_dashboard',
+    });
     const totalUsers = await this.userModel.countDocuments();
-    const totalEmployers = await this.userModel.countDocuments({ role: 'employer' } as any);
-    const totalCandidates = await this.userModel.countDocuments({ role: 'candidate' } as any);
+    const totalEmployers = await this.userModel.countDocuments({
+      role: 'employer',
+    });
+    const totalCandidates = await this.userModel.countDocuments({
+      role: 'candidate',
+    });
 
     const totalJobs = await this.jobModel.countDocuments();
-    const activeJobs = await this.jobModel.countDocuments({ status: 'active' } as any);
-    const pendingJobsCount = await this.jobModel.countDocuments({ status: 'pending' } as any);
-    const reportedJobs = await this.jobModel.countDocuments({ status: 'reported' } as any);
+    const activeJobs = await this.jobModel.countDocuments({
+      status: 'active',
+    });
+    const pendingJobsCount = await this.jobModel.countDocuments({
+      status: 'pending',
+    });
+    const reportedJobs = await this.jobModel.countDocuments({
+      status: 'reported',
+    });
 
     const totalApplications = await this.applicationModel.countDocuments();
     const totalCvScores = await this.cvScoreModel.countDocuments();
-    const pendingEmployers = await this.userModel.countDocuments({ role: 'employer', status: 'pending' } as any);
+    const pendingEmployers = await this.userModel.countDocuments({
+      role: 'employer',
+      status: 'pending',
+    });
 
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const newUsersThisMonth = await this.userModel.countDocuments({ createdAt: { $gte: firstOfMonth } } as any);
+    const newUsersThisMonth = await this.userModel.countDocuments({
+      createdAt: { $gte: firstOfMonth },
+    });
 
     // User growth (last 6 months)
     const userGrowth: any[] = [];
     for (let i = 5; i >= 0; i--) {
       const start = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
-      const candidates = await this.userModel.countDocuments({ role: 'candidate', createdAt: { $gte: start, $lt: end } } as any);
-      const employers = await this.userModel.countDocuments({ role: 'employer', createdAt: { $gte: start, $lt: end } } as any);
-      const monthNames = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+      const candidates = await this.userModel.countDocuments({
+        role: 'candidate',
+        createdAt: { $gte: start, $lt: end },
+      });
+      const employers = await this.userModel.countDocuments({
+        role: 'employer',
+        createdAt: { $gte: start, $lt: end },
+      });
+      const monthNames = [
+        'T1',
+        'T2',
+        'T3',
+        'T4',
+        'T5',
+        'T6',
+        'T7',
+        'T8',
+        'T9',
+        'T10',
+        'T11',
+        'T12',
+      ];
       userGrowth.push({
         month: `${monthNames[start.getMonth()]}/${start.getFullYear()}`,
         candidates,
@@ -66,34 +113,62 @@ export class AdminService {
       { $group: { _id: '$category', count: { $sum: 1 } } },
       { $project: { category: '$_id', count: 1, _id: 0 } },
       { $sort: { count: -1 } },
-    ]) as any[];
+    ]);
 
     // CV score distribution
     const scoreDistribution = [
-      { grade: 'A (85-100)', count: await this.cvScoreModel.countDocuments({ score: { $gte: 85 } } as any) },
-      { grade: 'B (70-84)', count: await this.cvScoreModel.countDocuments({ score: { $gte: 70, $lt: 85 } } as any) },
-      { grade: 'C (55-69)', count: await this.cvScoreModel.countDocuments({ score: { $gte: 55, $lt: 70 } } as any) },
-      { grade: 'D (<55)', count: await this.cvScoreModel.countDocuments({ score: { $lt: 55 } } as any) },
+      {
+        grade: 'A (85-100)',
+        count: await this.cvScoreModel.countDocuments({
+          score: { $gte: 85 },
+        }),
+      },
+      {
+        grade: 'B (70-84)',
+        count: await this.cvScoreModel.countDocuments({
+          score: { $gte: 70, $lt: 85 },
+        }),
+      },
+      {
+        grade: 'C (55-69)',
+        count: await this.cvScoreModel.countDocuments({
+          score: { $gte: 55, $lt: 70 },
+        }),
+      },
+      {
+        grade: 'D (<55)',
+        count: await this.cvScoreModel.countDocuments({
+          score: { $lt: 55 },
+        }),
+      },
     ];
 
     // Average CV score
-    const avgScoreAgg = await this.cvScoreModel.aggregate([
-      { $group: { _id: null, avg: { $avg: '$score' } } },
-    ]).exec();
-    const avgCVScore = avgScoreAgg.length > 0 ? Math.round(avgScoreAgg[0].avg) : 0;
+    const avgScoreAgg = await this.cvScoreModel
+      .aggregate([{ $group: { _id: null, avg: { $avg: '$score' } } }])
+      .exec();
+    const avgCVScore =
+      avgScoreAgg.length > 0 ? Math.round(avgScoreAgg[0].avg) : 0;
 
     // Top locations
-    const locationAgg = await this.jobModel.aggregate([
-      { $match: { status: 'active' } },
-      { $group: { _id: '$location', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 5 },
-    ]).exec();
+    const locationAgg = await this.jobModel
+      .aggregate([
+        { $match: { status: 'active' } },
+        { $group: { _id: '$location', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ])
+      .exec();
 
-    const topLocations = await Promise.all((locationAgg || []).map(async (loc: any) => {
-      const users = await this.userModel.countDocuments({ role: 'employer', location: loc._id } as any);
-      return { city: loc._id, jobs: loc.count, users };
-    }));
+    const topLocations = await Promise.all(
+      (locationAgg || []).map(async (loc: any) => {
+        const users = await this.userModel.countDocuments({
+          role: 'employer',
+          location: loc._id,
+        });
+        return { city: loc._id, jobs: loc.count, users };
+      }),
+    );
 
     // Recent activities
     const recentActivities = await this.getRecentActivities(6);
@@ -113,10 +188,14 @@ export class AdminService {
         avgCVScore,
       },
       userGrowth,
-      jobsByCategory: jobsByCategory.map((j: any) => ({ ...j, pct: activeJobs > 0 ? Math.round((j.count / activeJobs) * 100) : 0 })),
-      cvScoreDistribution: scoreDistribution.map(s => ({
+      jobsByCategory: jobsByCategory.map((j: any) => ({
+        ...j,
+        pct: activeJobs > 0 ? Math.round((j.count / activeJobs) * 100) : 0,
+      })),
+      cvScoreDistribution: scoreDistribution.map((s) => ({
         ...s,
-        pct: totalCvScores > 0 ? Math.round((s.count / totalCvScores) * 100) : 0,
+        pct:
+          totalCvScores > 0 ? Math.round((s.count / totalCvScores) * 100) : 0,
       })),
       topLocations,
       recentActivities,
@@ -127,11 +206,26 @@ export class AdminService {
     const recent: any[] = [];
 
     // Recent user registrations
-    const recentUsers = await this.userModel.find().sort({ createdAt: -1 } as any).limit(5).exec();
+    const recentUsers = await this.userModel
+      .find()
+      .sort({ createdAt: -1 } as any)
+      .limit(5)
+      .exec();
     for (const u of recentUsers) {
-      const roleLabel = u.role === 'employer' ? 'NTD' : u.role === 'admin' ? 'Quản trị viên' : 'Ứng viên';
-      const typeLabel = u.role === 'employer' ? 'new_employer' : u.role === 'admin' ? 'new_admin' : 'new_user';
-      const icon = u.role === 'employer' ? '🏢' : u.role === 'admin' ? '⚙️' : '👤';
+      const roleLabel =
+        u.role === 'employer'
+          ? 'NTD'
+          : u.role === 'admin'
+            ? 'Quản trị viên'
+            : 'Ứng viên';
+      const typeLabel =
+        u.role === 'employer'
+          ? 'new_employer'
+          : u.role === 'admin'
+            ? 'new_admin'
+            : 'new_user';
+      const icon =
+        u.role === 'employer' ? '🏢' : u.role === 'admin' ? '⚙️' : '👤';
       recent.push({
         type: typeLabel,
         message: `${roleLabel} mới: ${u.name}`,
@@ -142,7 +236,11 @@ export class AdminService {
     }
 
     // Recent job posts
-    const recentJobs = await this.jobModel.find().sort({ createdAt: -1 } as any).limit(5).exec();
+    const recentJobs = await this.jobModel
+      .find()
+      .sort({ createdAt: -1 } as any)
+      .limit(5)
+      .exec();
     for (const j of recentJobs) {
       recent.push({
         type: 'new_job',
@@ -153,7 +251,11 @@ export class AdminService {
     }
 
     // Recent CV scores
-    const recentScores = await this.cvScoreModel.find().sort({ createdAt: -1 } as any).limit(5).exec();
+    const recentScores = await this.cvScoreModel
+      .find()
+      .sort({ createdAt: -1 } as any)
+      .limit(5)
+      .exec();
     for (const s of recentScores) {
       recent.push({
         type: 'cv_score',
@@ -175,8 +277,17 @@ export class AdminService {
 
   // ─── Users ──────────────────────────────────────────────────────────
 
-  async getUsers(params: { role?: string; status?: string; keyword?: string; page?: number; limit?: number }): Promise<any> {
-    this.logger.log('Xem danh sách người dùng', { action: 'admin_get_users', ...params });
+  async getUsers(params: {
+    role?: string;
+    status?: string;
+    keyword?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
+    this.logger.log('Xem danh sách người dùng', {
+      action: 'admin_get_users',
+      ...params,
+    });
     const filter: any = {};
     if (params.role) filter.role = params.role;
     if (params.status) filter.status = params.status;
@@ -193,39 +304,58 @@ export class AdminService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.userModel.find(filter).sort({ createdAt: -1 } as any).skip(skip).limit(limit).exec(),
+      this.userModel
+        .find(filter)
+        .sort({ createdAt: -1 } as any)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
       this.userModel.countDocuments(filter),
     ]);
 
     // Enrich with additional stats
-    const enriched = await Promise.all(data.map(async (u) => {
-      const userObj = u.toObject ? u.toObject() : u;
-      const { password, ...safeUser } = userObj;
+    const enriched = await Promise.all(
+      data.map(async (u) => {
+        const userObj = u.toObject ? u.toObject() : u;
+        const { password, ...safeUser } = userObj;
 
-      if (u.role === 'candidate') {
-        const cvCount = await this.cvScoreModel.countDocuments({ userId: u._id } as any);
-        const appliedJobs = await this.applicationModel.countDocuments({ candidateId: u._id } as any);
-        return { ...safeUser, cvCount, appliedJobs };
-      }
+        if (u.role === 'candidate') {
+          const cvCount = await this.cvScoreModel.countDocuments({
+            userId: u._id,
+          } as any);
+          const appliedJobs = await this.applicationModel.countDocuments({
+            candidateId: u._id,
+          } as any);
+          return { ...safeUser, cvCount, appliedJobs };
+        }
 
-      if (u.role === 'employer') {
-        const postedJobs = await this.jobModel.countDocuments({ employerId: u._id } as any);
-        const employerJobs = await this.jobModel.find({ employerId: u._id } as any).select('_id').exec();
-        const jobIds = employerJobs.map(j => j._id);
-        const totalApplicants = await this.applicationModel.countDocuments({
-          jobId: { $in: jobIds },
-        } as any);
-        return { ...safeUser, postedJobs, totalApplicants };
-      }
+        if (u.role === 'employer') {
+          const postedJobs = await this.jobModel.countDocuments({
+            employerId: u._id,
+          } as any);
+          const employerJobs = await this.jobModel
+            .find({ employerId: u._id } as any)
+            .select('_id')
+            .exec();
+          const jobIds = employerJobs.map((j) => j._id);
+          const totalApplicants = await this.applicationModel.countDocuments({
+            jobId: { $in: jobIds },
+          } as any);
+          return { ...safeUser, postedJobs, totalApplicants };
+        }
 
-      return safeUser;
-    }));
+        return safeUser;
+      }),
+    );
 
     return { data: enriched, total, page, limit };
   }
 
   async getUser(id: string): Promise<any> {
-    this.logger.log('Xem chi tiết người dùng', { action: 'admin_get_user', targetUserId: id });
+    this.logger.log('Xem chi tiết người dùng', {
+      action: 'admin_get_user',
+      targetUserId: id,
+    });
     const user = await this.userModel.findById(id).exec();
     if (!user) throw new NotFoundException('Không tìm thấy người dùng');
     const userObj = user.toObject ? user.toObject() : user;
@@ -233,16 +363,25 @@ export class AdminService {
 
     // Enrich with real-time stats from other collections
     if (user.role === 'candidate') {
-      const cvCount = await this.cvScoreModel.countDocuments({ userId: user._id } as any);
-      const appliedJobs = await this.applicationModel.countDocuments({ candidateId: user._id } as any);
+      const cvCount = await this.cvScoreModel.countDocuments({
+        userId: user._id,
+      } as any);
+      const appliedJobs = await this.applicationModel.countDocuments({
+        candidateId: user._id,
+      } as any);
       const savedJobs = (user.savedJobs || []).length;
       return { ...safeUser, cvCount, appliedJobs, savedJobs };
     }
 
     if (user.role === 'employer') {
-      const postedJobs = await this.jobModel.countDocuments({ employerId: user._id } as any);
-      const employerJobs = await this.jobModel.find({ employerId: user._id } as any).select('_id').exec();
-      const jobIds = employerJobs.map(j => j._id);
+      const postedJobs = await this.jobModel.countDocuments({
+        employerId: user._id,
+      } as any);
+      const employerJobs = await this.jobModel
+        .find({ employerId: user._id } as any)
+        .select('_id')
+        .exec();
+      const jobIds = employerJobs.map((j) => j._id);
       const totalApplicants = await this.applicationModel.countDocuments({
         jobId: { $in: jobIds },
       } as any);
@@ -253,12 +392,23 @@ export class AdminService {
   }
 
   async updateUserStatus(id: string, status: string, reason = '') {
-    const user = await this.userModel.findByIdAndUpdate(id, { status }, { new: true }).exec();
+    const user = await this.userModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .exec();
     if (!user) {
-      this.logger.fail('Cập nhật trạng thái user thất bại - không tìm thấy', { action: 'admin_update_user_status', targetUserId: id, status });
+      this.logger.fail('Cập nhật trạng thái user thất bại - không tìm thấy', {
+        action: 'admin_update_user_status',
+        targetUserId: id,
+        status,
+      });
       throw new NotFoundException('Không tìm thấy người dùng');
     }
-    this.logger.success('Cập nhật trạng thái user', { action: 'admin_update_user_status', targetUserId: id, status, reason: reason || 'none' });
+    this.logger.success('Cập nhật trạng thái user', {
+      action: 'admin_update_user_status',
+      targetUserId: id,
+      status,
+      reason: reason || 'none',
+    });
     // Create notification for user status change
     const notif = await this.notificationModel.create({
       userId: id,
@@ -280,16 +430,29 @@ export class AdminService {
   async deleteUser(id: string) {
     const user = await this.userModel.findByIdAndDelete(id).exec();
     if (!user) {
-      this.logger.fail('Xóa user thất bại - không tìm thấy', { action: 'admin_delete_user', targetUserId: id });
+      this.logger.fail('Xóa user thất bại - không tìm thấy', {
+        action: 'admin_delete_user',
+        targetUserId: id,
+      });
       throw new NotFoundException('Không tìm thấy người dùng');
     }
-    this.logger.success('Xóa user', { action: 'admin_delete_user', targetUserId: id, name: user.name, email: user.email });
+    this.logger.success('Xóa user', {
+      action: 'admin_delete_user',
+      targetUserId: id,
+      name: user.name,
+      email: user.email,
+    });
     return { message: 'Đã xóa người dùng thành công' };
   }
 
   // ─── Jobs ────────────────────────────────────────────────────────────
 
-  async getAdminJobs(params: { status?: string; keyword?: string; page?: number; limit?: number }): Promise<any> {
+  async getAdminJobs(params: {
+    status?: string;
+    keyword?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
     const filter: any = {};
     if (params.status) filter.status = params.status;
     if (params.keyword) {
@@ -305,11 +468,17 @@ export class AdminService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.jobModel.find(filter).sort({ createdAt: -1 } as any).skip(skip).limit(limit).populate('employerId', 'name email').exec(),
+      this.jobModel
+        .find(filter)
+        .sort({ createdAt: -1 } as any)
+        .skip(skip)
+        .limit(limit)
+        .populate('employerId', 'name email')
+        .exec(),
       this.jobModel.countDocuments(filter),
     ]);
 
-    const enriched: any[] = data.map(j => {
+    const enriched: any[] = data.map((j) => {
       const job = j.toObject ? j.toObject() : j;
       const employer = job.employerId as any;
       return {
@@ -318,7 +487,11 @@ export class AdminService {
         company: job.companyName,
         companyId: employer?._id,
         location: job.location,
-        salary: job.salary || (job.salaryMin ? `${(job.salaryMin / 1000000)} - ${(job.salaryMax / 1000000)} triệu` : 'Thỏa thuận'),
+        salary:
+          job.salary ||
+          (job.salaryMin
+            ? `${job.salaryMin / 1000000} - ${job.salaryMax / 1000000} triệu`
+            : 'Thỏa thuận'),
         level: job.level,
         type: job.type,
         category: job.category,
@@ -339,19 +512,35 @@ export class AdminService {
   }
 
   async updateJobStatus(id: string, status: string) {
-    const job = await this.jobModel.findByIdAndUpdate(id, { status }, { new: true }).exec();
+    const job = await this.jobModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .exec();
     if (!job) {
-      this.logger.fail('Cập nhật trạng thái job thất bại', { action: 'admin_update_job_status', jobId: id, status });
+      this.logger.fail('Cập nhật trạng thái job thất bại', {
+        action: 'admin_update_job_status',
+        jobId: id,
+        status,
+      });
       throw new NotFoundException('Không tìm thấy công việc');
     }
-    this.logger.success('Cập nhật trạng thái job', { action: 'admin_update_job_status', jobId: id, status, title: job.title });
+    this.logger.success('Cập nhật trạng thái job', {
+      action: 'admin_update_job_status',
+      jobId: id,
+      status,
+      title: job.title,
+    });
 
     // Notify employer about status change
     const notif = await this.notificationModel.create({
       userId: job.employerId,
       title: 'Cập nhật trạng thái tin tuyển dụng',
       message: `Tin tuyển dụng "${job.title}" đã được chuyển sang trạng thái: ${status}`,
-      type: status === 'active' ? 'success' : status === 'rejected' ? 'warning' : 'info',
+      type:
+        status === 'active'
+          ? 'success'
+          : status === 'rejected'
+            ? 'warning'
+            : 'info',
       jobId: String(job._id),
     } as any);
     this.notificationsGateway.emitNotificationCreated({
@@ -368,7 +557,9 @@ export class AdminService {
   }
 
   async toggleJobFeatured(id: string, featured: boolean) {
-    const job = await this.jobModel.findByIdAndUpdate(id, { featured }, { new: true }).exec();
+    const job = await this.jobModel
+      .findByIdAndUpdate(id, { featured }, { new: true })
+      .exec();
     if (!job) throw new NotFoundException('Không tìm thấy công việc');
     return { success: true, featured: job.featured };
   }
@@ -376,16 +567,28 @@ export class AdminService {
   async deleteJob(id: string) {
     const job = await this.jobModel.findByIdAndDelete(id).exec();
     if (!job) {
-      this.logger.fail('Xóa job thất bại - không tìm thấy', { action: 'admin_delete_job', jobId: id });
+      this.logger.fail('Xóa job thất bại - không tìm thấy', {
+        action: 'admin_delete_job',
+        jobId: id,
+      });
       throw new NotFoundException('Không tìm thấy công việc');
     }
-    this.logger.success('Xóa job', { action: 'admin_delete_job', jobId: id, title: job.title });
+    this.logger.success('Xóa job', {
+      action: 'admin_delete_job',
+      jobId: id,
+      title: job.title,
+    });
     return { message: 'Đã xóa tin tuyển dụng thành công' };
   }
 
   // ─── CV Scores ───────────────────────────────────────────────────────
 
-  async getCVScores(params: { keyword?: string; grade?: string; page?: number; limit?: number }) {
+  async getCVScores(params: {
+    keyword?: string;
+    grade?: string;
+    page?: number;
+    limit?: number;
+  }) {
     const filter: any = {};
     if (params.grade) {
       // Support both stored grade field AND score-based fallback for old records
@@ -397,10 +600,7 @@ export class AdminService {
       };
       const range = scoreRanges[params.grade];
       if (range) {
-        filter.$or = [
-          { grade: params.grade },
-          { score: { ...range } as any },
-        ];
+        filter.$or = [{ grade: params.grade }, { score: { ...range } as any }];
       } else {
         filter.grade = params.grade;
       }
@@ -425,7 +625,8 @@ export class AdminService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.cvScoreModel.find(filter)
+      this.cvScoreModel
+        .find(filter)
         .sort({ createdAt: -1 } as any)
         .skip(skip)
         .limit(limit)
@@ -434,20 +635,35 @@ export class AdminService {
       this.cvScoreModel.countDocuments(filter),
     ]);
 
-    const enriched = data.map(s => {
+    const enriched = data.map((s) => {
       const score = s.toObject ? s.toObject() : s;
       const user = score.userId as any;
       const cats = (score as any).analysis?.categories || [];
       const overallVal = (score as any).overall || (score as any).score || 0;
-      const categories: any = { skills: 0, experience: 0, education: 0, format: 0, keywords: 0 };
-      const catMap: any = { skills_match: 'skills', skills: 'skills', experience: 'experience', education: 'education', format: 'format', keywords: 'keywords' };
+      const categories: any = {
+        skills: 0,
+        experience: 0,
+        education: 0,
+        format: 0,
+        keywords: 0,
+      };
+      const catMap: any = {
+        skills_match: 'skills',
+        skills: 'skills',
+        experience: 'experience',
+        education: 'education',
+        format: 'format',
+        keywords: 'keywords',
+      };
       for (const c of cats) {
         const key = catMap[c.key];
         if (key) categories[key] = c.score;
       }
       // Fallback: nếu categories vẫn là 0 (dữ liệu cũ không có analysis.categories),
       // dùng overall score để phân bổ hợp lý
-      const hasRealData = Object.values(categories).some(v => (v as number) > 0);
+      const hasRealData = Object.values(categories).some(
+        (v) => (v as number) > 0,
+      );
       if (!hasRealData && overallVal > 0) {
         categories.skills = overallVal;
         categories.experience = Math.min(100, overallVal + 5);
@@ -485,16 +701,25 @@ export class AdminService {
   async deleteCVScore(id: string) {
     const score = await this.cvScoreModel.findByIdAndDelete(id).exec();
     if (!score) {
-      this.logger.fail('Xóa điểm CV thất bại - không tìm thấy', { action: 'admin_delete_cv_score', scoreId: id });
+      this.logger.fail('Xóa điểm CV thất bại - không tìm thấy', {
+        action: 'admin_delete_cv_score',
+        scoreId: id,
+      });
       throw new NotFoundException('Không tìm thấy điểm CV');
     }
-    this.logger.success('Xóa điểm CV', { action: 'admin_delete_cv_score', scoreId: id });
+    this.logger.success('Xóa điểm CV', {
+      action: 'admin_delete_cv_score',
+      scoreId: id,
+    });
     return { message: 'Đã xóa điểm CV thành công' };
   }
 
   // ─── Notifications ───────────────────────────────────────────────────
 
-  async getNotifications(userId: string, params: { filter?: string; page?: number; limit?: number }) {
+  async getNotifications(
+    userId: string,
+    params: { filter?: string; page?: number; limit?: number },
+  ) {
     const query: any = {};
     // Admin can see all notifications, or filter by userId
     if (params.filter === 'unread') query.read = false;
@@ -504,7 +729,12 @@ export class AdminService {
     const skip = (page - 1) * limit;
 
     const [data, total, unreadCount] = await Promise.all([
-      this.notificationModel.find(query).sort({ createdAt: -1 } as any).skip(skip).limit(limit).exec(),
+      this.notificationModel
+        .find(query)
+        .sort({ createdAt: -1 } as any)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
       this.notificationModel.countDocuments(query),
       this.notificationModel.countDocuments({ read: false } as any),
     ]);
@@ -528,26 +758,43 @@ export class AdminService {
 
   async markNotificationRead(id: string) {
     await this.notificationModel.findByIdAndUpdate(id, { read: true }).exec();
-    this.logger.log('Đánh dấu thông báo đã đọc', { action: 'admin_mark_notification_read', notificationId: id });
+    this.logger.log('Đánh dấu thông báo đã đọc', {
+      action: 'admin_mark_notification_read',
+      notificationId: id,
+    });
     this.notificationsGateway.emitNotificationRead(id);
     return { success: true };
   }
 
   async markAllNotificationsRead(userId: string) {
-    const result = await this.notificationModel.updateMany({ read: false } as any, { read: true }).exec();
-    this.logger.log('Đánh dấu tất cả thông báo đã đọc', { action: 'admin_mark_all_read', count: result.modifiedCount });
+    const result = await this.notificationModel
+      .updateMany({ read: false }, { read: true })
+      .exec();
+    this.logger.log('Đánh dấu tất cả thông báo đã đọc', {
+      action: 'admin_mark_all_read',
+      count: result.modifiedCount,
+    });
     this.notificationsGateway.emitAllNotificationsRead();
     return { success: true };
   }
 
   async deleteNotification(id: string) {
     await this.notificationModel.findByIdAndDelete(id).exec();
-    this.logger.log('Xóa thông báo', { action: 'admin_delete_notification', notificationId: id });
+    this.logger.log('Xóa thông báo', {
+      action: 'admin_delete_notification',
+      notificationId: id,
+    });
     this.notificationsGateway.emitNotificationDeleted(id);
     return { success: true };
   }
 
-  async createNotification(data: { userId?: string; title: string; message: string; type?: string; jobId?: string }) {
+  async createNotification(data: {
+    userId?: string;
+    title: string;
+    message: string;
+    type?: string;
+    jobId?: string;
+  }) {
     const created = await this.notificationModel.create({
       userId: data.userId,
       title: data.title,
@@ -555,7 +802,11 @@ export class AdminService {
       type: data.type || 'info',
       jobId: data.jobId,
     } as any);
-    this.logger.success('Tạo thông báo mới', { action: 'admin_create_notification', notificationId: created._id.toString(), title: data.title });
+    this.logger.success('Tạo thông báo mới', {
+      action: 'admin_create_notification',
+      notificationId: created._id.toString(),
+      title: data.title,
+    });
     this.notificationsGateway.emitNotificationCreated({
       id: created._id.toString(),
       title: created.title,
@@ -622,14 +873,19 @@ export class AdminService {
   }
 
   async updateSettings(section: string, data: any) {
-    this.logger.success('Cập nhật cài đặt hệ thống', { action: 'admin_update_settings', section });
+    this.logger.success('Cập nhật cài đặt hệ thống', {
+      action: 'admin_update_settings',
+      section,
+    });
 
     // Upsert — update the specific section in the global document
-    await this.settingsModel.updateOne(
-      { key: 'global' },
-      { $set: { [section]: data } },
-      { upsert: true },
-    ).exec();
+    await this.settingsModel
+      .updateOne(
+        { key: 'global' },
+        { $set: { [section]: data } },
+        { upsert: true },
+      )
+      .exec();
 
     // Return full updated settings
     return this.getSettings();

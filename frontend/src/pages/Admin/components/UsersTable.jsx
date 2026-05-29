@@ -1,4 +1,5 @@
 import { UserX, UserCheck, Eye, Trash2, Shield, Building2, MapPin, Clock, Mail, Phone, Briefcase, FileText, Users, User, CircleCheck, CircleX, CircleAlert, Loader2 } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -325,21 +326,12 @@ function MenuBtn({ icon, label, onClick, danger }) {
   )
 }
 
-// ─── Empty State ──────────────────────────────────────────────────────────
-function EmptyState({ role, keyword }) {
-  const getMessage = () => {
-    if (keyword) return 'Không tìm thấy người dùng nào khớp với từ khóa tìm kiếm'
-    if (role === 'candidate') return 'Chưa có ứng viên nào trong hệ thống'
-    if (role === 'employer') return 'Chưa có nhà tuyển dụng nào trong hệ thống'
-    return 'Chưa có người dùng nào trong hệ thống'
-  }
-  return (
-    <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-300">
-      <Users className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-      <h3 className="text-lg font-bold text-slate-700 mb-1">{getMessage()}</h3>
-      <p className="text-sm text-slate-400">Khi có người dùng mới đăng ký, họ sẽ xuất hiện ở đây</p>
-    </div>
-  )
+// ─── Empty State helper ───────────────────────────────────────────────────
+function getEmptyMessage(role, keyword) {
+  if (keyword) return 'Không tìm thấy người dùng nào khớp với từ khóa tìm kiếm'
+  if (role === 'candidate') return 'Chưa có ứng viên nào trong hệ thống'
+  if (role === 'employer') return 'Chưa có nhà tuyển dụng nào trong hệ thống'
+  return 'Chưa có người dùng nào trong hệ thống'
 }
 
 // ─── Loading Skeleton ─────────────────────────────────────────────────────
@@ -398,7 +390,11 @@ export function UsersTable({ users, loading, onView, onStatusChange, onDelete, r
       {loading ? (
         <LoadingSkeleton />
       ) : users.length === 0 ? (
-        <EmptyState role={role} keyword={keyword} />
+        <EmptyState
+          icon={Users}
+          title={getEmptyMessage(role, keyword)}
+          description="Khi có người dùng mới đăng ký, họ sẽ xuất hiện ở đây"
+        />
       ) : (
         <div className="space-y-3">
           {users.map(user => (

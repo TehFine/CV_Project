@@ -20,9 +20,9 @@ export class CvScore {
   @Prop({ type: Object, required: false })
   analysis?: any;
 
-  @Prop({ 
-    required: false, 
-    enum: ['candidate_self_score', 'employer_match', 'general_analysis'] 
+  @Prop({
+    required: false,
+    enum: ['candidate_self_score', 'employer_match', 'general_analysis'],
   })
   type?: string;
 

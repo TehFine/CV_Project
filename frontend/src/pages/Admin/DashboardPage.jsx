@@ -8,6 +8,7 @@ import { adminService } from '@/services/adminService'
 import { StatsRow, DashboardHeader } from './components/StatsCards'
 import { DonutChart, UserGrowthChart, RecentActivity } from './components/RecentActivity'
 import { connectSocket, onDashboardUpdateNeeded } from '@/services/socket'
+import Spinner from '@/components/ui/Spinner'
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState(null)
@@ -29,7 +30,7 @@ export default function AdminDashboardPage() {
 
   if (!data) return (
     <div className="p-8 flex items-center justify-center min-h-[60vh]">
-      <div className="w-8 h-8 border-4 border-[#1549B8] border-t-transparent rounded-full animate-spin" />
+      <Spinner size="lg" color="primary" />
     </div>
   )
 

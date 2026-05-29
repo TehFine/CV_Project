@@ -59,7 +59,7 @@ export default function EmployerRegisterPage() {
         sessionStorage.removeItem('employer_register_prefill') // Xóa sau khi đọc
         return JSON.parse(raw)
       }
-    } catch {}
+    } catch { /* empty */ }
     return {}
   })()
 

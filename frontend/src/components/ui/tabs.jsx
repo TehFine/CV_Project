@@ -1,8 +1,14 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { cva } from "class-variance-authority";
 import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+
+Tabs.displayName = "Tabs"
+TabsList.displayName = "TabsList"
+TabsTrigger.displayName = "TabsTrigger"
+TabsContent.displayName = "TabsContent"
 
 function Tabs({
   className,

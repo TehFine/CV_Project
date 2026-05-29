@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
@@ -6,6 +7,8 @@ import {
   useCallback,
 } from "react";
 import { authService } from "../services/authService";
+
+AuthProvider.displayName = "AuthProvider"
 
 const AuthContext = createContext(null);
 

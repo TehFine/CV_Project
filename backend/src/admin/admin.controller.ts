@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -21,7 +32,10 @@ export class AdminController {
   getReports(): Promise<any> {
     const stats = this.adminService.getDashboardStats();
     const activities = this.adminService.getRecentActivities();
-    return Promise.all([stats, activities]).then(([s, a]) => ({ ...s, recentActivities: a }));
+    return Promise.all([stats, activities]).then(([s, a]) => ({
+      ...s,
+      recentActivities: a,
+    }));
   }
 
   // ─── Users ──────────────────────────────────────────────────────────
@@ -58,12 +72,18 @@ export class AdminController {
   }
 
   @Patch('jobs/:id/status')
-  updateJobStatus(@Param('id') id: string, @Body('status') status: string): Promise<any> {
+  updateJobStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+  ): Promise<any> {
     return this.adminService.updateJobStatus(id, status);
   }
 
   @Patch('jobs/:id/featured')
-  toggleJobFeatured(@Param('id') id: string, @Body('featured') featured: boolean): Promise<any> {
+  toggleJobFeatured(
+    @Param('id') id: string,
+    @Body('featured') featured: boolean,
+  ): Promise<any> {
     return this.adminService.toggleJobFeatured(id, featured);
   }
 
@@ -119,7 +139,10 @@ export class AdminController {
   }
 
   @Patch('settings/:section')
-  updateSettings(@Param('section') section: string, @Body() data: any): Promise<any> {
+  updateSettings(
+    @Param('section') section: string,
+    @Body() data: any,
+  ): Promise<any> {
     return this.adminService.updateSettings(section, data);
   }
 }

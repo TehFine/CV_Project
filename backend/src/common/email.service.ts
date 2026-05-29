@@ -30,20 +30,39 @@ export class EmailService {
     });
 
     // Verify SMTP connection on startup
-    this.transporter.verify().then(() => {
-      this.logger.success('Email transporter initialized', { host, action: 'smtp_init' });
-    }).catch((err) => {
-      this.logger.error('SMTP connection verification failed', err, { host, action: 'smtp_init' });
-    });
+    this.transporter
+      .verify()
+      .then(() => {
+        this.logger.success('Email transporter initialized', {
+          host,
+          action: 'smtp_init',
+        });
+      })
+      .catch((err) => {
+        this.logger.error('SMTP connection verification failed', err, {
+          host,
+          action: 'smtp_init',
+        });
+      });
   }
 
-  async sendPasswordResetEmail(to: string, resetToken: string, userName: string): Promise<void> {
+  async sendPasswordResetEmail(
+    to: string,
+    resetToken: string,
+    userName: string,
+  ): Promise<void> {
     if (!this.transporter) {
-      this.logger.warn('Cannot send email — SMTP not configured', { email: to, action: 'send_reset_email' });
+      this.logger.warn('Cannot send email — SMTP not configured', {
+        email: to,
+        action: 'send_reset_email',
+      });
       return;
     }
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
+    const frontendUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:5173',
+    );
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
     const safeName = this.escapeHtml(userName);
 
@@ -101,10 +120,18 @@ export class EmailService {
         text,
         html,
       });
-      this.logger.success('Password reset email sent', { email: to, action: 'send_reset_email' });
+      this.logger.success('Password reset email sent', {
+        email: to,
+        action: 'send_reset_email',
+      });
     } catch (error) {
-      this.logger.error('Failed to send password reset email', error as any, { email: to, action: 'send_reset_email' });
-      throw new Error('Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau.');
+      this.logger.error('Failed to send password reset email', error, {
+        email: to,
+        action: 'send_reset_email',
+      });
+      throw new Error(
+        'Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau.',
+      );
     }
   }
 

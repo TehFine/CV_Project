@@ -221,7 +221,7 @@ export default function AdminLayout() {
             } else if (res?.data) {
                 setPendingJobsCount(res.data.length);
             }
-        } catch (e) {
+        } catch { /* ignore */
             const localStr = localStorage.getItem("nexcv_mock_jobs");
             if (localStr) {
                 try {
@@ -243,7 +243,7 @@ export default function AdminLayout() {
         try {
             const res = await adminService.getNotifications();
             if (res?.data) {
-                setNotifications(prev => {
+                setNotifications(() => {
                     // Merge: giữ unread status từ localStorage, thêm item mới từ API
                     const localMap = new Map((stored ? JSON.parse(stored) : []).map(n => [n.id, n]));
                     const merged = res.data.map(api => {
@@ -258,7 +258,7 @@ export default function AdminLayout() {
                     return merged;
                 });
             }
-        } catch (e) {
+        } catch {
             // API lỗi → vẫn giữ dữ liệu từ localStorage (bước 1)
         }
     }, []);
@@ -271,7 +271,7 @@ export default function AdminLayout() {
         fetchPendingJobsCount();
 
         // Kết nối WebSocket
-        const socket = connectSocket();
+        connectSocket();
 
         // ─── Realtime events ────────────────────────────────────
         const unsubCreated = onNotificationCreated((notification) => {
@@ -347,7 +347,7 @@ export default function AdminLayout() {
         localStorage.setItem("nexcv_mock_notifications", JSON.stringify(updated))
         try {
             await adminService.markNotificationRead(id);
-        } catch(e) { /* silent */ }
+        } catch { /* silent */ }
     }
 
     const handleLogout = () => { logout(); navigate('/admin/login') }

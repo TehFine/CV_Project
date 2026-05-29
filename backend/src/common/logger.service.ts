@@ -1,4 +1,8 @@
-import { Injectable, Logger as NestLogger, LoggerService as NestLoggerService } from '@nestjs/common';
+import {
+  Injectable,
+  Logger as NestLogger,
+  LoggerService as NestLoggerService,
+} from '@nestjs/common';
 
 export type LogLevel = 'log' | 'warn' | 'error' | 'debug' | 'verbose';
 
@@ -37,7 +41,9 @@ export class AppLogger implements NestLoggerService {
     if (Object.keys(rest).length > 0) {
       const extra = Object.entries(rest)
         .filter(([_, v]) => v !== undefined && v !== null)
-        .map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`)
+        .map(
+          ([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`,
+        )
         .join(' ');
       if (extra) parts.push(`📎 ${extra}`);
     }

@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
@@ -7,10 +12,10 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     // Nếu route không yêu cầu role cụ thể, cho phép qua
     if (!requiredRoles || requiredRoles.length === 0) {
@@ -21,7 +26,9 @@ export class RolesGuard implements CanActivate {
 
     // Người dùng chưa được xác thực (JwtAuthGuard phải chạy trước)
     if (!user) {
-      throw new ForbiddenException('Bạn cần đăng nhập để thực hiện thao tác này');
+      throw new ForbiddenException(
+        'Bạn cần đăng nhập để thực hiện thao tác này',
+      );
     }
 
     const hasRole = requiredRoles.includes(user.role);

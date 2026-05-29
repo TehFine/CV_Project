@@ -27,7 +27,6 @@ const COLORS = ['#1549B8', '#7C3AED', '#F59E0B', '#EF4444']
 // ── Donut chart ──────────────────────────────────────────────────────────────
 export function DonutChart({ data }) {
   let cumulative = 0
-  const total = data.reduce((s, d) => s + d.pct, 0)
   const r = 40, cx = 50, cy = 50, circumference = 2 * Math.PI * r
 
   return (

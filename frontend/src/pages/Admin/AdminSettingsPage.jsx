@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import Spinner from '@/components/ui/Spinner'
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState(null)
@@ -44,7 +45,7 @@ export default function AdminSettingsPage() {
       // Save all sections in parallel
       const results = await Promise.allSettled(
         Object.entries(settings || {})
-          .filter(([_, data]) => typeof data === 'object' && data !== null)
+          .filter(([, data]) => typeof data === 'object' && data !== null)
           .map(([section, data]) => adminService.updateSettings(section, data))
       )
 
@@ -213,8 +214,7 @@ export default function AdminSettingsPage() {
           <div className="bg-white rounded-[24px] lg:rounded-[48px] border border-slate-100 shadow-2xl shadow-slate-100/50 p-5 md:p-8 lg:p-10 min-h-[400px] lg:min-h-[600px]">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-full py-20">
-                <RefreshCw className="h-10 w-10 animate-spin text-blue-600 mb-4" />
-                <p className="text-slate-400 font-medium">Đang tải cấu hình...</p>
+                <Spinner size="xl" color="blue" text="Đang tải cấu hình..." />
               </div>
             ) : fetchError ? (
               <div className="flex flex-col items-center justify-center h-full py-20 text-center">
