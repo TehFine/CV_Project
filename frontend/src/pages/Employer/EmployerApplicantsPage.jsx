@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Sparkles, Search, Inbox, Users, Trash2 } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { employerService } from '../../services/employerService'
 import ApplicantCard from './components/ApplicantCard'
 import ScoringModal from './components/ScoringModal'
@@ -214,11 +215,11 @@ export default function EmployerApplicantsPage() {
       {loading ? (
         <div className="text-center py-[60px] text-slate-400">Đang tải...</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-[60px] bg-white rounded-2xl border border-border">
-          <div className="mb-3 text-slate-300"><Inbox size={48} className="mx-auto" /></div>
-          <h3 className="text-[#0F172A] font-bold">Chưa có ứng viên nào</h3>
-          <p className="text-muted-foreground text-sm">Hãy chờ ứng viên nộp hồ sơ nhé!</p>
-        </div>
+        <EmptyState
+          icon={Inbox}
+          title="Chưa có ứng viên nào"
+          description="Hãy chờ ứng viên nộp hồ sơ nhé!"
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {/* Bulk selection bar */}

@@ -7,6 +7,7 @@ import {
   Ban, Trash2, CircleAlert, CircleCheck, CircleX, ClipboardList,
   DollarSign, BarChart3, FolderOpen, Briefcase, AlertTriangle, X
 } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 
 /* ── Configs ───────────────────────────────────────────────────────────────── */
 const STATUS_CONFIG = {
@@ -355,13 +356,12 @@ export default function AdminJobsPage() {
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       ) : jobs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0' }}>
-          <ClipboardList size={48} style={{ color: '#CBD5E1', marginBottom: 12 }} />
-          <h3 style={{ color: '#0F172A', fontWeight: 700, marginBottom: 8 }}>Không có tin tuyển dụng nào</h3>
-          <p style={{ color: '#64748B', fontSize: 14 }}>
-            {activeTab === 'pending' ? 'Không có tin nào chờ duyệt' : 'Chưa có tin nào trong danh mục này'}
-          </p>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="Không có tin tuyển dụng nào"
+          description={activeTab === 'pending' ? 'Không có tin nào chờ duyệt' : 'Chưa có tin nào trong danh mục này'}
+          className="rounded-2xl border border-[#E2E8F0]"
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {jobs.map(job => (

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, MapPin, Sparkles, ArrowRight, FileText, Briefcase, Building2, Star, Monitor, Palette, Megaphone, Wallet, Users, TrendingUp, Bot, FolderKanban, Settings, HeartPulse, Newspaper, BookOpen, Ship, Folder } from "lucide-react";
+import EmptyState from '@/components/ui/EmptyState'
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -163,7 +164,11 @@ export function FeaturedJobsSection({ jobs, loading }) {
           {loading ? (
             [1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-40 rounded-xl bg-slate-100 animate-pulse" />)
           ) : jobs.length === 0 ? (
-            <p className="col-span-full text-center text-slate-500 py-10">Chưa có công việc nào mới nhất.</p>
+            <EmptyState
+              icon={Briefcase}
+              title="Chưa có công việc nào mới nhất"
+              className="col-span-full bg-transparent border-none"
+            />
           ) : (
             jobs.map((job, i) => <JobCard key={job.id} job={job} index={i} />)
           )}

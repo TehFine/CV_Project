@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MapPin, Briefcase, BarChart3, DollarSign, Edit3, Users, CheckCircle2, PauseCircle, Trash2, Inbox, MoreHorizontal, Plus } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
@@ -226,17 +227,16 @@ export default function EmployerJobsPage() {
       {loading ? (
         <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>Đang tải...</div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 60, background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0' }}>
-          <div style={{ marginBottom: 12 }}><Inbox size={48} className="text-slate-300" /></div>
-          <h3 style={{ color: '#0F172A', fontWeight: 700, marginBottom: 8 }}>Chưa có tin tuyển dụng</h3>
-          <p style={{ color: '#64748B', fontSize: 14, marginBottom: 20 }}>Hãy đăng tin đầu tiên để tìm ứng viên phù hợp</p>
-          <Link to="/employer/jobs/new" style={{
-            padding: '10px 24px', background: '#3B82F6', color: 'white',
-            borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14,
-          }}>
-            <Plus size={16} /> Đăng tin ngay
-          </Link>
-        </div>
+        <EmptyState
+          icon={Inbox}
+          title="Chưa có tin tuyển dụng"
+          description="Hãy đăng tin đầu tiên để tìm ứng viên phù hợp"
+          action={
+            <Link to="/employer/jobs/new" className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm">
+              <Plus size={16} /> Đăng tin ngay
+            </Link>
+          }
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {filtered.map(job => (

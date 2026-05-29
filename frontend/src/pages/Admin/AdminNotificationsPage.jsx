@@ -4,6 +4,7 @@ import {
   Bell, CheckCircle2, Info, AlertTriangle, 
   Trash2, MailOpen, Clock, Search, Filter
 } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { adminService } from '@/services/adminService'
@@ -188,10 +189,11 @@ export default function AdminNotificationsPage() {
       {/* List */}
       <div className="space-y-3">
         {filtered.length === 0 ? (
-            <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-300">
-                <Bell size={48} className="mx-auto text-slate-200 mb-4" />
-                <p className="text-slate-400 font-medium">Không có thông báo nào khớp với tìm kiếm</p>
-            </div>
+            <EmptyState
+              icon={Bell}
+              title="Không có thông báo nào khớp với tìm kiếm"
+              className="py-20"
+            />
         ) : filtered.map(n => (
             <div 
                 key={n.id}

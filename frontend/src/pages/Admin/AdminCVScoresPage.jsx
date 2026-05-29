@@ -6,6 +6,7 @@ import {
   Briefcase, Eye, AlertTriangle,
   RefreshCw
 } from 'lucide-react'
+import EmptyState from '@/components/ui/EmptyState'
 import { connectSocket, onDashboardUpdateNeeded } from '../../services/socket.js'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -175,8 +176,7 @@ export default function AdminCVScoresPage() {
             ) : scores.length === 0 ? (
               <tr>
                 <td colSpan="5" className="py-20 text-center">
-                  <FileSearch className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                  <span className="text-slate-400 font-medium">Không tìm thấy kết quả nào</span>
+                  <EmptyState icon={FileSearch} title="Không tìm thấy kết quả nào" />
                 </td>
               </tr>
             ) : (
@@ -282,6 +282,8 @@ export default function AdminCVScoresPage() {
               <RefreshCw size={14} /> Thử lại
             </Button>
           </div>
+        ) : scores.length === 0 ? (
+          <EmptyState icon={FileSearch} title="Không tìm thấy kết quả nào" />
         ) : (
           scores.map(s => {
             const cfg = GRADE_CONFIG[s.grade] || GRADE_CONFIG.B
