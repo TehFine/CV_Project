@@ -29,13 +29,13 @@ export default function EmployerHeader() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(() => window.scrollY > 20);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isHome = location.pathname === "/employer";
   const isSolid = scrolled || !isHome;
 
-  // Scroll listener
+  // Scroll listener — lazy init in useState(() => ...) already reads current scrollY on mount
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handler, { passive: true });

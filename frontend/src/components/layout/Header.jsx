@@ -55,12 +55,12 @@ export default function Header() {
   const navigate = useNavigate();
   const headerRef = useRef(null);
 
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(() => window.scrollY > 20);
 
   const isHome = location.pathname === "/";
   const isSolid = scrolled || !isHome;
 
-  // Scroll listener
+  // Scroll listener — lazy init in useState(() => ...) already reads current scrollY on mount
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handler, { passive: true });
