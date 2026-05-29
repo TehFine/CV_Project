@@ -9,6 +9,7 @@ import {
 import { connectSocket, onDashboardUpdateNeeded } from '../../services/socket.js'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import Spinner from '@/components/ui/Spinner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 // API base URL for debugging display
@@ -145,8 +146,7 @@ export default function AdminCVScoresPage() {
             {loading ? (
               <tr>
                 <td colSpan="5" className="py-20 text-center">
-                  <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-                  <span className="text-slate-400 font-medium">Đang tải lịch sử...</span>
+                  <Spinner size="lg" color="blue" text="Đang tải lịch sử..." />
                 </td>
               </tr>
             ) : fetchError ? (
@@ -265,8 +265,7 @@ export default function AdminCVScoresPage() {
       <div className="md:hidden space-y-3">
         {loading ? (
           <div className="py-20 text-center">
-            <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-            <span className="text-slate-400 font-medium">Đang tải lịch sử...</span>
+            <Spinner size="lg" color="blue" text="Đang tải lịch sử..." />
           </div>
         ) : fetchError ? (
           <div className="py-12 text-center bg-white rounded-[24px] border border-slate-200">

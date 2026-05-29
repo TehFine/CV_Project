@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, ClipboardList, Inbox, Eye, Hourglass, TrendingUp, FolderOpen } from 'lucide-react'
+import { ClipboardList, Inbox, Eye, Hourglass, TrendingUp, FolderOpen } from 'lucide-react'
+import Spinner from '@/components/ui/Spinner'
 import { employerService } from '../../services/employerService'
 import StatCard from './components/StatCard'
 
@@ -35,10 +36,7 @@ export default function EmployerDashboard() {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[300px]">
-      <div className="text-center">
-        <Loader2 className="inline-block h-9 w-9 animate-spin text-slate-400 mb-3" />
-        <p className="text-muted-foreground text-sm">Đang tải dữ liệu...</p>
-      </div>
+      <Spinner size="lg" color="muted" text="Đang tải dữ liệu..." />
     </div>
   )
 

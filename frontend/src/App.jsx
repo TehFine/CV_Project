@@ -44,21 +44,13 @@ import AdminNotificationsPage from "./pages/Admin/AdminNotificationsPage";
 import AdminReportsPage from "./pages/Admin/AdminReportsPage";
 import AdminSettingsPage from "./pages/Admin/AdminSettingsPage";
 import NotFoundPage from "./pages/NotFoundPage";
-
-// ── Spinner ───────────────────────────────────────────────────────────────────
-function Spinner() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
-      <div className="w-8 h-8 border-4 border-[#1549B8] border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
+import Spinner from "@/components/ui/Spinner";
 
 // ── Protected Route ───────────────────────────────────────────────────────────
 function ProtectedRoute({ children, requireRole }) {
   const { isAuthenticated, isEmployer, isAdmin, loading } = useAuth();
 
-  if (loading) return <Spinner />;
+  if (loading) return <Spinner fullPage />;
 
   // ❌ Chưa đăng nhập
   if (!isAuthenticated) {
@@ -98,7 +90,7 @@ function ProtectedRoute({ children, requireRole }) {
 function GuestRoute({ children }) {
   const { isAuthenticated, isEmployer, isAdmin, loading } = useAuth();
 
-  if (loading) return <Spinner />;
+  if (loading) return <Spinner fullPage />;
 
   if (isAuthenticated) {
     if (isAdmin) return <Navigate to="/admin" replace />;
@@ -128,7 +120,7 @@ function SeekerLayout({ children }) {
 
 function HomeRoute() {
   const { isEmployer, isAdmin, loading } = useAuth();
-  if (loading) return <Spinner />;
+  if (loading) return <Spinner fullPage />;
   if (isAdmin) return <Navigate to="/admin" replace />;
   if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
   return (
@@ -140,7 +132,7 @@ function HomeRoute() {
 
 function EmployerHomeRoute() {
   const { isEmployer, isAdmin, loading } = useAuth();
-  if (loading) return <Spinner />;
+  if (loading) return <Spinner fullPage />;
   if (isAdmin) return <Navigate to="/admin" replace />;
   if (isEmployer) return <Navigate to="/employer/dashboard" replace />;
   return (
@@ -177,7 +169,7 @@ function EmployerRegisterRoute() {
     }
   }, [isAuthenticated, isEmployer, isAdmin, loading, user, logout]);
 
-  if (loading) return <Spinner />;
+  if (loading) return <Spinner fullPage />;
 
   // Admin -> về admin portal
   if (isAdmin) return <Navigate to="/admin" replace />;
@@ -188,7 +180,7 @@ function EmployerRegisterRoute() {
   }
 
   // Nếu là candidate đang trong quá trình logout
-  if (isAuthenticated && !isEmployer) return <Spinner />;
+  if (isAuthenticated && !isEmployer) return <Spinner fullPage />;
 
   return (
     <EmployerLayout>
