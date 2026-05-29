@@ -289,7 +289,7 @@ export const adminService = {
                         benefits: j.benefits
                     }));
                     list = [...list, ...localJobs.filter(lj => !list.find(aj => aj.id === lj.id))];
-                } catch(e) {}
+                } catch { /* empty */ }
             }
             if (params.status) list = list.filter(j => j.status === params.status)
             if (params.keyword) {
@@ -313,7 +313,7 @@ export const adminService = {
                         localJobs[idx].status = status;
                         localStorage.setItem("nexcv_mock_jobs", JSON.stringify(localJobs));
                     }
-                } catch(e) {}
+                } catch { /* empty */ }
             }
             return { id, status } 
         }

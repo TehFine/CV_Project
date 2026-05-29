@@ -20,7 +20,7 @@ export function SavedTab() {
       // Handle both direct array and axios-wrapped response
       const list = Array.isArray(data) ? data : (data?.data || [])
       setSaved(list)
-    } catch (err) {
+    } catch {
       setError('Không thể tải danh sách việc đã lưu. Vui lòng thử lại.')
     } finally {
       setLoading(false)
@@ -34,7 +34,7 @@ export function SavedTab() {
       setRemovingId(jobId)
       await jobService.toggleSaveJob(jobId)
       setSaved(prev => prev.filter(j => (j._id || j.id) !== jobId))
-    } catch (err) {
+    } catch {
       // silent fail — item stays in list
     } finally {
       setRemovingId(null)

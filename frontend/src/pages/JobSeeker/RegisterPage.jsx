@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Loader2, Sparkles, Crosshair, Building2, Rocket, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -26,8 +26,6 @@ function StrengthBar({ password }) {
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)

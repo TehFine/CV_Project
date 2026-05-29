@@ -16,7 +16,7 @@ function fixEncoding(str) {
   try {
     // If the string contains mojibake like "Nguyá»…n", escape and decodeURIComponent will fix it
     return decodeURIComponent(escape(str));
-  } catch (e) {
+  } catch {
     return str; // Return original if not valid encoded string
   }
 }
@@ -51,7 +51,7 @@ export function CVTab() {
       setError(null)
       const data = await cvService.getMyCVs()
       setCvs(Array.isArray(data) ? data.map(normalizeCV) : [])
-    } catch (err) {
+    } catch {
       setError('Không thể tải danh sách CV. Vui lòng thử lại sau.')
     } finally {
       setLoading(false)
@@ -75,11 +75,9 @@ export function CVTab() {
         overall: scoreData.overall ?? scoreData.score ?? cv.overall,
         grade: scoreData.grade || cv.grade,
         gradeLabel: scoreData.gradeLabel || cv.gradeLabel,
-      })
-    } catch (err) {
+      })    } catch {
       // If detail fetch fails, show what we have
-      setSelectedCv({
-        ...cv,
+      setSelectedCv({...cv,
         categories: [],
         strengths: [],
         improvements: [],
@@ -94,7 +92,7 @@ export function CVTab() {
       setDeletingId(id)
       await cvService.deleteCVScore(id)
       setCvs(prev => prev.filter(cv => (cv._id || cv.id) !== id))
-    } catch (err) {
+    } catch {
       setError('Xóa thất bại. Vui lòng thử lại.')
     } finally {
       setDeletingId(null)

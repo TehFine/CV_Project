@@ -97,13 +97,16 @@ export function ProfileTab({ user, updateUser }) {
               { icon: FileText, value: stats.cvsCount, label: 'CV đã phân tích' },
               { icon: Bookmark, value: stats.savedCount, label: 'Việc đã lưu' },
               { icon: Send, value: stats.appliedCount, label: 'Đã ứng tuyển' },
-            ].map(({ icon: Icon, value, label }) => (
+            ].map(({ icon, value, label }) => {
+              const IconComp = icon
+              return (
               <div key={label} className="text-center">
-                <div className="mb-0.5"><Icon className="h-5 w-5 mx-auto text-primary" /></div>
+                <div className="mb-0.5"><IconComp className="h-5 w-5 mx-auto text-primary" /></div>
                 <div className="text-xl font-black text-foreground">{value}</div>
                 <div className="text-[11px] text-muted-foreground leading-tight">{label}</div>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">

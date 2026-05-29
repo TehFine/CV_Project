@@ -24,7 +24,7 @@ export default function AdminNotificationsPage() {
         // Đồng bộ xuống localStorage để các component khác dùng được
         localStorage.setItem("nexcv_mock_notifications", JSON.stringify(res.data));
       }
-    } catch (e) {
+    } catch {
       const stored = localStorage.getItem("nexcv_mock_notifications");
       if (stored) {
         setNotifications(JSON.parse(stored));
@@ -90,7 +90,7 @@ export default function AdminNotificationsPage() {
     try {
       await adminService.markNotificationRead(id);
       fetchNotifications(); // Sync lại từ server để đồng bộ hoàn toàn
-    } catch (e) { /* silent */ }
+    } catch { /* silent */ }
   }
 
   const markAllRead = async () => {
@@ -101,7 +101,7 @@ export default function AdminNotificationsPage() {
     try {
       await adminService.markAllNotificationsRead();
       fetchNotifications(); // Sync lại từ server để đồng bộ hoàn toàn
-    } catch (e) { /* silent */ }
+    } catch { /* silent */ }
   }
 
   const deleteNotif = async (id) => {
@@ -111,7 +111,7 @@ export default function AdminNotificationsPage() {
     try {
       await adminService.deleteNotification(id);
       fetchNotifications(); // Sync lại từ server
-    } catch (e) { /* silent */ }
+    } catch { /* silent */ }
   }
 
   const filtered = notifications.filter(n => {

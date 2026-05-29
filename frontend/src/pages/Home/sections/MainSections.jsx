@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, MapPin, Sparkles, ArrowRight, FileText, Briefcase, Building2, Star, Monitor, Palette, Megaphone, Wallet, Users, TrendingUp, Bot, FolderKanban, Settings, HeartPulse, Newspaper, BookOpen, Ship, Folder } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/context/AuthContext";
+import { JOB_CATEGORIES } from "@/services/jobService";
 import JobCard from "@/components/JobCard";
-import { JOB_CATEGORIES, jobService } from "@/services/jobService";
 
 const CATEGORY_ICON_MAP = {
   monitor: Monitor,

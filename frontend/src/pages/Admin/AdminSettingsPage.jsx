@@ -44,7 +44,7 @@ export default function AdminSettingsPage() {
       // Save all sections in parallel
       const results = await Promise.allSettled(
         Object.entries(settings || {})
-          .filter(([_, data]) => typeof data === 'object' && data !== null)
+          .filter(([, data]) => typeof data === 'object' && data !== null)
           .map(([section, data]) => adminService.updateSettings(section, data))
       )
 

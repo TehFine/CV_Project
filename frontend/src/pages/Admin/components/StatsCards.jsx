@@ -3,7 +3,8 @@ import { Users, Briefcase, FileText, TrendingUp, ArrowUpRight, BarChart2 } from 
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-export function StatCard({ label, value, sub, icon: Icon, color, bgColor, trend, link }) {
+export function StatCard({ label, value, sub, icon, color, bgColor, trend, link }) {
+  const Icon = icon
   return (
     <Link to={link || '#'} className="block h-full">
       <Card className="border-[#E2E8F0] py-0 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer group h-full">

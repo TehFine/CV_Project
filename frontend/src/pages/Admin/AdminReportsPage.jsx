@@ -92,7 +92,7 @@ export default function AdminReportsPage() {
     }
   }
 
-  const fetchData = useCallback((p) => {
+  const fetchData = useCallback(() => {
     setLoading(true)
     adminService.getDashboard().then(res => {
       setData(res)

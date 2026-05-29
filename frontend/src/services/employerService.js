@@ -198,7 +198,7 @@ try {
   } else {
     syncAppsToStorage(mockApplications);
   }
-} catch (e) {
+} catch {
   // ignore
 }
 function syncPostedJobsToStorage(jobs) {
@@ -217,7 +217,7 @@ try {
   } else {
     syncPostedJobsToStorage(mockJobs);
   }
-} catch (e) {
+} catch {
   // ignore
 }
 // ─── Employer Service ──────────────────────────────────────────────────────────
