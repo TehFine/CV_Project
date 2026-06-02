@@ -214,10 +214,12 @@ export default function EmployerProfilePage() {
         </div>
 
         {/* Footer Actions */}
-        <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, borderTop: '1px solid #F1F5F9', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ fontSize: 14, color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, opacity: success ? 1 : 0, transition: 'opacity 0.3s' }}>
-            <CheckCircle2 size={18} /> Đã cập nhật thành công
-          </div>
+        <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: 24, borderTop: '1px solid #F1F5F9', gap: 12 }}>
+          {success && (
+            <div style={{ fontSize: 14, color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <CheckCircle2 size={18} /> Đã cập nhật thành công
+            </div>
+          )}
           <button 
             onClick={handleSave} 
             disabled={saving}
@@ -226,10 +228,12 @@ export default function EmployerProfilePage() {
               background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', color: 'white',
               fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
               boxShadow: '0 4px 12px rgba(59,130,246,0.3)', transition: 'all 0.2s',
-              opacity: saving ? 0.7 : 1, flex: 1, minWidth: 160
+              opacity: saving ? 0.7 : 1, whiteSpace: 'nowrap'
             }}
+            onMouseEnter={e => { if (!saving) e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 16px rgba(59,130,246,0.4)' }}
+            onMouseLeave={e => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 12px rgba(59,130,246,0.3)' }}
           >
-            {saving ? <><Loader2 className="animate-spin inline-block" size={16} /> Đang lưu...</> : <><Save size={16} /> Lưu thay đổi</>}
+            {saving ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Loader2 className="animate-spin" size={16} /> Đang lưu...</span> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Save size={16} /> Lưu thay đổi</span>}
           </button>
         </div>
       </div>
