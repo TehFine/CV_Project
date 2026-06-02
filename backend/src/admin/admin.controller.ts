@@ -14,6 +14,12 @@ import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import {
+  UpdateUserStatusDto,
+  UpdateJobStatusDto,
+  ToggleJobFeaturedDto,
+  CreateNotificationDto,
+} from './dto/admin.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -53,10 +59,13 @@ export class AdminController {
   @Patch('users/:id/status')
   updateUserStatus(
     @Param('id') id: string,
-    @Body('status') status: string,
-    @Body('reason') reason?: string,
+    @Body() updateStatusDto: UpdateUserStatusDto,
   ): Promise<any> {
-    return this.adminService.updateUserStatus(id, status, reason);
+    return this.adminService.updateUserStatus(
+      id,
+      updateStatusDto.status,
+      updateStatusDto.reason,
+    );
   }
 
   @Delete('users/:id')
@@ -74,17 +83,17 @@ export class AdminController {
   @Patch('jobs/:id/status')
   updateJobStatus(
     @Param('id') id: string,
-    @Body('status') status: string,
+    @Body() updateStatusDto: UpdateJobStatusDto,
   ): Promise<any> {
-    return this.adminService.updateJobStatus(id, status);
+    return this.adminService.updateJobStatus(id, updateStatusDto.status);
   }
 
   @Patch('jobs/:id/featured')
   toggleJobFeatured(
     @Param('id') id: string,
-    @Body('featured') featured: boolean,
+    @Body() toggleFeaturedDto: ToggleJobFeaturedDto,
   ): Promise<any> {
-    return this.adminService.toggleJobFeatured(id, featured);
+    return this.adminService.toggleJobFeatured(id, toggleFeaturedDto.featured);
   }
 
   @Delete('jobs/:id')
@@ -127,8 +136,10 @@ export class AdminController {
   }
 
   @Post('notifications')
-  createNotification(@Body() data: any): Promise<any> {
-    return this.adminService.createNotification(data);
+  createNotification(
+    @Body() createNotificationDto: CreateNotificationDto,
+  ): Promise<any> {
+    return this.adminService.createNotification(createNotificationDto);
   }
 
   // ─── Settings ───────────────────────────────────────────────────────

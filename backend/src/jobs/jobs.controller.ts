@@ -18,6 +18,7 @@ import { JobsService } from './jobs.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CreateJobDto, UpdateJobDto } from './dto/job.dto';
 
 @Controller('jobs')
 export class JobsController {
@@ -87,7 +88,7 @@ export class JobsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('employer', 'admin')
   @Post()
-  async create(@Request() req, @Body() createJobDto: any) {
+  async create(@Request() req, @Body() createJobDto: CreateJobDto) {
     return this.jobsService.create(createJobDto, req.user._id.toString());
   }
 
@@ -97,7 +98,7 @@ export class JobsController {
   async update(
     @Param('id') id: string,
     @Request() req,
-    @Body() updateJobDto: any,
+    @Body() updateJobDto: UpdateJobDto,
   ) {
     return this.jobsService.update(
       id,

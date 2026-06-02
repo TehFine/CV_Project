@@ -13,6 +13,10 @@ import { EmployerService } from './employer.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import {
+  UpdateApplicationStatusDto,
+  BulkDeleteApplicationsDto,
+} from './dto/employer.dto';
 
 @Controller('employer')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -43,8 +47,14 @@ export class EmployerController {
   }
 
   @Patch('applications/:id/status')
-  updateStatus(@Param('id') id: string, @Body('status') status: string) {
-    return this.employerService.updateApplicationStatus(id, status);
+  updateStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: UpdateApplicationStatusDto,
+  ) {
+    return this.employerService.updateApplicationStatus(
+      id,
+      updateStatusDto.status,
+    );
   }
 
   @Delete('applications/:id')
@@ -53,7 +63,7 @@ export class EmployerController {
   }
 
   @Post('applications/bulk-delete')
-  bulkDeleteApplications(@Body('ids') ids: string[]) {
-    return this.employerService.bulkDeleteApplications(ids);
+  bulkDeleteApplications(@Body() bulkDeleteDto: BulkDeleteApplicationsDto) {
+    return this.employerService.bulkDeleteApplications(bulkDeleteDto.ids);
   }
 }
