@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { authService } from '../../services/authService'
-import { Building, Mail, Phone, Globe, Briefcase, Camera, CheckCircle2, Loader2, Save } from 'lucide-react'
+import { Building, Mail, Phone, Globe, Briefcase, Camera, CheckCircle2, Loader2, Save, AlertCircle } from 'lucide-react'
 
 function Field({ label, required, children, icon: Icon }) {
   return (
@@ -35,6 +35,40 @@ export default function EmployerProfilePage() {
   const [logoPreview, setLogoPreview] = useState(null)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [phoneError, setPhoneError] = useState('')
+  const [phoneTouched, setPhoneTouched] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [emailTouched, setEmailTouched] = useState(false)
+
+  const validateEmail = (value) => {
+    if (!value.trim()) {
+      setEmailError('')
+      return true
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(value.trim())) {
+      setEmailError('Email không đúng định dạng (VD: contact@company.com)')
+      return false
+    }
+    setEmailError('')
+    return true
+  }
+
+  const validatePhone = (value) => {
+    if (!value.trim()) {
+      setPhoneError('')
+      return true
+    }
+    // Vietnamese phone: 0xxxxxxxxx (10 digits) or +84xxxxxxxxx (11 chars with +)
+    const vnPhoneRegex = /^(0[3-9][0-9]{8,9}|\+84[3-9][0-9]{8,9})$/
+    const cleaned = value.replace(/[\s.\-()]/g, '')
+    if (!vnPhoneRegex.test(cleaned)) {
+      setPhoneError('Số điện thoại không đúng định dạng (VD: 0901234567 hoặc +84901234567)')
+      return false
+    }
+    setPhoneError('')
+    return true
+  }
 
   useEffect(() => {
     if (user) {
@@ -54,6 +88,14 @@ export default function EmployerProfilePage() {
   const handleChange = (field, value) => {
     setForm(f => ({ ...f, [field]: value }))
     setSuccess(false)
+    if (field === 'phone') {
+      setPhoneTouched(true)
+      validatePhone(value)
+    }
+    if (field === 'email') {
+      setEmailTouched(true)
+      validateEmail(value)
+    }
   }
 
   const handleLogoChange = (e) => {
@@ -77,6 +119,8 @@ export default function EmployerProfilePage() {
 
   const handleSave = async () => {
     if (!form.companyName || !form.email) return alert("Vui lòng điền các trường bắt buộc")
+    if (form.email.trim() && !validateEmail(form.email)) return alert('Vui lòng kiểm tra lại email')
+    if (form.phone.trim() && !validatePhone(form.phone)) return alert('Vui lòng kiểm tra lại số điện thoại')
     setSaving(true)
     try {
       // Gọi authService để cập nhật
@@ -170,22 +214,32 @@ export default function EmployerProfilePage() {
             <input 
               value={form.email} 
               onChange={e => handleChange('email', e.target.value)} 
-              style={inputStyle} 
+              style={{ ...inputStyle, borderColor: emailTouched && emailError ? '#EF4444' : '#E2E8F0' }} 
               type="email"
               placeholder="contact@company.com"
-              onFocus={e => { e.target.style.borderColor = '#1549B8'; e.target.style.backgroundColor = 'white' }}
-              onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
+              onFocus={e => { e.target.style.borderColor = emailError ? '#EF4444' : '#1549B8'; e.target.style.backgroundColor = 'white' }}
+              onBlur={e => { e.target.style.borderColor = emailError ? '#EF4444' : '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
             />
+            {emailTouched && emailError && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 12, color: '#EF4444' }}>
+                <AlertCircle size={12} /> {emailError}
+              </div>
+            )}
           </Field>
           <Field label="Số điện thoại" icon={Phone}>
             <input 
               value={form.phone} 
               onChange={e => handleChange('phone', e.target.value)} 
-              style={inputStyle} 
+              style={{ ...inputStyle, borderColor: phoneTouched && phoneError ? '#EF4444' : '#E2E8F0' }} 
               placeholder="0901234567"
-              onFocus={e => { e.target.style.borderColor = '#1549B8'; e.target.style.backgroundColor = 'white' }}
-              onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
+              onFocus={e => { e.target.style.borderColor = phoneError ? '#EF4444' : '#1549B8'; e.target.style.backgroundColor = 'white' }}
+              onBlur={e => { e.target.style.borderColor = phoneError ? '#EF4444' : '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
             />
+            {phoneTouched && phoneError && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 12, color: '#EF4444' }}>
+                <AlertCircle size={12} /> {phoneError}
+              </div>
+            )}
           </Field>
           <div style={{ gridColumn: '1 / -1' }}>
             <Field label="Website công ty" icon={Globe}>
