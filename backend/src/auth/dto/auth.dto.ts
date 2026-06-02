@@ -4,6 +4,8 @@ import {
   IsEnum,
   IsOptional,
   MinLength,
+  Matches,
+  IsUrl,
 } from 'class-validator';
 
 export class RegisterDto {
@@ -44,4 +46,36 @@ export class LoginDto {
 
   @IsNotEmpty({ message: 'Mật khẩu không được để trống' })
   password: string;
+}
+
+export class UpdateProfileDto {
+  @IsOptional()
+  @IsEmail({}, { message: 'Email không hợp lệ' })
+  email?: string;
+
+  @IsOptional()
+  @Matches(/^(0[3-9][0-9]{8,9}|\+84[3-9][0-9]{8,9})$/, {
+    message: 'Số điện thoại không đúng định dạng (VD: 0901234567 hoặc +84901234567)',
+  })
+  phone?: string;
+
+  @IsOptional()
+  @IsNotEmpty({ message: 'Tên công ty không được để trống' })
+  companyName?: string;
+
+  @IsOptional()
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: false },
+    { message: 'Website không đúng định dạng URL' },
+  )
+  companyWebsite?: string;
+
+  @IsOptional()
+  avatar?: string;
+
+  @IsOptional()
+  industry?: string;
+
+  @IsOptional()
+  description?: string;
 }

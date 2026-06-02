@@ -39,6 +39,10 @@ export default function EmployerProfilePage() {
   const [phoneTouched, setPhoneTouched] = useState(false)
   const [emailError, setEmailError] = useState('')
   const [emailTouched, setEmailTouched] = useState(false)
+  const [companyNameError, setCompanyNameError] = useState('')
+  const [companyNameTouched, setCompanyNameTouched] = useState(false)
+  const [websiteError, setWebsiteError] = useState('')
+  const [websiteTouched, setWebsiteTouched] = useState(false)
 
   const validateEmail = (value) => {
     if (!value.trim()) {
@@ -51,6 +55,34 @@ export default function EmployerProfilePage() {
       return false
     }
     setEmailError('')
+    return true
+  }
+
+  const validateCompanyName = (value) => {
+    if (!value.trim()) {
+      setCompanyNameError('Tên công ty không được để trống')
+      return false
+    }
+    if (value.trim().length < 2) {
+      setCompanyNameError('Tên công ty phải có ít nhất 2 ký tự')
+      return false
+    }
+    setCompanyNameError('')
+    return true
+  }
+
+  const validateWebsite = (value) => {
+    if (!value.trim()) {
+      setWebsiteError('')
+      return true
+    }
+    // Accept URLs with or without protocol
+    const urlRegex = /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/\S*)?$/i
+    if (!urlRegex.test(value.trim())) {
+      setWebsiteError('Website không đúng định dạng (VD: https://example.com)')
+      return false
+    }
+    setWebsiteError('')
     return true
   }
 
@@ -96,6 +128,14 @@ export default function EmployerProfilePage() {
       setEmailTouched(true)
       validateEmail(value)
     }
+    if (field === 'companyName') {
+      setCompanyNameTouched(true)
+      validateCompanyName(value)
+    }
+    if (field === 'companyWebsite') {
+      setWebsiteTouched(true)
+      validateWebsite(value)
+    }
   }
 
   const handleLogoChange = (e) => {
@@ -120,7 +160,9 @@ export default function EmployerProfilePage() {
   const handleSave = async () => {
     if (!form.companyName || !form.email) return alert("Vui lòng điền các trường bắt buộc")
     if (form.email.trim() && !validateEmail(form.email)) return alert('Vui lòng kiểm tra lại email')
+    if (!validateCompanyName(form.companyName)) return alert('Vui lòng kiểm tra lại tên công ty')
     if (form.phone.trim() && !validatePhone(form.phone)) return alert('Vui lòng kiểm tra lại số điện thoại')
+    if (form.companyWebsite.trim() && !validateWebsite(form.companyWebsite)) return alert('Vui lòng kiểm tra lại website')
     setSaving(true)
     try {
       // Gọi authService để cập nhật
@@ -194,11 +236,16 @@ export default function EmployerProfilePage() {
             <input 
               value={form.companyName} 
               onChange={e => handleChange('companyName', e.target.value)} 
-              style={inputStyle} 
+              style={{ ...inputStyle, borderColor: companyNameTouched && companyNameError ? '#EF4444' : '#E2E8F0' }} 
               placeholder="VD: Công ty TNHH NexCV"
-              onFocus={e => { e.target.style.borderColor = '#1549B8'; e.target.style.backgroundColor = 'white' }}
-              onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
+              onFocus={e => { e.target.style.borderColor = companyNameError ? '#EF4444' : '#1549B8'; e.target.style.backgroundColor = 'white' }}
+              onBlur={e => { e.target.style.borderColor = companyNameError ? '#EF4444' : '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
             />
+            {companyNameTouched && companyNameError && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 12, color: '#EF4444' }}>
+                <AlertCircle size={12} /> {companyNameError}
+              </div>
+            )}
           </Field>
           <Field label="Lĩnh vực hoạt động" icon={Briefcase}>
             <input 
@@ -246,11 +293,16 @@ export default function EmployerProfilePage() {
               <input 
                 value={form.companyWebsite} 
                 onChange={e => handleChange('companyWebsite', e.target.value)} 
-                style={inputStyle} 
+                style={{ ...inputStyle, borderColor: websiteTouched && websiteError ? '#EF4444' : '#E2E8F0' }} 
                 placeholder="https://www.yourcompany.com"
-                onFocus={e => { e.target.style.borderColor = '#1549B8'; e.target.style.backgroundColor = 'white' }}
-                onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
+                onFocus={e => { e.target.style.borderColor = websiteError ? '#EF4444' : '#1549B8'; e.target.style.backgroundColor = 'white' }}
+                onBlur={e => { e.target.style.borderColor = websiteError ? '#EF4444' : '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
               />
+              {websiteTouched && websiteError && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 12, color: '#EF4444' }}>
+                  <AlertCircle size={12} /> {websiteError}
+                </div>
+              )}
             </Field>
           </div>
           <div style={{ gridColumn: '1 / -1' }}>
