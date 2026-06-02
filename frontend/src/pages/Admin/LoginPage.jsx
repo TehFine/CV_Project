@@ -27,6 +27,7 @@ export default function AdminLoginPage() {
     const handleSubmit = async e => {
         e.preventDefault()
         if (!form.email || !form.password) { setError('Vui lòng điền đầy đủ thông tin'); return }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { setError('Email không đúng định dạng'); return }
         setLoading(true)
         try {
             const res = await adminService.login(form.email, form.password)

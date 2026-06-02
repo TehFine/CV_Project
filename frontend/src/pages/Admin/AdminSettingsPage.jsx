@@ -20,6 +20,39 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [fetchError, setFetchError] = useState(false)
+  const [settingsErrors, setSettingsErrors] = useState({})
+
+  const validateSettings = () => {
+    const errors = {}
+    const site = settings?.site
+    if (site?.siteUrl && !/^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/\S*)?$/i.test(site.siteUrl)) {
+      errors['site.siteUrl'] = 'URL không hợp lệ'
+    }
+    if (site?.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(site.contactEmail)) {
+      errors['site.contactEmail'] = 'Email không hợp lệ'
+    }
+    if (site?.contactPhone && !/^(0[3-9][0-9]{8,9}|\+84[3-9][0-9]{8,9}|\d{10,11})$/.test(site.contactPhone.replace(/[\s.\-()]/g, ''))) {
+      errors['site.contactPhone'] = 'Số điện thoại không hợp lệ'
+    }
+    if (settings?.ai) {
+      if (settings.ai.maxFileSizeMB < 1 || settings.ai.maxFileSizeMB > 50) errors['ai.maxFileSizeMB'] = 'Từ 1-50 MB'
+      if (settings.ai.dailyScoreLimit < 1 || settings.ai.dailyScoreLimit > 100) errors['ai.dailyScoreLimit'] = 'Từ 1-100'
+    }
+    if (settings?.jobs) {
+      if (settings.jobs.maxJobsPerEmployer < 1 || settings.jobs.maxJobsPerEmployer > 100) errors['jobs.maxJobsPerEmployer'] = 'Từ 1-100'
+      if (settings.jobs.jobExpiryDays < 1 || settings.jobs.jobExpiryDays > 365) errors['jobs.jobExpiryDays'] = 'Từ 1-365 ngày'
+    }
+    if (settings?.users) {
+      if (settings.users.maxSavedJobs < 1 || settings.users.maxSavedJobs > 200) errors['users.maxSavedJobs'] = 'Từ 1-200'
+    }
+    if (settings?.security) {
+      if (settings.security.passwordMinLength < 4 || settings.security.passwordMinLength > 128) errors['security.passwordMinLength'] = 'Từ 4-128 ký tự'
+      if (settings.security.maxLoginAttempts < 1 || settings.security.maxLoginAttempts > 20) errors['security.maxLoginAttempts'] = 'Từ 1-20'
+      if (settings.security.sessionTimeoutMin < 1 || settings.security.sessionTimeoutMin > 1440) errors['security.sessionTimeoutMin'] = 'Từ 1-1440 phút'
+    }
+    setSettingsErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   // Fetch settings from API on mount
   useEffect(() => {
@@ -39,6 +72,7 @@ export default function AdminSettingsPage() {
   }, [])
 
   const handleSave = async () => {
+    if (!validateSettings()) return
     setSaving(true)
     setSaved(false)
     try {
@@ -70,6 +104,8 @@ export default function AdminSettingsPage() {
     }
   }
 
+  const hasError = (key) => !!settingsErrors[key]
+
   const updateSetting = (group, field, value) => {
     setSettings(prev => ({
       ...prev,
@@ -78,6 +114,12 @@ export default function AdminSettingsPage() {
         [field]: value
       }
     }))
+    // Clear error on change
+    setSettingsErrors(prev => {
+      const next = { ...prev }
+      delete next[`${group}.${field}`]
+      return next
+    })
   }
 
   const Toggle = ({ checked, onChange, label, description, disabled }) => (
@@ -238,15 +280,33 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">URL chính thức</Label>
-                    <Input value={settings.site.siteUrl} onChange={e => updateSetting('site', 'siteUrl', e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5 focus:ring-2 focus:ring-blue-500/10" />
+                    <Input value={settings.site.siteUrl} onChange={e => updateSetting('site', 'siteUrl', e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 focus:ring-2 focus:ring-blue-500/10 ${hasError('site.siteUrl') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['site.siteUrl'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['site.siteUrl']}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Email quản trị</Label>
-                    <Input value={settings.site.contactEmail} onChange={e => updateSetting('site', 'contactEmail', e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5 focus:ring-2 focus:ring-blue-500/10" />
+                    <Input value={settings.site.contactEmail} onChange={e => updateSetting('site', 'contactEmail', e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 focus:ring-2 focus:ring-blue-500/10 ${hasError('site.contactEmail') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['site.contactEmail'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['site.contactEmail']}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Hotline hỗ trợ</Label>
-                    <Input value={settings.site.contactPhone} onChange={e => updateSetting('site', 'contactPhone', e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5 focus:ring-2 focus:ring-blue-500/10" />
+                    <Input value={settings.site.contactPhone} onChange={e => updateSetting('site', 'contactPhone', e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 focus:ring-2 focus:ring-blue-500/10 ${hasError('site.contactPhone') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['site.contactPhone'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['site.contactPhone']}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Separator className="bg-slate-50" />
@@ -275,11 +335,23 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Dung lượng file tối đa (MB)</Label>
-                    <Input type="number" value={settings.ai.maxFileSizeMB} onChange={e => updateSetting('ai', 'maxFileSizeMB', e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                    <Input type="number" value={settings.ai.maxFileSizeMB} onChange={e => updateSetting('ai', 'maxFileSizeMB', e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('ai.maxFileSizeMB') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['ai.maxFileSizeMB'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['ai.maxFileSizeMB']}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Giới hạn chấm điểm / ngày</Label>
-                    <Input type="number" value={settings.ai.dailyScoreLimit} onChange={e => updateSetting('ai', 'dailyScoreLimit', e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                    <Input type="number" value={settings.ai.dailyScoreLimit} onChange={e => updateSetting('ai', 'dailyScoreLimit', e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('ai.dailyScoreLimit') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['ai.dailyScoreLimit'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['ai.dailyScoreLimit']}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -301,11 +373,23 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Số tin tối đa / Nhà tuyển dụng</Label>
-                    <Input type="number" value={settings.jobs.maxJobsPerEmployer} onChange={e => updateSetting('jobs', 'maxJobsPerEmployer', e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                    <Input type="number" value={settings.jobs.maxJobsPerEmployer} onChange={e => updateSetting('jobs', 'maxJobsPerEmployer', e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('jobs.maxJobsPerEmployer') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['jobs.maxJobsPerEmployer'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['jobs.maxJobsPerEmployer']}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Thời gian hiển thị tin (Ngày)</Label>
-                    <Input type="number" value={settings.jobs.jobExpiryDays} onChange={e => updateSetting('jobs', 'jobExpiryDays', e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                    <Input type="number" value={settings.jobs.jobExpiryDays} onChange={e => updateSetting('jobs', 'jobExpiryDays', e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('jobs.jobExpiryDays') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['jobs.jobExpiryDays'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['jobs.jobExpiryDays']}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -334,7 +418,13 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Số CV đã lưu tối đa / Ứng viên</Label>
-                    <Input type="number" value={settings.users.maxSavedJobs} onChange={e => updateSetting('users', 'maxSavedJobs', +e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                    <Input type="number" value={settings.users.maxSavedJobs} onChange={e => updateSetting('users', 'maxSavedJobs', +e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('users.maxSavedJobs') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['users.maxSavedJobs'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['users.maxSavedJobs']}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -349,15 +439,33 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Độ dài mật khẩu tối thiểu</Label>
-                    <Input type="number" value={settings.security?.passwordMinLength ?? 6} onChange={e => updateSetting('security', 'passwordMinLength', +e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                    <Input type="number" value={settings.security?.passwordMinLength ?? 6} onChange={e => updateSetting('security', 'passwordMinLength', +e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('security.passwordMinLength') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['security.passwordMinLength'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['security.passwordMinLength']}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Số lần đăng nhập sai tối đa</Label>
-                    <Input type="number" value={settings.security?.maxLoginAttempts ?? 5} onChange={e => updateSetting('security', 'maxLoginAttempts', +e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                    <Input type="number" value={settings.security?.maxLoginAttempts ?? 5} onChange={e => updateSetting('security', 'maxLoginAttempts', +e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('security.maxLoginAttempts') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['security.maxLoginAttempts'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['security.maxLoginAttempts']}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Thời gian hết phiên (Phút)</Label>
-                    <Input type="number" value={settings.security?.sessionTimeoutMin ?? 60} onChange={e => updateSetting('security', 'sessionTimeoutMin', +e.target.value)} className="rounded-2xl h-12 bg-slate-50 border-none px-5" />
+                    <Input type="number" value={settings.security?.sessionTimeoutMin ?? 60} onChange={e => updateSetting('security', 'sessionTimeoutMin', +e.target.value)}
+                      className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('security.sessionTimeoutMin') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
+                    {settingsErrors['security.sessionTimeoutMin'] && (
+                      <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
+                        <AlertCircle size={11} /> {settingsErrors['security.sessionTimeoutMin']}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Separator className="bg-slate-50" />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Edit3, FileText, Wrench, Save, Loader2, CheckCircle2, Rocket, XCircle, Plus } from 'lucide-react'
+import { Edit3, FileText, Wrench, Save, Loader2, CheckCircle2, Rocket, XCircle, Plus, AlertCircle } from 'lucide-react'
 import { employerService } from '../../services/employerService'
 import { useAuth } from '../../context/AuthContext'
 
@@ -98,8 +98,12 @@ export default function EmployerJobFormPage() {
   const validate = () => {
     const e = {}
     if (!form.title.trim()) e.title = 'Vui lòng nhập tiêu đề'
+    else if (form.title.trim().length < 3) e.title = 'Tiêu đề phải có ít nhất 3 ký tự'
     if (!form.description.trim()) e.description = 'Vui lòng nhập mô tả công việc'
+    else if (form.description.trim().length < 10) e.description = 'Mô tả phải có ít nhất 10 ký tự'
     if (!form.location.trim()) e.location = 'Vui lòng nhập địa điểm'
+    else if (form.location.trim().length < 3) e.location = 'Địa điểm phải có ít nhất 3 ký tự'
+    if (!form.companyName.trim()) e.companyName = 'Vui lòng nhập tên công ty'
     if (form.salary_min && Number(form.salary_min) < 0)
       e.salary_min = 'Lương tối thiểu không được âm'
     if (form.salary_max && Number(form.salary_max) < 0)
@@ -181,17 +185,18 @@ export default function EmployerJobFormPage() {
             onFocus={e => e.target.style.borderColor = '#3B82F6'}
             onBlur={e => e.target.style.borderColor = errors.title ? '#EF4444' : '#E2E8F0'}
           />
-          {errors.title && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.title}</p>}
+          {errors.title && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={11} />{errors.title}</p>}
         </Field>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
           <Field label="Tên công ty" required>
             <input value={form.companyName} onChange={e => set('companyName', e.target.value)}
               placeholder="VD: VNG Corporation"
-              style={{ ...inputStyle }}
+              style={{ ...inputStyle, borderColor: errors.companyName ? '#EF4444' : '#E2E8F0' }}
               onFocus={e => e.target.style.borderColor = '#3B82F6'}
-              onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+              onBlur={e => e.target.style.borderColor = errors.companyName ? '#EF4444' : '#E2E8F0'}
             />
+            {errors.companyName && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={11} />{errors.companyName}</p>}
           </Field>
           <Field label="Ngành nghề" required>
             <select value={form.category} onChange={e => set('category', e.target.value)} style={{ ...inputStyle }}>
@@ -235,7 +240,7 @@ export default function EmployerJobFormPage() {
             onFocus={e => e.target.style.borderColor = '#3B82F6'}
             onBlur={e => e.target.style.borderColor = errors.location ? '#EF4444' : '#E2E8F0'}
           />
-          {errors.location && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.location}</p>}
+          {errors.location && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={11} />{errors.location}</p>}
         </Field>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
@@ -291,7 +296,7 @@ export default function EmployerJobFormPage() {
             onFocus={e => e.target.style.borderColor = '#3B82F6'}
             onBlur={e => e.target.style.borderColor = errors.description ? '#EF4444' : '#E2E8F0'}
           />
-          {errors.description && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4 }}>{errors.description}</p>}
+          {errors.description && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={11} />{errors.description}</p>}
         </Field>
 
         <Field label="Yêu cầu ứng viên" hint="Kỹ năng, kinh nghiệm, bằng cấp...">
