@@ -46,7 +46,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
       className={`bg-white rounded-xl border border-border overflow-hidden transition-all duration-200 hover:shadow-md ${updating ? 'opacity-60' : 'opacity-100'}`}
     >
       {/* Main row */}
-      <div className="p-[18px_20px] flex items-center gap-4 flex-wrap">
+      <div className="p-[18px_20px] flex items-start sm:items-center gap-3 sm:gap-4 flex-wrap">
         {/* Checkbox */}
         <input
           type="checkbox"
@@ -99,10 +99,9 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 shrink-0 flex-wrap items-center">
+        <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center w-full sm:w-auto sm:ml-auto">
           <button
-            onClick={onScore}
-            className="px-3 py-[7px] rounded-lg border border-pink-200 bg-pink-50 text-pink-600 cursor-pointer text-xs font-bold flex items-center gap-1 hover:bg-pink-100 transition-colors"
+            onClick={onScore}              className="px-2.5 sm:px-3 py-[7px] rounded-lg border border-pink-200 bg-pink-50 text-pink-600 cursor-pointer text-[11px] sm:text-xs font-bold flex items-center gap-1 hover:bg-pink-100 transition-colors"
           >
             <Sparkles size={14} /> {app.ai_score ? 'Chấm lại' : 'Chấm điểm'}
           </button>
@@ -111,7 +110,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
             <button
               onClick={() => handleStatus(cfg.next)}
               disabled={updating}
-              className="px-[14px] py-[7px] rounded-lg border-none text-white cursor-pointer text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-blue-800 to-blue-500"
+              className="px-2.5 sm:px-[14px] py-[7px] rounded-lg border-none text-white cursor-pointer text-[11px] sm:text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-blue-800 to-blue-500"
             >
               → {STATUS_CONFIG[cfg.next]?.label}
             </button>
@@ -121,7 +120,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
             <button
               onClick={() => handleStatus('rejected')}
               disabled={updating}
-              className="px-[14px] py-[7px] rounded-lg border border-red-300 bg-red-50 text-red-500 cursor-pointer text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-100"
+              className="px-2.5 sm:px-[14px] py-[7px] rounded-lg border border-red-300 bg-red-50 text-red-500 cursor-pointer text-[11px] sm:text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-100"
             >
               Từ chối
             </button>
