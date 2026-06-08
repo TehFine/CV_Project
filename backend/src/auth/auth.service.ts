@@ -102,6 +102,19 @@ export class AuthService {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
 
+    // Check if user is banned
+    if (user.status === 'banned') {
+      this.logger.fail('Đăng nhập thất bại - tài khoản bị cấm', {
+        userId: user._id.toString(),
+        email,
+        action: 'login',
+        reason: 'Tài khoản bị cấm',
+      });
+      throw new UnauthorizedException(
+        'Tài khoản của bạn đã bị cấm. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.',
+      );
+    }
+
     // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -138,6 +151,8 @@ export class AuthService {
   sanitizeUser(user: any) {
     const userObj = user.toObject ? user.toObject() : user;
     delete userObj.password;
+    // toObject() strips virtuals — add id explicitly from _id
+    userObj.id = user._id.toString();
     return userObj;
   }
 

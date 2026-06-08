@@ -72,10 +72,15 @@ export default function AdminUsersPage() {
     setKeyword(searchText)
   }
 
-  const handleStatusChange = (id, newStatus, reason) => {
-    setUsers(p => p.map(u => u.id === id ? { ...u, status: newStatus, ...(reason && { banReason: reason }) } : u))
-    const labels = { active: 'Kích hoạt', banned: 'Cấm tài khoản', pending: 'Chờ duyệt' }
-    showToast(`Đã cập nhật trạng thái: ${labels[newStatus] || newStatus}`)
+  const handleStatusChange = async (id, newStatus, reason) => {
+    try {
+      await adminService.updateUserStatus(id, newStatus, reason || '')
+      setUsers(p => p.map(u => u.id === id ? { ...u, status: newStatus, ...(reason && { banReason: reason }) } : u))
+      const labels = { active: 'Kích hoạt', banned: 'Cấm tài khoản', pending: 'Chờ duyệt' }
+      showToast(`Đã cập nhật trạng thái: ${labels[newStatus] || newStatus}`)
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Lỗi cập nhật trạng thái', 'error')
+    }
   }
 
   const handleDelete = async (id) => {

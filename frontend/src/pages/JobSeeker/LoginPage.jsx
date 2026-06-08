@@ -132,8 +132,19 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="mb-4 px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-              ⚠️ {error}
+            <div className={`mb-4 px-4 py-3 rounded-lg text-sm flex items-start gap-2.5 ${
+              error.includes('bị cấm')
+                ? 'bg-red-50 border border-red-300 text-red-700'
+                : 'bg-destructive/10 border border-destructive/20 text-destructive'
+            }`}>
+              {error.includes('bị cấm') ? (
+                <svg className="h-5 w-5 shrink-0 mt-0.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-1.964-.833-2.732 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              ) : (
+                <span>⚠️</span>
+              )}
+              <span className="leading-relaxed">{error}</span>
             </div>
           )}
 

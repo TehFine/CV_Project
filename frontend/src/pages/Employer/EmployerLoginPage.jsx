@@ -129,7 +129,16 @@ export default function EmployerLoginPage() {
             </p>
           </div>
 
-          {error && <div className="employer-auth-error"><AlertTriangle className="inline-block h-3.5 w-3.5 mr-1" />{error}</div>}
+          {error && (
+            error.includes('bị cấm')
+              ? <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '12px 14px', fontSize: 13, color: '#DC2626', marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <svg style={{ width: 18, height: 18, flexShrink: 0, marginTop: 1 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-1.964-.833-2.732 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <span>{error}</span>
+                </div>
+              : <div className="employer-auth-error"><AlertTriangle className="inline-block h-3.5 w-3.5 mr-1" />{error}</div>
+          )}
           {/* Demo account hint */}
           <div
             onClick={() =>

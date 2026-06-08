@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useState } from 'react'
-import { adminService } from '@/services/adminService'
 
 const STATUS_STYLE = {
   active:  { label: 'Hoạt động', bg: '#ECFDF5', text: '#059669', border: '#A7F3D0', icon: CircleCheck },
@@ -39,22 +38,19 @@ export function UserDetailDialog({ user, open, onClose, onStatusChange, detailLo
   const handleBan = async () => {
     if (!user) return
     setLoading(true)
-    await adminService.updateUserStatus(user.id, 'banned', banReason)
-    onStatusChange(user.id, 'banned', banReason)
+    await onStatusChange(user.id, 'banned', banReason)
     setLoading(false); setShowBanForm(false); onClose()
   }
   const handleUnban = async () => {
     if (!user) return
     setLoading(true)
-    await adminService.updateUserStatus(user.id, 'active')
-    onStatusChange(user.id, 'active')
+    await onStatusChange(user.id, 'active')
     setLoading(false); onClose()
   }
   const handleApprove = async () => {
     if (!user) return
     setLoading(true)
-    await adminService.updateUserStatus(user.id, 'active')
-    onStatusChange(user.id, 'active')
+    await onStatusChange(user.id, 'active')
     setLoading(false); onClose()
   }
 

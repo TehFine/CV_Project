@@ -25,6 +25,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException();
     }
+    // Block banned users from accessing any authenticated endpoint
+    if (user.status === 'banned') {
+      throw new UnauthorizedException(
+        'Tài khoản của bạn đã bị cấm. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.',
+      );
+    }
     return user;
   }
 }

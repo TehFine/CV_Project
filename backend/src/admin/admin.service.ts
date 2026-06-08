@@ -326,7 +326,7 @@ export class AdminService {
           const appliedJobs = await this.applicationModel.countDocuments({
             candidateId: u._id,
           } as any);
-          return { ...safeUser, cvCount, appliedJobs };
+          return { id: u._id.toString(), ...safeUser, cvCount, appliedJobs };
         }
 
         if (u.role === 'employer') {
@@ -341,10 +341,10 @@ export class AdminService {
           const totalApplicants = await this.applicationModel.countDocuments({
             jobId: { $in: jobIds },
           } as any);
-          return { ...safeUser, postedJobs, totalApplicants };
+          return { id: u._id.toString(), ...safeUser, postedJobs, totalApplicants };
         }
 
-        return safeUser;
+        return { id: u._id.toString(), ...safeUser };
       }),
     );
 
@@ -370,7 +370,7 @@ export class AdminService {
         candidateId: user._id,
       } as any);
       const savedJobs = (user.savedJobs || []).length;
-      return { ...safeUser, cvCount, appliedJobs, savedJobs };
+      return { id: user._id.toString(), ...safeUser, cvCount, appliedJobs, savedJobs };
     }
 
     if (user.role === 'employer') {
@@ -385,10 +385,10 @@ export class AdminService {
       const totalApplicants = await this.applicationModel.countDocuments({
         jobId: { $in: jobIds },
       } as any);
-      return { ...safeUser, postedJobs, totalApplicants };
+      return { id: user._id.toString(), ...safeUser, postedJobs, totalApplicants };
     }
 
-    return safeUser;
+    return { id: user._id.toString(), ...safeUser };
   }
 
   async updateUserStatus(id: string, status: string, reason = '') {
