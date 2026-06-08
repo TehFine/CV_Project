@@ -201,7 +201,7 @@ export default function JobDetailPage() {
                   <span className="flex items-center gap-1"><Users2 className="h-3.5 w-3.5" />{job.applied} ứng tuyển</span>
                   <span>{daysAgo === 0 ? 'Đăng hôm nay' : `${daysAgo} ngày trước`}</span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   {applied ? (
                     <div className="flex items-center gap-1.5 px-4 py-2 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl text-xs font-bold text-[#059669]">
                       <CheckCircle2 className="h-3.5 w-3.5" />Đã ứng tuyển thành công
@@ -209,17 +209,20 @@ export default function JobDetailPage() {
                   ) : (
                     <Button
                       onClick={() => isAuthenticated ? setShowApply(true) : navigate('/login', { state: { from: `/jobs/${id}` } })}
-                      className="bg-[#1549B8] hover:bg-[#1240A0] text-white font-bold gap-2 shadow-sm">
+                      className="bg-[#1549B8] hover:bg-[#1240A0] text-white font-bold gap-2 shadow-sm w-full sm:w-auto"
+                    >
                       <Send className="h-4 w-4" />{isAuthenticated ? 'Ứng tuyển ngay' : 'Đăng nhập để ứng tuyển'}
                     </Button>
                   )}
-                  <Button variant="outline" size="icon" onClick={handleSave} disabled={saving}
-                    className={saved ? 'border-amber-300 bg-amber-50 text-amber-500' : 'border-[#E2E8F0] text-[#475569]'}>
-                    <Bookmark className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
-                  </Button>
-                  <Button variant="outline" size="icon" className="border-[#E2E8F0] text-[#475569]">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button variant="outline" size="icon" onClick={handleSave} disabled={saving}
+                      className={`flex-1 sm:flex-none h-9 w-full sm:w-9 ${saved ? 'border-amber-300 bg-amber-50 text-amber-500' : 'border-[#E2E8F0] text-[#475569]'}`}>
+                      <Bookmark className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
+                    </Button>
+                    <Button variant="outline" size="icon" className="flex-1 sm:flex-none h-9 w-full sm:w-9 border-[#E2E8F0] text-[#475569]">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

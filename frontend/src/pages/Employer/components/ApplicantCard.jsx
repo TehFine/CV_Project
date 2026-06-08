@@ -33,7 +33,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
   const score = app.ai_score?.overall_score || 0
   const scoreColor = score >= 85 ? '#10B981' : score >= 70 ? '#3B82F6' : score >= 55 ? '#F59E0B' : '#EF4444'
 
-  const seekerId = app.seeker?.id || app.seeker?._id
+  const seekerId = app.seeker?.id || app.seeker?._id || app.seeker_id
   const initials = app.seeker?.full_name
     ? app.seeker.full_name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase()
     : 'CV'

@@ -156,7 +156,7 @@ export default function Header() {
             : "bg-transparent border-b border-transparent shadow-none"
         )}
       >
-        <div className="container-app max-w-7xl mx-auto px-6 h-16 flex items-center gap-5">
+        <div className="container-app max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-5">
 
           {/* Logo */}
           <Logo

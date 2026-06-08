@@ -31,7 +31,7 @@ export default function EmployerLayout({ children }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
-        <div className="h-16 border-b border-slate-200 bg-white px-6 flex items-center justify-between">
+        <div className="h-16 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between">
           <Skeleton variant="icon" className="w-32 h-8" />
           <div className="flex gap-3">
             <Skeleton variant="button" />

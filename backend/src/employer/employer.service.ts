@@ -10,6 +10,7 @@ import {
   CvScore,
   CvScoreDocument,
 } from '../cv-scoring/schemas/cv-score.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { AppLogger } from '../common/logger.service';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class EmployerService {
     @InjectModel('Application')
     private applicationModel: Model<ApplicationDocument>,
     @InjectModel(CvScore.name) private cvScoreModel: Model<CvScoreDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   private mapJobToFrontend(job: any) {
@@ -280,6 +282,21 @@ export class EmployerService {
       candidateId: app.candidateId?.toString(),
     });
     return { success: true };
+  }
+
+  async getCandidateProfile(candidateId: string) {
+    const user = await this.userModel.findById(candidateId).select('-password').exec();
+    if (!user) throw new NotFoundException('Không tìm thấy ứng viên');
+    return {
+      full_name: user.name || 'Ứng viên ẩn danh',
+      email: user.email || '',
+      phone: user.phone || '',
+      location: user.location || '',
+      title: user.title || '',
+      bio: user.bio || '',
+      skills: user.skills || [],
+      avatar_url: user.avatar || null,
+    };
   }
 
   async bulkDeleteApplications(ids: string[]) {
