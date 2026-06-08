@@ -8,17 +8,21 @@ import { Sparkles, Bot, Mail, User, Building2, Lock, Rocket, AlertTriangle, Info
 function PasswordStrength({ password }) {
   const checks = [password.length >= 8, /[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password)]
   const score = checks.filter(Boolean).length
-  const colors = ['#EF4444', '#F97316', '#EAB308', '#22C55E']
+  const barColors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500']
+  const textColors = ['', 'text-red-500', 'text-orange-500', 'text-yellow-400', 'text-green-500']
   const labels = ['Rất yếu', 'Yếu', 'Trung bình', 'Mạnh']
   if (!password) return null
   return (
-    <div style={{ marginTop: 6 }}>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+    <div className="mt-1.5">
+      <div className="flex gap-1 mb-1">
         {[1,2,3,4].map(i => (
-          <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i <= score ? colors[score-1] : '#E2E8F0', transition: 'background 0.3s' }} />
+          <div
+            key={i}
+            className={`flex-1 h-1 rounded-sm transition-all duration-300 ${i <= score ? barColors[score] : 'bg-slate-200'}`}
+          />
         ))}
       </div>
-      <p style={{ fontSize: 11, color: score <= 1 ? '#EF4444' : score <= 2 ? '#F97316' : score <= 3 ? '#EAB308' : '#22C55E', margin: 0 }}>
+      <p className={`text-[11px] m-0 ${score ? textColors[score] : ''}`}>
         Độ mạnh: {labels[score-1] || ''}
       </p>
     </div>
@@ -27,23 +31,23 @@ function PasswordStrength({ password }) {
 
 const Field = ({ name, label, type = 'text', placeholder, required, form, errors, set, showPass, setShowPass }) => (
   <div>
-    <label className="employer-auth-label">
-      {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
+    <label className="block text-[13px] font-semibold text-slate-900 mb-1.5">
+      {label} {required && <span className="text-red-500">*</span>}
     </label>
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       <Input
         type={name === 'password' || name === 'confirmPassword' ? (showPass ? 'text' : 'password') : type}
         name={name} value={form[name]} onChange={set} placeholder={placeholder}
-        style={{ borderColor: errors[name] ? '#EF4444' : undefined, borderRadius: 10, paddingRight: (name === 'password' || name === 'confirmPassword') ? 44 : undefined }}
+        className={`${errors[name] ? 'border-red-500!' : ''} ${(name === 'password' || name === 'confirmPassword') ? 'pr-11' : ''}`}
       />
       {(name === 'password' || name === 'confirmPassword') && (
-        <button type="button" onClick={() => setShowPass(v => !v)} className="employer-auth-eye">
+        <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-slate-400 p-0">
           {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       )}
     </div>
     {name === 'password' && <PasswordStrength password={form.password} />}
-    {errors[name] && <p style={{ fontSize: 12, color: '#EF4444', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}><AlertTriangle className="h-3 w-3 shrink-0" />{errors[name]}</p>}
+    {errors[name] && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3 shrink-0" />{errors[name]}</p>}
   </div>
 )
 
@@ -113,35 +117,36 @@ export default function EmployerRegisterPage() {
   const fieldProps = { form, errors, set, showPass, setShowPass }
 
   return (
-    <div className="employer-auth-page">
+    <div className="min-h-screen flex bg-[#F8FAFC]">
       {/* Left panel */}
-      <div className="employer-auth-left">
-        <div className="employer-auth-left-content">
-          <Link to="/" className="employer-auth-logo">
-            <div className="employer-auth-logo-icon">N</div>
-            <span>Nex<span style={{ color: '#A78BFA' }}>CV</span></span>
+      <div className="flex-1 bg-linear-to-br from-[#1E1B4B] via-[#4C1D95] to-[#6D28D9] hidden md:flex flex-col justify-center p-15 relative overflow-hidden">
+        <div className="absolute -top-25 -right-25 w-100 h-100 rounded-full bg-[#7C3AED]/20 pointer-events-none" />
+        <div className="relative z-10">
+          <Link to="/" className="flex items-center gap-2.5 no-underline mb-10 font-extrabold text-[22px] text-white">
+            <div className="w-9.5 h-9.5 rounded-xl bg-white flex items-center justify-center font-black text-[17px] text-[#7C3AED] shrink-0">N</div>
+            <span>Nex<span className="text-[#A78BFA]">CV</span></span>
           </Link>
-          <h2 className="employer-auth-title">Bắt đầu tuyển dụng<br />thông minh hơn{' '}<Sparkles className="inline-block h-6 w-6 text-yellow-300" /></h2>
-          <p className="employer-auth-subtitle">
+          <h2 className="text-[32px] font-extrabold text-white leading-tight mb-3">Bắt đầu tuyển dụng<br />thông minh hơn{' '}<Sparkles className="inline-block h-6 w-6 text-yellow-300" /></h2>
+          <p className="text-[15px] text-white/65 leading-relaxed mb-7">
             Tham gia cùng 2,000+ nhà tuyển dụng đang dùng NexCV để tìm ứng viên chất lượng nhanh hơn với AI.
           </p>
-          <div className="employer-auth-features">
+          <div className="flex flex-col gap-3 mb-7">
             {[
               { icon: <Sparkles className="h-5 w-5" />, title: 'Miễn phí hoàn toàn', desc: 'Không mất phí để đăng ký và sử dụng' },
               { icon: <Bot className="h-5 w-5" />, title: 'AI matching tự động', desc: 'Tìm ứng viên phù hợp trong vài giây' },
               { icon: <Mail className="h-5 w-5" />, title: 'Quản lý hồ sơ dễ dàng', desc: 'Xem, lọc và liên hệ ứng viên tiện lợi' },
             ].map(f => (
-              <div key={f.title} className="employer-auth-feature-item">
-                <span className="employer-auth-feature-icon" style={{ color: '#A78BFA' }}>{f.icon}</span>
+              <div key={f.title} className="flex gap-3.5 items-start bg-white/7 rounded-xl p-3.5 border border-white/10">
+                <span className="text-[#A78BFA] text-xl shrink-0">{f.icon}</span>
                 <div>
-                  <div className="employer-auth-feature-title">{f.title}</div>
-                  <div className="employer-auth-feature-desc">{f.desc}</div>
+                  <div className="text-[13px] font-semibold text-white mb-0.5">{f.title}</div>
+                  <div className="text-xs text-white/55">{f.desc}</div>
                 </div>
               </div>
             ))}
           </div>
-          <div className="employer-auth-divider-note">
-            <Link to="/register" className="employer-auth-switch-link">
+          <div className="pt-5 border-t border-white/15">
+            <Link to="/register" className="text-[13px] text-white/60 no-underline hover:text-white">
               <User className="inline-block h-3.5 w-3.5 mr-1" /> Bạn là ứng viên? Đăng ký tại đây
             </Link>
           </div>
@@ -149,55 +154,55 @@ export default function EmployerRegisterPage() {
       </div>
 
       {/* Right panel */}
-      <div className="employer-auth-right" style={{ alignItems: 'flex-start', paddingTop: 40, overflowY: 'auto' }}>
-        <div className="employer-auth-form-wrap">
-          <Link to="/" className="employer-auth-logo mobile-logo">
-            <div className="employer-auth-logo-icon">N</div>
-            <span style={{ fontWeight: 800, fontSize: 20, color: '#7C3AED' }}>NexCV</span>
+      <div className="flex-1 flex justify-center p-8 md:p-6 items-start pt-10 overflow-y-auto">
+        <div className="w-full max-w-115">
+          <Link to="/" className="flex items-center gap-2.5 no-underline mb-6 font-extrabold text-[22px] text-white md:hidden">
+            <div className="w-9.5 h-9.5 rounded-xl bg-white flex items-center justify-center font-black text-[17px] text-[#7C3AED] shrink-0">N</div>
+            <span className="font-extrabold text-xl text-[#7C3AED]">NexCV</span>
           </Link>
 
-          <div style={{ marginBottom: 24 }}>
-            <div className="employer-auth-tag"><Building2 className="h-3.5 w-3.5" /> Đăng ký nhà tuyển dụng</div>
-            <h1 className="employer-auth-form-title">Tạo tài khoản</h1>
-            <p className="employer-auth-form-sub">
+          <div className="mb-6">
+            <div className="inline-flex items-center gap-1.5 bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20 rounded-full px-3 py-1 text-xs font-semibold mb-2.5"><Building2 className="h-3.5 w-3.5" /> Đăng ký nhà tuyển dụng</div>
+            <h1 className="text-[26px] font-extrabold text-slate-900 mb-1.5">Tạo tài khoản</h1>
+            <p className="text-sm text-slate-500">
               Đã có tài khoản?{' '}
-              <Link to="/employer/login" className="employer-auth-form-link">Đăng nhập</Link>
+              <Link to="/employer/login" className="text-[#7C3AED] font-semibold no-underline">Đăng nhập</Link>
             </p>
           </div>
 
           {errors.submit && (
-            <div className="employer-auth-error" style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle className="h-3.5 w-3.5 shrink-0" />{errors.submit}</div>
+            <div className="bg-red-50 border border-red-200/25 rounded-xl px-3.5 py-2.5 text-[13px] text-red-600 mb-4 flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 shrink-0" />{errors.submit}</div>
           )}
 
           {/* Thông báo nếu được điền sẵn từ trang chủ */}
           {(prefill.name || prefill.email) && (
-            <div style={{ background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#3730A3', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-xl px-3.5 py-2.5 text-[13px] text-[#3730A3] mb-4 flex items-center gap-2">
               <Info className="h-4 w-4 shrink-0" />
               <span>Thông tin cá nhân đã được điền sẵn từ tài khoản ứng viên của bạn. Vui lòng kiểm tra lại trước khi gửi.</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
             {/* Thông tin cá nhân */}
-            <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}><User className="h-3.5 w-3.5" /> Thông tin cá nhân</p>
+            <div className="p-4 bg-[#F8FAFC] rounded-xl border border-slate-200 flex flex-col gap-3.5">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest m-0 flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Thông tin cá nhân</p>
               <Field {...fieldProps} name="name" label="Họ và tên" placeholder="Nguyễn Văn An" required />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-2 gap-3">
                 <Field {...fieldProps} name="email" label="Email" type="email" placeholder="hr@company.com" required />
                 <Field {...fieldProps} name="phone" label="Số điện thoại" placeholder="0901 234 567" />
               </div>
             </div>
 
             {/* Thông tin công ty */}
-            <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}><Building2 className="h-3.5 w-3.5" /> Thông tin công ty</p>
+            <div className="p-4 bg-[#F8FAFC] rounded-xl border border-slate-200 flex flex-col gap-3.5">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest m-0 flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> Thông tin công ty</p>
               <Field {...fieldProps} name="companyName" label="Tên công ty" placeholder="Công ty TNHH ABC" required />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-2 gap-3">
                 <Field {...fieldProps} name="companyWebsite" label="Website" placeholder="https://company.com" />
                 <div>
-                  <label className="employer-auth-label">Lĩnh vực</label>
+                  <label className="block text-[13px] font-semibold text-slate-900 mb-1.5">Lĩnh vực</label>
                   <select name="industry" value={form.industry} onChange={set}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #E2E8F0', borderRadius: 10, fontSize: 14, fontFamily: 'inherit', color: '#0F172A', background: 'white' }}>
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-inherit text-slate-900 bg-white outline-none focus:border-[#7C3AED] transition-colors">
                     <option value="">Chọn lĩnh vực</option>
                     {['Công nghệ thông tin', 'Tài chính - Ngân hàng', 'Thương mại điện tử', 'Marketing', 'Giáo dục', 'Y tế', 'Xây dựng', 'Sản xuất', 'Khác'].map(i => (
                       <option key={i} value={i}>{i}</option>
@@ -208,65 +213,34 @@ export default function EmployerRegisterPage() {
             </div>
 
             {/* Mật khẩu */}
-            <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: 12, border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}><Lock className="h-3.5 w-3.5" /> Bảo mật</p>
+            <div className="p-4 bg-[#F8FAFC] rounded-xl border border-slate-200 flex flex-col gap-3.5">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest m-0 flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Bảo mật</p>
               <Field {...fieldProps} name="password" label="Mật khẩu" placeholder="Tối thiểu 6 ký tự" required />
               <Field {...fieldProps} name="confirmPassword" label="Xác nhận mật khẩu" placeholder="Nhập lại mật khẩu" required />
             </div>
 
             {/* Terms */}
             <div>
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+              <label className="flex items-start gap-2.5 cursor-pointer">
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
-                  style={{ marginTop: 2, width: 16, height: 16, accentColor: '#7C3AED', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5 }}>
-                  Tôi đồng ý với <a href="#" style={{ color: '#7C3AED', textDecoration: 'none', fontWeight: 500 }}>Điều khoản dịch vụ</a> và <a href="#" style={{ color: '#7C3AED', textDecoration: 'none', fontWeight: 500 }}>Chính sách bảo mật</a>
+                  className="mt-0.5 w-4 h-4 accent-[#7C3AED] shrink-0" />
+                <span className="text-[13px] text-slate-500 leading-relaxed">
+                  Tôi đồng ý với <a href="#" className="text-[#7C3AED] no-underline font-medium">Điều khoản dịch vụ</a> và <a href="#" className="text-[#7C3AED] no-underline font-medium">Chính sách bảo mật</a>
                 </span>
               </label>
-              {errors.agreed && <p style={{ fontSize: 12, color: '#EF4444', margin: '4px 0 0 26px', display: 'flex', alignItems: 'center', gap: 4 }}><AlertTriangle className="h-3 w-3 shrink-0" />{errors.agreed}</p>}
+              {errors.agreed && <p className="text-xs text-red-500 ml-7 mt-1 flex items-center gap-1"><AlertTriangle className="h-3 w-3 shrink-0" />{errors.agreed}</p>}
             </div>
 
             <Button type="submit" disabled={loading}
-              style={{ background: loading ? '#A78BFA' : 'linear-gradient(135deg, #7C3AED, #5B21B6)', height: 44, fontSize: 15, fontWeight: 700 }}
+              className={`h-11 text-[15px] font-bold ${loading ? 'bg-[#A78BFA]' : 'bg-linear-to-r from-[#7C3AED] to-[#5B21B6]'}`}
             >
               {loading ? (
-                <><svg style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>Đang tạo tài khoản...</>
+                <><svg className="animate-spin mr-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>Đang tạo tài khoản...</>
               ) : <><Rocket className="h-4 w-4" /> Tạo tài khoản nhà tuyển dụng</>}
             </Button>
           </form>
         </div>
       </div>
-
-      <style>{`
-        .employer-auth-page { min-height: 100vh; display: flex; background: #F8FAFC; }
-        .employer-auth-left { flex: 1; background: linear-gradient(145deg, #1E1B4B 0%, #4C1D95 60%, #6D28D9 100%); display: none; flex-direction: column; justify-content: center; padding: 60px; position: relative; overflow: hidden; }
-        .employer-auth-left::before { content: ''; position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; border-radius: 50%; background: rgba(124,58,237,0.2); }
-        .employer-auth-left-content { position: relative; z-index: 1; }
-        .employer-auth-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 40px; font-weight: 800; font-size: 22px; color: white; }
-        .employer-auth-logo-icon { width: 38px; height: 38px; border-radius: 10px; background: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 17px; color: #7C3AED; flex-shrink: 0; }
-        .employer-auth-title { font-size: 32px; font-weight: 800; color: white; line-height: 1.25; margin-bottom: 12px; }
-        .employer-auth-subtitle { color: rgba(255,255,255,0.65); font-size: 15px; line-height: 1.7; margin-bottom: 28px; }
-        .employer-auth-features { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
-        .employer-auth-feature-item { display: flex; gap: 14px; align-items: flex-start; background: rgba(255,255,255,0.07); border-radius: 12px; padding: 14px 16px; border: 1px solid rgba(255,255,255,0.1); }
-        .employer-auth-feature-icon { font-size: 20px; flex-shrink: 0; }
-        .employer-auth-feature-title { font-size: 13px; font-weight: 600; color: white; margin-bottom: 2px; }
-        .employer-auth-feature-desc { font-size: 12px; color: rgba(255,255,255,0.55); }
-        .employer-auth-divider-note { padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.15); }
-        .employer-auth-switch-link { font-size: 13px; color: rgba(255,255,255,0.6); text-decoration: none; }
-        .employer-auth-switch-link:hover { color: white; }
-        .employer-auth-right { flex: 1; display: flex; justify-content: center; padding: 32px 24px; }
-        .employer-auth-form-wrap { width: 100%; max-width: 460px; }
-        .mobile-logo { margin-bottom: 24px; }
-        .employer-auth-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(124,58,237,0.1); color: #7C3AED; border: 1px solid rgba(124,58,237,0.2); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
-        .employer-auth-form-title { font-size: 26px; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
-        .employer-auth-form-sub { font-size: 14px; color: #64748B; }
-        .employer-auth-form-link { color: #7C3AED; font-weight: 600; text-decoration: none; }
-        .employer-auth-error { background: #FEF2F2; border: 1px solid rgba(239,68,68,0.25); border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #DC2626; }
-        .employer-auth-label { display: block; font-size: 13px; font-weight: 600; color: #0F172A; margin-bottom: 6px; }
-        .employer-auth-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94A3B8; padding: 0; font-size: 16px; }
-        @media (min-width: 768px) { .employer-auth-left { display: flex; } .mobile-logo { display: none; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   )
 }

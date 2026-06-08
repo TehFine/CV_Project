@@ -22,8 +22,7 @@ export default function Logo({
         <span className={`${iconColor} font-black text-sm`}>N</span>
       </div>
       <span
-        className={`font-extrabold text-[20px] tracking-[px] transition-colors duration-250 ${textColor} flex items-center`}
-        style={{ letterSpacing: "-0.5px" }}
+        className={`font-extrabold text-[20px] tracking-tight transition-colors duration-250 ${textColor} flex items-center`}
       >
         Nex<span className={cvColor}>CV</span>
         {badgeText && (

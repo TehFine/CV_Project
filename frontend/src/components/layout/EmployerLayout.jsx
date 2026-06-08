@@ -53,9 +53,9 @@ export default function EmployerLayout({ children }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#F8FAFC', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC]" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>
       <EmployerHeader />
-      <main style={{ flex: 1 }}>
+      <main className="flex-1">
         {children}
       </main>
       <Footer />

@@ -106,10 +106,7 @@ function SeekerLayout({ children }) {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{
-        backgroundColor: "var(--bg-base)",
-        fontFamily: "'Be Vietnam Pro', sans-serif",
-      }}
+      style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
     >
       <Header />
       <main className="flex-1">{children}</main>

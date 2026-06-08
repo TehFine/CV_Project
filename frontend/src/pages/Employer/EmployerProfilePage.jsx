@@ -5,21 +5,17 @@ import { Building, Mail, Phone, Globe, Briefcase, Camera, CheckCircle2, Loader2,
 
 function Field({ label, required, children, icon: Icon }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 8 }}>
-        {Icon && <Icon size={16} color="#64748B" />}
-        {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
+    <div className="mb-5">
+      <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 mb-2">
+        {Icon && <Icon size={16} className="text-slate-400" />}
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
     </div>
   )
 }
 
-const inputStyle = {
-  width: '100%', padding: '12px 14px', border: '1.5px solid #E2E8F0', borderRadius: 10,
-  fontSize: 14, fontFamily: 'inherit', color: '#0F172A', boxSizing: 'border-box',
-  outline: 'none', transition: 'all 0.2s', backgroundColor: '#F8FAFC'
-}
+const inputStyle = "w-full px-3.5 py-3 border-2 border-slate-200 rounded-xl text-sm font-inherit text-slate-900 box-border outline-none transition-all bg-[#F8FAFC] focus:border-[#1549B8] focus:bg-white"
 
 export default function EmployerProfilePage() {
   const { user, updateUser } = useAuth()
@@ -184,162 +180,137 @@ export default function EmployerProfilePage() {
   }
 
   return (
-    <div style={{ padding: '32px 16px', maxWidth: 800, margin: '0 auto', fontFamily: "'Be Vietnam Pro', sans-serif" }}>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0F172A', marginBottom: 8 }}>Hồ sơ Công ty</h1>
-        <p style={{ color: '#64748B', fontSize: 15 }}>Quản lý thông tin hiển thị với ứng viên và trên các tin tuyển dụng.</p>
+    <div className="px-4 py-8 max-w-200 mx-auto" style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}>
+      <div className="mb-8">
+        <h1 className="text-[28px] font-black text-slate-900 mb-2">Hồ sơ Công ty</h1>
+        <p className="text-[15px] text-slate-500">Quản lý thông tin hiển thị với ứng viên và trên các tin tuyển dụng.</p>
       </div>
 
-      <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E2E8F0', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #F1F5F9', flexWrap: 'wrap' }}>
-          <div 
+        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100 flex-wrap">
+          <div
             onClick={() => document.getElementById('logo-upload').click()}
-            style={{ 
-              width: 100, height: 100, borderRadius: 24, backgroundColor: '#EEF2FF', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', 
-              color: '#1549B8', fontSize: 32, fontWeight: 900, position: 'relative',
-              cursor: 'pointer', overflow: 'hidden', border: '2px dashed #E2E8F0'
-            }}
+            className="w-25 h-25 rounded-3xl bg-[#EEF2FF] flex items-center justify-center text-[#1549B8] text-[32px] font-black relative cursor-pointer overflow-hidden border-2 border-dashed border-slate-200 shrink-0"
           >
             {logoPreview ? (
-              <img src={logoPreview} alt="Logo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
             ) : (
               form.companyName ? form.companyName.slice(0, 2).toUpperCase() : 'HR'
             )}
             
-            <div style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0, height: 28,
-              backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', color: 'white'
-            }}>
+            <div className="absolute bottom-0 left-0 right-0 h-7 bg-black/40 flex items-center justify-center text-white">
               <Camera size={14} />
             </div>
 
-            <input 
+            <input
               id="logo-upload"
-              type="file" 
-              accept="image/*" 
-              onChange={handleLogoChange} 
-              style={{ display: 'none' }} 
+              type="file"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="hidden"
             />
           </div>
           <div>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginBottom: 4 }}>Logo công ty</h3>
-            <p style={{ fontSize: 13, color: '#94A3B8' }}>Nhấp vào ô bên trái để tải ảnh lên. Định dạng JPG, PNG hoặc GIF.</p>
+            <h3 className="text-lg font-extrabold text-slate-900 mb-1">Logo công ty</h3>
+            <p className="text-[13px] text-slate-400">Nhấp vào ô bên trái để tải ảnh lên. Định dạng JPG, PNG hoặc GIF.</p>
           </div>
         </div>
 
         {/* Form Fields */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-5">
           <Field label="Tên công ty" required icon={Building}>
-            <input 
-              value={form.companyName} 
-              onChange={e => handleChange('companyName', e.target.value)} 
-              style={{ ...inputStyle, borderColor: companyNameTouched && companyNameError ? '#EF4444' : '#E2E8F0' }} 
+            <input
+              value={form.companyName}
+              onChange={e => handleChange('companyName', e.target.value)}
+              className={`${inputStyle} ${companyNameTouched && companyNameError ? 'border-red-500!' : ''}`}
               placeholder="VD: Công ty TNHH NexCV"
-              onFocus={e => { e.target.style.borderColor = companyNameError ? '#EF4444' : '#1549B8'; e.target.style.backgroundColor = 'white' }}
-              onBlur={e => { e.target.style.borderColor = companyNameError ? '#EF4444' : '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
             />
             {companyNameTouched && companyNameError && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 12, color: '#EF4444' }}>
+              <div className="flex items-center gap-1 mt-1.5 text-xs text-red-500">
                 <AlertCircle size={12} /> {companyNameError}
               </div>
             )}
           </Field>
           <Field label="Lĩnh vực hoạt động" icon={Briefcase}>
-            <input 
-              value={form.industry} 
-              onChange={e => handleChange('industry', e.target.value)} 
-              style={inputStyle} 
+            <input
+              value={form.industry}
+              onChange={e => handleChange('industry', e.target.value)}
+              className={inputStyle}
               placeholder="VD: Công nghệ thông tin, Tài chính..."
-              onFocus={e => { e.target.style.borderColor = '#1549B8'; e.target.style.backgroundColor = 'white' }}
-              onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
             />
           </Field>
           <Field label="Email liên hệ" required icon={Mail}>
-            <input 
-              value={form.email} 
-              onChange={e => handleChange('email', e.target.value)} 
-              style={{ ...inputStyle, borderColor: emailTouched && emailError ? '#EF4444' : '#E2E8F0' }} 
+            <input
+              value={form.email}
+              onChange={e => handleChange('email', e.target.value)}
+              className={`${inputStyle} ${emailTouched && emailError ? 'border-red-500!' : ''}`}
               type="email"
               placeholder="contact@company.com"
-              onFocus={e => { e.target.style.borderColor = emailError ? '#EF4444' : '#1549B8'; e.target.style.backgroundColor = 'white' }}
-              onBlur={e => { e.target.style.borderColor = emailError ? '#EF4444' : '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
             />
             {emailTouched && emailError && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 12, color: '#EF4444' }}>
+              <div className="flex items-center gap-1 mt-1.5 text-xs text-red-500">
                 <AlertCircle size={12} /> {emailError}
               </div>
             )}
           </Field>
           <Field label="Số điện thoại" icon={Phone}>
-            <input 
-              value={form.phone} 
-              onChange={e => handleChange('phone', e.target.value)} 
-              style={{ ...inputStyle, borderColor: phoneTouched && phoneError ? '#EF4444' : '#E2E8F0' }} 
+            <input
+              value={form.phone}
+              onChange={e => handleChange('phone', e.target.value)}
+              className={`${inputStyle} ${phoneTouched && phoneError ? 'border-red-500!' : ''}`}
               placeholder="0901234567"
-              onFocus={e => { e.target.style.borderColor = phoneError ? '#EF4444' : '#1549B8'; e.target.style.backgroundColor = 'white' }}
-              onBlur={e => { e.target.style.borderColor = phoneError ? '#EF4444' : '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
             />
             {phoneTouched && phoneError && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 12, color: '#EF4444' }}>
+              <div className="flex items-center gap-1 mt-1.5 text-xs text-red-500">
                 <AlertCircle size={12} /> {phoneError}
               </div>
             )}
           </Field>
-          <div style={{ gridColumn: '1 / -1' }}>
+          <div className="col-span-full">
             <Field label="Website công ty" icon={Globe}>
-              <input 
-                value={form.companyWebsite} 
-                onChange={e => handleChange('companyWebsite', e.target.value)} 
-                style={{ ...inputStyle, borderColor: websiteTouched && websiteError ? '#EF4444' : '#E2E8F0' }} 
+              <input
+                value={form.companyWebsite}
+                onChange={e => handleChange('companyWebsite', e.target.value)}
+                className={`${inputStyle} ${websiteTouched && websiteError ? 'border-red-500!' : ''}`}
                 placeholder="https://www.yourcompany.com"
-                onFocus={e => { e.target.style.borderColor = websiteError ? '#EF4444' : '#1549B8'; e.target.style.backgroundColor = 'white' }}
-                onBlur={e => { e.target.style.borderColor = websiteError ? '#EF4444' : '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
               />
               {websiteTouched && websiteError && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 12, color: '#EF4444' }}>
+                <div className="flex items-center gap-1 mt-1.5 text-xs text-red-500">
                   <AlertCircle size={12} /> {websiteError}
                 </div>
               )}
             </Field>
           </div>
-          <div style={{ gridColumn: '1 / -1' }}>
+          <div className="col-span-full">
             <Field label="Mô tả công ty / Giới thiệu chung" icon={Building}>
-              <textarea 
-                value={form.description} 
-                onChange={e => handleChange('description', e.target.value)} 
-                style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} 
+              <textarea
+                value={form.description}
+                onChange={e => handleChange('description', e.target.value)}
+                className={`${inputStyle} min-h-30 resize-y`}
                 placeholder="Giới thiệu về công ty, văn hóa, môi trường làm việc..."
-                onFocus={e => { e.target.style.borderColor = '#1549B8'; e.target.style.backgroundColor = 'white' }}
-                onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.backgroundColor = '#F8FAFC' }}
               />
             </Field>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: 24, borderTop: '1px solid #F1F5F9', gap: 12 }}>
+        <div className="mt-6 flex items-center justify-end pt-6 border-t border-slate-100 gap-3">
           {success && (
-            <div style={{ fontSize: 14, color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="text-sm text-emerald-600 font-semibold flex items-center gap-1.5">
               <CheckCircle2 size={18} /> Đã cập nhật thành công
             </div>
           )}
-          <button 
-            onClick={handleSave} 
+          <button
+            onClick={handleSave}
             disabled={saving}
-            style={{
-              padding: '12px 24px', borderRadius: 12, border: 'none',
-              background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', color: 'white',
-              fontSize: 14, fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer',
-              boxShadow: '0 4px 12px rgba(59,130,246,0.3)', transition: 'all 0.2s',
-              opacity: saving ? 0.7 : 1, whiteSpace: 'nowrap'
-            }}
-            onMouseEnter={e => { if (!saving) e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 6px 16px rgba(59,130,246,0.4)' }}
-            onMouseLeave={e => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = '0 4px 12px rgba(59,130,246,0.3)' }}
+            className={`px-6 py-3 rounded-xl border-none text-white text-sm font-bold transition-all whitespace-nowrap bg-linear-to-r from-blue-700 to-blue-500 shadow-lg shadow-blue-500/30 ${
+              saving
+                ? 'opacity-70 cursor-not-allowed'
+                : 'cursor-pointer hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40'
+            }`}
           >
-            {saving ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Loader2 className="animate-spin" size={16} /> Đang lưu...</span> : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Save size={16} /> Lưu thay đổi</span>}
+            {saving ? <span className="inline-flex items-center gap-2"><Loader2 className="animate-spin" size={16} /> Đang lưu...</span> : <span className="inline-flex items-center gap-2"><Save size={16} /> Lưu thay đổi</span>}
           </button>
         </div>
       </div>
