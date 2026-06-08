@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { MapPin, DollarSign, Clock, BarChart2, Bookmark, Share2, CheckCircle2, Sparkles, ChevronRight, Eye, Users2, Send, FileText, Gift, Lightbulb, Loader2 } from 'lucide-react'
+import Skeleton, { SkeletonCard } from '@/components/ui/Skeleton'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -118,7 +119,14 @@ export default function JobDetailPage() {
 
   if (loading) return (
     <div className="container-app py-8 grid lg:grid-cols-[1fr_300px] gap-6">
-      {[1, 2].map(i => <div key={i} className="h-64 shimmer-bg" />)}
+      <div className="space-y-4">
+        <SkeletonCard lines={4} badge />
+        <Skeleton variant="chart" />
+      </div>
+      <div className="space-y-4">
+        <SkeletonCard lines={6} />
+        <SkeletonCard lines={3} />
+      </div>
     </div>
   )
   if (!job) return null

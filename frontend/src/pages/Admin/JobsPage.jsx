@@ -8,6 +8,7 @@ import {
   DollarSign, BarChart3, FolderOpen, Briefcase, AlertTriangle, X
 } from 'lucide-react'
 import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonPage } from '@/components/ui/Skeleton'
 
 /* ── Configs ───────────────────────────────────────────────────────────────── */
 const STATUS_CONFIG = {
@@ -350,11 +351,7 @@ export default function AdminJobsPage() {
 
       {/* Job list */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>
-          <div style={{ width: 32, height: 32, border: '4px solid #E2E8F0', borderTopColor: '#1549B8', borderRadius: '50%', margin: '0 auto 12px', animation: 'spin 1s linear infinite' }} />
-          Đang tải...
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
+        <SkeletonPage cards={4} cardType="job-card" />
       ) : jobs.length === 0 ? (
         <EmptyState
           icon={ClipboardList}

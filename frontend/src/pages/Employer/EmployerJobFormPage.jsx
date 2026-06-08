@@ -144,7 +144,7 @@ export default function EmployerJobFormPage() {
     }
   }
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>Đang tải...</div>
+  if (loading) return <div className="max-w-2xl mx-auto py-8"><SkeletonPage cards={3} /></div>
 
   return (
     <div style={{ padding: '32px 16px', maxWidth: 760, margin: '0 auto' }}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MapPin, Briefcase, BarChart3, DollarSign, Edit3, Users, CheckCircle2, PauseCircle, Trash2, Inbox, MoreHorizontal, Plus } from 'lucide-react'
 import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonPage } from '@/components/ui/Skeleton'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
@@ -219,7 +220,7 @@ export default function EmployerJobsPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>Đang tải...</div>
+        <SkeletonPage cards={3} cardType="job-card" />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Inbox}

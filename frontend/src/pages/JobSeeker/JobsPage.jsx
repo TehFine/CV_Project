@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { Search, Filter, X, Sparkles, SlidersHorizontal } from 'lucide-react'
+import { SkeletonJobCard } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -188,7 +189,7 @@ export default function JobsPage() {
 
             {loading ? (
               <div className="grid md:grid-cols-2 gap-4">
-                {[1,2,3,4].map(i => <div key={i} className="h-52 shimmer-bg" />)}
+                {[1,2,3,4].map(i => <SkeletonJobCard key={i} />)}
               </div>
             ) : jobs.length === 0 ? (
               <EmptyState

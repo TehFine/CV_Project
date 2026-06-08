@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import EmployerHeader from './EmployerHeader'
 import Footer from './Footer'
+import Skeleton from '@/components/ui/Skeleton'
 
 // Route công khai — không cần đăng nhập
 const PUBLIC_ROUTES = [
@@ -29,12 +30,24 @@ export default function EmployerLayout({ children }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid #E2E8F0', borderTopColor: '#7C3AED', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
-          <p style={{ fontSize: 14, color: '#94A3B8' }}>Đang tải...</p>
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col">
+        <div className="h-16 border-b border-slate-200 bg-white px-6 flex items-center justify-between">
+          <Skeleton variant="icon" className="w-32 h-8" />
+          <div className="flex gap-3">
+            <Skeleton variant="button" />
+            <Skeleton variant="avatar" />
+          </div>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div className="flex-1 p-6 space-y-4">
+          <Skeleton variant="title" className="w-1/3" />
+          <Skeleton variant="text" />
+          <Skeleton variant="text" className="w-3/4" />
+          <div className="grid grid-cols-3 gap-4 pt-4">
+            <Skeleton variant="chart" className="h-40" />
+            <Skeleton variant="chart" className="h-40" />
+            <Skeleton variant="chart" className="h-40" />
+          </div>
+        </div>
       </div>
     )
   }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Sparkles, Search, Inbox, Users, Trash2 } from 'lucide-react'
 import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonPage } from '@/components/ui/Skeleton'
 import { employerService } from '../../services/employerService'
 import ApplicantCard from './components/ApplicantCard'
 import ScoringModal from './components/ScoringModal'
@@ -209,7 +210,7 @@ export default function EmployerApplicantsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-[60px] text-slate-400">Đang tải...</div>
+        <SkeletonPage cards={4} cardType="job-card" />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Inbox}

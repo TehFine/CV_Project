@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import Skeleton from '@/components/ui/Skeleton'
 
 const STATUS_CONFIG = {
   active:   { label: 'Đang tuyển', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
@@ -46,7 +47,29 @@ export default function AdminJobDetailsPage() {
     }
   }
 
-  if (loading) return <div className="p-12 text-center text-slate-400">Đang tải chi tiết tin...</div>
+  if (loading) return (
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <Skeleton variant="subtitle" className="w-32" />
+      <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden">
+        <div className="bg-slate-900 p-8 space-y-4">
+          <Skeleton variant="badge" className="bg-slate-600" />
+          <Skeleton variant="title" className="w-2/3 bg-slate-600" />
+          <div className="flex gap-6">
+            <Skeleton variant="subtitle" className="w-32 bg-slate-600" />
+            <Skeleton variant="subtitle" className="w-40 bg-slate-600" />
+            <Skeleton variant="subtitle" className="w-36 bg-slate-600" />
+          </div>
+        </div>
+        <div className="p-8 space-y-8">
+          <div className="grid grid-cols-4 gap-6">
+            {[1,2,3,4].map(i => <Skeleton key={i} variant="chart" className="h-28" />)}
+          </div>
+          <Skeleton variant="chart" className="h-40" />
+          <Skeleton variant="chart" className="h-32" />
+        </div>
+      </div>
+    </div>
+  )
   if (!job) return (
     <div className="p-12 text-center">
       <h2 className="text-xl font-bold text-slate-900">Không tìm thấy tin tuyển dụng</h2>
