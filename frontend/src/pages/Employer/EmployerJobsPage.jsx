@@ -185,24 +185,20 @@ export default function EmployerJobsPage() {
   const filtered = filterStatus === 'all' ? jobs : jobs.filter(j => j.status === filterStatus)
 
   return (
-    <div style={{ padding: '32px 0', maxWidth: 960, margin: '0 auto' }}>
+    <div className="px-4 sm:px-6 py-8 max-w-[960px] mx-auto">
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>Tin tuyển dụng</h1>
-          <p style={{ fontSize: 13, color: '#64748B' }}>{jobs.length} tin đã đăng</p>
+          <h1 className="text-2xl font-black text-slate-900 mb-1">Tin tuyển dụng</h1>
+          <p className="text-sm text-slate-500">{jobs.length} tin đã đăng</p>
         </div>
-        <Link to="/employer/jobs/new" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-          background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', color: 'white',
-          borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14,
-          boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
-        }}>            <Plus size={16} /> Đăng tin mới
+        <Link to="/employer/jobs/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/30 hover:opacity-90 transition-opacity no-underline">
+          <Plus size={16} /> Đăng tin mới
         </Link>
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+      {/* Filter tabs - scrollable on mobile */}
+      <div className="flex gap-2 mb-5 -mx-4 px-4 overflow-x-auto pb-1 scrollbar-hide">
         {[
           { key: 'all', label: 'Tất cả', count: jobs.length },
           { key: 'pending', label: 'Chờ duyệt', count: jobs.filter(j => j.status === 'pending').length },
@@ -211,15 +207,13 @@ export default function EmployerJobsPage() {
           { key: 'expired', label: 'Hết hạn', count: jobs.filter(j => j.status === 'expired').length },
           { key: 'closed', label: 'Đã đóng', count: jobs.filter(j => j.status === 'closed').length },
         ].map(tab => (
-          <button key={tab.key} onClick={() => setFilterStatus(tab.key)} style={{
-            padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-            border: '1.5px solid', cursor: 'pointer', fontFamily: 'inherit',
-            borderColor: filterStatus === tab.key ? '#3B82F6' : '#E2E8F0',
-            backgroundColor: filterStatus === tab.key ? '#EFF6FF' : 'white',
-            color: filterStatus === tab.key ? '#2563EB' : '#64748B',
-            transition: 'all 0.15s',
-          }}>
-            {tab.label} {tab.count > 0 && <span style={{ fontWeight: 800 }}>({tab.count})</span>}
+          <button key={tab.key} onClick={() => setFilterStatus(tab.key)}
+            className={`shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold border transition-all whitespace-nowrap ${
+              filterStatus === tab.key
+                ? 'border-blue-500 bg-blue-50 text-blue-600'
+                : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+            }`}>
+            {tab.label} {tab.count > 0 && <span className="font-extrabold">({tab.count})</span>}
           </button>
         ))}
       </div>
