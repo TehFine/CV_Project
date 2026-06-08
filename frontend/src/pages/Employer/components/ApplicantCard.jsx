@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Sparkles, FileText, BarChart3, Activity, CheckCircle2, AlertTriangle,
   MessageSquare, Lightbulb, ChevronDown, ChevronUp, Trash2
@@ -27,10 +28,12 @@ const getCvUrl = (path) => {
 export default function ApplicantCard({ app, onStatusChange, onScore, isSelected, onSelect, onDelete }) {
   const [expanded, setExpanded] = useState(false)
   const [updating, setUpdating] = useState(false)
+  const navigate = useNavigate()
   const cfg = STATUS_CONFIG[app.status] || STATUS_CONFIG.pending
   const score = app.ai_score?.overall_score || 0
   const scoreColor = score >= 85 ? '#10B981' : score >= 70 ? '#3B82F6' : score >= 55 ? '#F59E0B' : '#EF4444'
 
+  const seekerId = app.seeker?.id || app.seeker?._id
   const initials = app.seeker?.full_name
     ? app.seeker.full_name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase()
     : 'CV'
@@ -52,22 +55,25 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
           type="checkbox"
           checked={isSelected}
           onChange={onSelect}
-          className="size-[18px] cursor-pointer accent-blue-500 mr-1"
+          className="size-4.5 cursor-pointer accent-blue-500 mr-1"
         />
 
-        {/* Avatar */}
-        <div
-          className="size-11 rounded-full shrink-0 flex items-center justify-center text-white font-extrabold text-[15px] bg-gradient-to-br from-blue-800 to-violet-700"
+        {/* Avatar - clickable to view candidate profile */}
+        <button
+          type="button"
+          onClick={() => seekerId && navigate(`/candidates/${seekerId}`)}
+          className="size-11 rounded-full shrink-0 flex items-center justify-center text-white font-extrabold text-[15px] bg-linear-to-br from-blue-800 to-violet-700 cursor-pointer hover:scale-105 transition-transform border-none"
+          title="Xem hồ sơ ứng viên"
         >
           {initials}
-        </div>
+        </button>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-sm text-[#0F172A]">{app.seeker.full_name}</span>
             <span
-              className="text-[11px] font-bold px-[9px] py-[2px] rounded-full"
+              className="text-[11px] font-bold px-2.25 py-0.5 rounded-full"
               style={{ backgroundColor: cfg.bg, color: cfg.color }}
             >
               {cfg.label}
@@ -82,16 +88,16 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
         </div>
 
         {/* AI Score */}
-        <div className="text-center shrink-0 min-w-[64px]">
+        <div className="text-center shrink-0 min-w-16">
           {app.ai_score ? (
             <div
-              className="text-[22px] font-black leading-none rounded-xl px-[14px] py-[6px]"
+              className="text-[22px] font-black leading-none rounded-xl px-3.5 py-1.5"
               style={{ color: scoreColor, backgroundColor: scoreColor + '18' }}
             >
               {score.toFixed(0)}
             </div>
           ) : (
-            <div className="text-sm font-semibold text-slate-400 leading-none rounded-xl px-[14px] py-[10px] bg-muted">
+            <div className="text-sm font-semibold text-slate-400 leading-none rounded-xl px-3.5 py-2.5 bg-muted">
               N/A
             </div>
           )}
@@ -101,7 +107,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
         {/* Actions */}
         <div className="flex gap-1.5 sm:gap-2 flex-wrap items-center w-full sm:w-auto sm:ml-auto">
           <button
-            onClick={onScore}              className="px-2.5 sm:px-3 py-[7px] rounded-lg border border-pink-200 bg-pink-50 text-pink-600 cursor-pointer text-[11px] sm:text-xs font-bold flex items-center gap-1 hover:bg-pink-100 transition-colors"
+            onClick={onScore}              className="px-2.5 sm:px-3 py-1.75 rounded-lg border border-pink-200 bg-pink-50 text-pink-600 cursor-pointer text-[11px] sm:text-xs font-bold flex items-center gap-1 hover:bg-pink-100 transition-colors"
           >
             <Sparkles size={14} /> {app.ai_score ? 'Chấm lại' : 'Chấm điểm'}
           </button>
@@ -110,7 +116,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
             <button
               onClick={() => handleStatus(cfg.next)}
               disabled={updating}
-              className="px-2.5 sm:px-[14px] py-[7px] rounded-lg border-none text-white cursor-pointer text-[11px] sm:text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-blue-800 to-blue-500"
+              className="px-2.5 sm:px-3.5 py-1.75 rounded-lg border-none text-white cursor-pointer text-[11px] sm:text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-linear-to-br from-blue-800 to-blue-500"
             >
               → {STATUS_CONFIG[cfg.next]?.label}
             </button>
@@ -120,7 +126,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
             <button
               onClick={() => handleStatus('rejected')}
               disabled={updating}
-              className="px-2.5 sm:px-[14px] py-[7px] rounded-lg border border-red-300 bg-red-50 text-red-500 cursor-pointer text-[11px] sm:text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-100"
+              className="px-2.5 sm:px-3.5 py-1.75 rounded-lg border border-red-300 bg-red-50 text-red-500 cursor-pointer text-[11px] sm:text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-100"
             >
               Từ chối
             </button>
@@ -128,7 +134,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
 
           <button
             onClick={onDelete}
-            className="px-[10px] py-[7px] rounded-lg border border-red-300 bg-red-50 text-red-500 cursor-pointer text-xs transition-all duration-200 hover:bg-red-500 hover:text-white flex items-center justify-center"
+            className="px-2.5 py-1.75 rounded-lg border border-red-300 bg-red-50 text-red-500 cursor-pointer text-xs transition-all duration-200 hover:bg-red-500 hover:text-white flex items-center justify-center"
             title="Xóa hồ sơ này"
           >
             <Trash2 size={14} />
@@ -136,7 +142,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
 
           <button
             onClick={() => setExpanded(e => !e)}
-            className={`px-3 py-[7px] rounded-lg border border-border cursor-pointer text-xs transition-colors ${expanded ? 'bg-muted' : 'bg-white'}`}
+            className={`px-3 py-1.75 rounded-lg border border-border cursor-pointer text-xs transition-colors ${expanded ? 'bg-muted' : 'bg-white'}`}
           >
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
@@ -177,7 +183,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
             )}
 
             {/* Right: Cover letter & Review */}
-            <div className="flex flex-col gap-[18px]">
+            <div className="flex flex-col gap-4.5">
               {/* AI Review */}
               <div>
                 <h4 className="text-sm font-bold text-[#0F172A] mb-2.5 flex items-center gap-1.5">
@@ -243,7 +249,7 @@ export default function ApplicantCard({ app, onStatusChange, onScore, isSelected
                   href={getCvUrl(app.resume.pdf_url)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-[18px] py-[9px] rounded-lg text-sm font-semibold bg-blue-50 text-blue-600 border border-blue-200 no-underline hover:bg-blue-100 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4.5 py-2.25 rounded-lg text-sm font-semibold bg-blue-50 text-blue-600 border border-blue-200 no-underline hover:bg-blue-100 transition-colors"
                 >
                   <FileText size={14} /> Xem CV ứng viên
                 </a>

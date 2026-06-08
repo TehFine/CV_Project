@@ -32,6 +32,7 @@ import EmployerDashboard from "./pages/Employer/EmployerDashboard";
 import EmployerJobsPage from "./pages/Employer/EmployerJobsPage";
 import EmployerJobFormPage from "./pages/Employer/EmployerJobFormPage";
 import EmployerApplicantsPage from "./pages/Employer/EmployerApplicantsPage";
+import CandidateProfilePage from "./pages/Employer/CandidateProfilePage";
 
 // ── Quản trị viên (Admin) ─────────────────────────────────────────────────────
 import AdminLoginPage from "./pages/Admin/LoginPage";
@@ -356,6 +357,16 @@ export default function App() {
               <EmployerLayout>
                 <ProtectedRoute requireRole="employer">
                   <EmployerApplicantsPage />
+                </ProtectedRoute>
+              </EmployerLayout>
+            }
+          />
+          <Route
+            path="/candidates/:id"
+            element={
+              <EmployerLayout>
+                <ProtectedRoute requireRole="employer">
+                  <CandidateProfilePage />
                 </ProtectedRoute>
               </EmployerLayout>
             }
