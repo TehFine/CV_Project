@@ -1,284 +1,18 @@
 import api from "./api";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
-const delay = (ms) => new Promise((r) => setTimeout(r, ms));
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const mockJobs = [
-  {
-    id: "job_001",
-    recruiter_id: "rec_001",
-    title: "Frontend Developer (React)",
-    description:
-      "Chúng tôi tìm kiếm Frontend Developer có kinh nghiệm với React, TypeScript...",
-    location: "TP. Hồ Chí Minh",
-    job_type: "full-time",
-    level: "junior",
-    salary_min: 15000000,
-    salary_max: 25000000,
-    required_skills: ["React", "TypeScript", "TailwindCSS", "REST API"],
-    status: "active",
-    expired_at: "2025-03-31T00:00:00Z",
-    view_count: 142,
-    created_at: "2025-01-10T08:00:00Z",
-    updated_at: "2025-01-10T08:00:00Z",
-    application_count: 18,
-  },
-  {
-    id: "job_002",
-    recruiter_id: "rec_001",
-    title: "Backend Developer (Node.js)",
-    description: "Xây dựng và duy trì các API RESTful cho hệ thống...",
-    location: "Remote",
-    job_type: "remote",
-    level: "mid",
-    salary_min: 20000000,
-    salary_max: 35000000,
-    required_skills: ["Node.js", "Express", "PostgreSQL", "Docker"],
-    status: "active",
-    expired_at: "2025-04-15T00:00:00Z",
-    view_count: 98,
-    created_at: "2025-01-12T09:30:00Z",
-    updated_at: "2025-01-12T09:30:00Z",
-    application_count: 9,
-  },
-  {
-    id: "job_003",
-    recruiter_id: "rec_001",
-    title: "UI/UX Designer",
-    description:
-      "Thiết kế giao diện người dùng cho các sản phẩm web và mobile...",
-    location: "Hà Nội",
-    job_type: "full-time",
-    level: "fresher",
-    salary_min: 10000000,
-    salary_max: 18000000,
-    required_skills: ["Figma", "Prototyping", "User Research"],
-    status: "draft",
-    expired_at: "2025-05-01T00:00:00Z",
-    view_count: 0,
-    created_at: "2025-01-18T11:00:00Z",
-    updated_at: "2025-01-18T11:00:00Z",
-    application_count: 0,
-  },
-  {
-    id: "job_004",
-    recruiter_id: "rec_001",
-    title: "Data Analyst",
-    description: "Phân tích dữ liệu kinh doanh và tạo báo cáo...",
-    location: "TP. Hồ Chí Minh",
-    job_type: "full-time",
-    level: "junior",
-    salary_min: 18000000,
-    salary_max: 28000000,
-    required_skills: ["Python", "SQL", "Power BI", "Excel"],
-    status: "expired",
-    expired_at: "2025-01-01T00:00:00Z",
-    view_count: 210,
-    created_at: "2024-12-01T08:00:00Z",
-    updated_at: "2024-12-01T08:00:00Z",
-    application_count: 34,
-  },
-];
-
-const mockApplications = [
-  {
-    id: "app_001",
-    job_id: "job_001",
-    seeker_id: "seeker_001",
-    resume_id: "resume_001",
-    status: "pending",
-    cover_letter:
-      "Tôi rất quan tâm đến vị trí này và muốn đóng góp vào team...",
-    applied_at: "2025-01-20T10:30:00Z",
-    updated_at: "2025-01-20T10:30:00Z",
-    seeker: {
-      full_name: "Nguyễn Văn An",
-      email: "nvan@email.com",
-      avatar_url: null,
-    },
-    resume: { title: "CV Frontend Developer 2025", pdf_url: "#" },
-    ai_score: {
-      overall_score: 82.5,
-      breakdown: { skills: 85, experience: 78, education: 88, keywords: 79 },
-    },
-  },
-  {
-    id: "app_002",
-    job_id: "job_001",
-    seeker_id: "seeker_002",
-    resume_id: "resume_002",
-    status: "reviewing",
-    cover_letter:
-      "Với 2 năm kinh nghiệm React, tôi tự tin có thể đáp ứng yêu cầu...",
-    applied_at: "2025-01-21T14:20:00Z",
-    updated_at: "2025-01-22T09:00:00Z",
-    seeker: {
-      full_name: "Trần Thị Bích",
-      email: "tbich@email.com",
-      avatar_url: null,
-    },
-    resume: { title: "Trần Thị Bích - ReactJS Dev", pdf_url: "#" },
-    ai_score: {
-      overall_score: 91.0,
-      breakdown: { skills: 94, experience: 90, education: 85, keywords: 95 },
-    },
-  },
-  {
-    id: "app_003",
-    job_id: "job_001",
-    seeker_id: "seeker_003",
-    resume_id: "resume_003",
-    status: "interview",
-    cover_letter: null,
-    applied_at: "2025-01-19T08:45:00Z",
-    updated_at: "2025-01-23T15:00:00Z",
-    seeker: {
-      full_name: "Lê Minh Khoa",
-      email: "lmkhoa@email.com",
-      avatar_url: null,
-    },
-    resume: { title: "CV - Lê Minh Khoa", pdf_url: "#" },
-    ai_score: {
-      overall_score: 74.0,
-      breakdown: { skills: 72, experience: 76, education: 70, keywords: 78 },
-    },
-  },
-  {
-    id: "app_004",
-    job_id: "job_001",
-    seeker_id: "seeker_004",
-    resume_id: "resume_004",
-    status: "rejected",
-    cover_letter: "Tôi muốn ứng tuyển vị trí này...",
-    applied_at: "2025-01-18T16:00:00Z",
-    updated_at: "2025-01-20T10:00:00Z",
-    seeker: {
-      full_name: "Phạm Quốc Dũng",
-      email: "pqdung@email.com",
-      avatar_url: null,
-    },
-    resume: { title: "Resume_PhamQuocDung.pdf", pdf_url: "#" },
-    ai_score: {
-      overall_score: 52.0,
-      breakdown: { skills: 48, experience: 55, education: 60, keywords: 45 },
-    },
-  },
-  {
-    id: "app_005",
-    job_id: "job_002",
-    seeker_id: "seeker_005",
-    resume_id: "resume_005",
-    status: "pending",
-    cover_letter: "Tôi có 3 năm kinh nghiệm Node.js...",
-    applied_at: "2025-01-22T11:00:00Z",
-    updated_at: "2025-01-22T11:00:00Z",
-    seeker: {
-      full_name: "Hoàng Thu Hà",
-      email: "htha@email.com",
-      avatar_url: null,
-    },
-    resume: { title: "CV Backend Developer - Hoàng Thu Hà", pdf_url: "#" },
-    ai_score: {
-      overall_score: 88.5,
-      breakdown: { skills: 90, experience: 86, education: 88, keywords: 90 },
-    },
-  },
-];
-
-function syncAppsToStorage(apps) {
-  localStorage.setItem("nexcv_mock_applications", JSON.stringify(apps));
-}
-
-try {
-  const localAppsStr = localStorage.getItem("nexcv_mock_applications");
-  if (localAppsStr) {
-    const localApps = JSON.parse(localAppsStr);
-    mockApplications.splice(0, mockApplications.length, ...localApps);
-  } else {
-    syncAppsToStorage(mockApplications);
-  }
-} catch {
-  // ignore
-}
-function syncPostedJobsToStorage(jobs) {
-  localStorage.setItem("nexcv_mock_jobs", JSON.stringify(jobs));
-}
-
-function syncAdminNotificationsToStorage(notifs) {
-  localStorage.setItem("nexcv_mock_notifications", JSON.stringify(notifs));
-}
-
-try {
-  const localStr = localStorage.getItem("nexcv_mock_jobs");
-  if (localStr) {
-    const localJobs = JSON.parse(localStr);
-    mockJobs.splice(0, mockJobs.length, ...localJobs);
-  } else {
-    syncPostedJobsToStorage(mockJobs);
-  }
-} catch {
-  // ignore
-}
 // ─── Employer Service ──────────────────────────────────────────────────────────
 export const employerService = {
   // ── Dashboard stats ──
   async getDashboardStats() {
-    if (USE_MOCK) {
-      await delay(400);
-      return {
-        total_jobs: mockJobs.length,
-        active_jobs: mockJobs.filter((j) => j.status === "active").length,
-        total_applications: mockApplications.length,
-        pending_applications: mockApplications.filter(
-          (a) => a.status === "pending",
-        ).length,
-        total_views: mockJobs.reduce((sum, j) => sum + j.view_count, 0),
-        // Biểu đồ ứng tuyển 7 ngày gần nhất
-        applications_chart: [
-          { date: "18/01", count: 3 },
-          { date: "19/01", count: 5 },
-          { date: "20/01", count: 8 },
-          { date: "21/01", count: 4 },
-          { date: "22/01", count: 6 },
-          { date: "23/01", count: 2 },
-          { date: "24/01", count: 7 },
-        ],
-        status_breakdown: {
-          pending: mockApplications.filter((a) => a.status === "pending")
-            .length,
-          reviewing: mockApplications.filter((a) => a.status === "reviewing")
-            .length,
-          interview: mockApplications.filter((a) => a.status === "interview")
-            .length,
-          offered: mockApplications.filter((a) => a.status === "offered")
-            .length,
-          rejected: mockApplications.filter((a) => a.status === "rejected")
-            .length,
-        },
-      };
-    }
     return api.get("/employer/dashboard/stats");
   },
 
   // ── Job Posts ──
   async getMyJobs(params = {}) {
-    if (USE_MOCK) {
-      await delay(400);
-      let jobs = [...mockJobs];
-      if (params.status) jobs = jobs.filter((j) => j.status === params.status);
-      return { data: jobs, total: jobs.length };
-    }
     return api.get("/employer/jobs", { params });
   },
 
   async getJob(id) {
-    if (USE_MOCK) {
-      await delay(300);
-      const job = mockJobs.find((j) => j.id === id);
-      if (!job) throw { message: "Không tìm thấy tin tuyển dụng" };
-      return job;
-    }
     return api.get(`/employer/jobs/${id}`);
   },
 
@@ -295,8 +29,8 @@ export const employerService = {
       salaryMin: data.salary_min ? Number(data.salary_min) : undefined,
       salaryMax: data.salary_max ? Number(data.salary_max) : undefined,
       tags: data.required_skills || [],
-      requirements: data.requirements ? data.requirements.split('\n').filter(Boolean) : [],
-      benefits: data.benefits ? data.benefits.split('\n').filter(Boolean) : [],
+      requirements: data.requirements ? data.requirements.split('\\n').filter(Boolean) : [],
+      benefits: data.benefits ? data.benefits.split('\\n').filter(Boolean) : [],
       deadline: data.expired_at || undefined,
       status: data.status || 'draft',
     };
@@ -316,8 +50,8 @@ export const employerService = {
       salary_min: job.salaryMin || 0,
       salary_max: job.salaryMax || 0,
       required_skills: job.tags || [],
-      requirements: Array.isArray(job.requirements) ? job.requirements.join('\n') : (job.requirements || ''),
-      benefits: Array.isArray(job.benefits) ? job.benefits.join('\n') : (job.benefits || ''),
+      requirements: Array.isArray(job.requirements) ? job.requirements.join('\\n') : (job.requirements || ''),
+      benefits: Array.isArray(job.benefits) ? job.benefits.join('\\n') : (job.benefits || ''),
       status: job.status || 'active',
       expired_at: job.deadline ? new Date(job.deadline).toISOString() : '',
       view_count: job.views || 0,
@@ -328,66 +62,14 @@ export const employerService = {
   },
 
   async createJob(data) {
-    if (USE_MOCK) {
-      await delay(600);
-      const newJob = {
-        id: "job_" + Date.now(),
-        recruiter_id: "rec_001",
-        ...data,
-        status: data.status || "draft",
-        view_count: 0,
-        application_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      mockJobs.push(newJob);
-      syncPostedJobsToStorage(mockJobs);
-
-      // Nếu tin đăng ở trạng thái pending, tạo thông báo cho Admin
-      if (newJob.status === "pending") {
-        const notifsStr = localStorage.getItem("nexcv_mock_notifications");
-        const notifs = notifsStr ? JSON.parse(notifsStr) : [];
-        notifs.unshift({
-          id: Date.now(),
-          title: "Tin tuyển dụng mới chờ duyệt",
-          message: `Nhà tuyển dụng vừa đăng tin "${newJob.title}". Vui lòng kiểm tra và phê duyệt.`,
-          type: "info",
-          time: "Vừa xong",
-          unread: true,
-          jobId: newJob.id,
-        });
-        syncAdminNotificationsToStorage(notifs);
-      }
-
-      return newJob;
-    }
     return api.post("/jobs", this.toBackendFormat(data));
   },
 
   async updateJob(id, data) {
-    if (USE_MOCK) {
-      await delay(500);
-      const idx = mockJobs.findIndex((j) => j.id === id);
-      if (idx === -1) throw { message: "Không tìm thấy tin tuyển dụng" };
-      mockJobs[idx] = {
-        ...mockJobs[idx],
-        ...data,
-        updated_at: new Date().toISOString(),
-      };
-      syncPostedJobsToStorage(mockJobs);
-      return mockJobs[idx];
-    }
     return api.patch(`/jobs/${id}`, this.toBackendFormat(data));
   },
 
   async deleteJob(id) {
-    if (USE_MOCK) {
-      await delay(400);
-      const idx = mockJobs.findIndex((j) => j.id === id);
-      if (idx !== -1) mockJobs.splice(idx, 1);
-      syncPostedJobsToStorage(mockJobs);
-      return { message: "Đã xóa tin tuyển dụng" };
-    }
     return api.delete(`/jobs/${id}`);
   },
 
@@ -397,26 +79,10 @@ export const employerService = {
 
   // ── Applications ──
   async getApplications(jobId, params = {}) {
-    if (USE_MOCK) {
-      await delay(400);
-      let apps = mockApplications.filter((a) => a.job_id === jobId);
-      if (params.status) apps = apps.filter((a) => a.status === params.status);
-      return { data: apps, total: apps.length };
-    }
     return api.get(`/employer/jobs/${jobId}/applications`, { params });
   },
 
   async updateApplicationStatus(applicationId, status) {
-    if (USE_MOCK) {
-      await delay(400);
-      const app = mockApplications.find((a) => a.id === applicationId);
-      if (app) {
-        app.status = status;
-        app.updated_at = new Date().toISOString();
-        syncAppsToStorage(mockApplications);
-      }
-      return app;
-    }
     return api.patch(`/employer/applications/${applicationId}/status`, {
       status,
     });
@@ -424,16 +90,6 @@ export const employerService = {
 
   // ── CV Scoring ──
   async scoreCv(jobId, file, candidateId) {
-    if (USE_MOCK) {
-      await delay(1500);
-      return {
-        success: true,
-        data: {
-          score: Math.floor(Math.random() * 5) + 5, // Random 5-10
-          review: "Đây là nhận xét mẫu (Mock) từ AI. Ứng viên có kỹ năng phù hợp nhưng cần cải thiện thêm một số yêu cầu cụ thể của công việc."
-        }
-      };
-    }
     const formData = new FormData();
     if (file) {
       formData.append('cv', file);
@@ -449,59 +105,15 @@ export const employerService = {
   },
 
   async deleteApplication(applicationId) {
-    if (USE_MOCK) {
-      await delay(300);
-      const idx = mockApplications.findIndex((a) => a.id === applicationId);
-      if (idx !== -1) mockApplications.splice(idx, 1);
-      syncAppsToStorage(mockApplications);
-      return { success: true };
-    }
     return api.delete(`/employer/applications/${applicationId}`);
   },
 
   async bulkDeleteApplications(ids) {
-    if (USE_MOCK) {
-      await delay(500);
-      const newApps = mockApplications.filter((a) => !ids.includes(a.id));
-      mockApplications.splice(0, mockApplications.length, ...newApps);
-      syncAppsToStorage(mockApplications);
-      return { success: true };
-    }
     return api.post('/employer/applications/bulk-delete', { ids });
   },
 
   // ── Candidate Profile ──
   async getCandidateProfile(candidateId) {
-    if (USE_MOCK) {
-      await delay(400);
-      // Try to find matching application for realistic data
-      const app = mockApplications.find(a => a.seeker_id === candidateId);
-      if (app) {
-        return {
-          data: {
-            full_name: app.seeker.full_name,
-            email: app.seeker.email,
-            phone: '0901 234 567',
-            location: 'TP. Hồ Chí Minh',
-            title: 'Frontend Developer',
-            bio: 'Có kinh nghiệm phát triển web với các công nghệ hiện đại. Luôn tìm kiếm cơ hội để học hỏi và phát triển.',
-            skills: ['React', 'JavaScript', 'TypeScript', 'CSS', 'HTML'],
-          }
-        };
-      }
-      // Fallback: return a mock profile for any ID
-      return {
-        data: {
-          full_name: 'Nguyễn Văn An',
-          email: 'nvan@email.com',
-          phone: '0901 234 567',
-          location: 'TP. Hồ Chí Minh',
-          title: 'Frontend Developer',
-          bio: 'Có 3 năm kinh nghiệm phát triển web với React và TypeScript. Đam mê xây dựng giao diện người dùng tối ưu và responsive.',
-          skills: ['React', 'TypeScript', 'TailwindCSS', 'Next.js', 'REST API', 'Git'],
-        }
-      };
-    }
     return api.get(`/employer/candidates/${candidateId}/profile`);
   },
 };

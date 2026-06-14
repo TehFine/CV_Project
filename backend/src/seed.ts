@@ -17,9 +17,49 @@ async function bootstrap() {
 
   console.log('--- Starting Database Seeding ---');
 
-  // 1. Clear existing data (optional, but good for clean seed)
-  // await connection.dropDatabase();
-  // console.log('Database cleared');
+  // 1. Seed Settings (must exist before any security checks)
+  const settingsModel = connection.model('Settings');
+  const existingSettings = await settingsModel.findOne({ key: 'global' });
+  if (!existingSettings) {
+    console.log('Seeding global settings...');
+    await settingsModel.create({
+      key: 'global',
+      site: {
+        siteName: 'NexCV',
+        siteUrl: 'https://nexcv.vn',
+        contactEmail: 'support@nexcv.vn',
+        contactPhone: '0901234567',
+        maintenanceMode: false,
+      },
+      ai: {
+        cvScoreEnabled: true,
+        maxFileSizeMB: 10,
+        supportedFormats: ['pdf', 'doc', 'docx'],
+        processingTimeoutSec: 60,
+        dailyScoreLimit: 5,
+      },
+      jobs: {
+        requireApproval: false,
+        maxJobsPerEmployer: 20,
+        featuredJobPrice: 0,
+        jobExpiryDays: 90,
+        autoCloseExpired: true,
+      },
+      users: {
+        emailVerificationRequired: false,
+        employerVerificationRequired: false,
+        maxSavedJobs: 50,
+      },
+      security: {
+        passwordMinLength: 6,
+        maxLoginAttempts: 5,
+        sessionTimeoutMin: 60,
+        mfaEnabled: false,
+        rbacEnabled: false,
+        auditLogEnabled: true,
+      },
+    });
+  }
 
   // 2. Create Employer
   const employerEmail = 'employer_demo@nexcv.vn';
@@ -40,7 +80,7 @@ async function bootstrap() {
     });
   }
 
-  // 2.5 Create Candidate
+  // 2.5 Create Candidate (matching mock data)
   const candidateEmail = 'demo@nexcv.vn';
   let candidate = await usersService.findByEmail(candidateEmail);
   if (!candidate) {
@@ -49,8 +89,41 @@ async function bootstrap() {
     candidate = await usersService.create({
       email: candidateEmail,
       password: hashedPassword,
-      name: 'Nguyễn Văn A (Ứng viên)',
+      name: 'Nguyễn Văn An',
       role: 'candidate',
+      phone: '0901234567',
+      location: 'TP. Hồ Chí Minh',
+      title: 'Frontend Developer',
+      bio: 'Passionate developer with 3 years of experience in React and TypeScript.',
+      skills: ['React', 'TypeScript', 'Node.js', 'TailwindCSS'],
+    });
+  } else {
+    // Update existing candidate with richer profile
+    await usersService.update(candidate._id.toString(), {
+      phone: candidate.phone || '0901234567',
+      location: candidate.location || 'TP. Hồ Chí Minh',
+      title: candidate.title || 'Frontend Developer',
+      bio: candidate.bio || 'Passionate developer with 3 years of experience in React and TypeScript.',
+      skills: candidate.skills?.length ? candidate.skills : ['React', 'TypeScript', 'Node.js', 'TailwindCSS'],
+    });
+  }
+
+  // 2.6 Create Employer account matching mock data (employer@nexcv.vn)
+  const mockEmployerEmail = 'employer@nexcv.vn';
+  let mockEmployer = await usersService.findByEmail(mockEmployerEmail);
+  if (!mockEmployer) {
+    console.log('Creating mock employer account...');
+    const hashedPassword = await bcrypt.hash('demo123', 10);
+    mockEmployer = await usersService.create({
+      email: mockEmployerEmail,
+      password: hashedPassword,
+      name: 'Trần Thị Bích',
+      role: 'employer',
+      phone: '0909000001',
+      companyName: 'Công ty TNHH NexCV',
+      companyWebsite: 'https://nexcv.vn',
+      industry: 'Công nghệ thông tin',
+      verified: true,
     });
   }
 
@@ -172,6 +245,46 @@ async function bootstrap() {
         'Lương thực tập cạnh tranh',
       ],
       status: 'active',
+      featured: false,
+    },
+    // ── Draft job chưa đăng ──
+    {
+      title: 'Product Designer (Draft)',
+      employerId: employer._id,
+      companyName: 'NexCV Technology',
+      location: 'TP. Hồ Chí Minh',
+      salary: 'Thoả thuận',
+      salaryMin: 0,
+      salaryMax: 0,
+      category: 'Thiết kế',
+      type: 'Full-time',
+      level: 'Middle',
+      tags: ['Figma', 'UX Research', 'Design System'],
+      description:
+        '[Bản nháp] Thiết kế hệ thống design system cho toàn bộ nền tảng NexCV...',
+      requirements: ['Kinh nghiệm thiết kế design system', 'Thành thạo Figma'],
+      benefits: ['Môi trường sáng tạo'],
+      status: 'draft',
+      featured: false,
+    },
+    // ── Expired job (đã hết hạn tuyển dụng) ──
+    {
+      title: 'Python Developer (Expired)',
+      employerId: employer._id,
+      companyName: 'NexCV Technology',
+      location: 'Đà Nẵng',
+      salary: '18 - 25 triệu',
+      salaryMin: 18000000,
+      salaryMax: 25000000,
+      category: 'Công nghệ thông tin',
+      type: 'Full-time',
+      level: 'Junior',
+      tags: ['Python', 'Django', 'REST API'],
+      description:
+        'Phát triển API backend cho nền tảng NexCV...',
+      requirements: ['Kinh nghiệm Python 1 năm', 'Hiểu biết Django'],
+      benefits: ['Laptop', 'Bảo hiểm'],
+      status: 'expired',
       featured: false,
     },
     // ── 10 tin mới – đa công ty và lĩnh vực ──
@@ -747,6 +860,68 @@ startxref
     });
 
     console.log('Seeding applications done!');
+
+    // ── Additional applications with different statuses ──
+    // Application for candidate_demo1 (Nguyễn Văn An) - rejected
+    await applicationModel.create({
+      jobId: frontendJob._id,
+      candidateId: candidate1._id,
+      coverLetter: 'Đây là đơn ứng tuyển với trạng thái rejected...',
+      cvId: cvScore._id.toString(),
+      status: 'rejected',
+      aiScoreId: cvScore._id,
+    });
+
+    // Application for candidate_demo2 (Trần Thị Bích) - interview
+    await applicationModel.create({
+      jobId: frontendJob._id,
+      candidateId: candidate2._id,
+      coverLetter: 'Em rất vui khi được mời phỏng vấn...',
+      cvId: 'cv_tran_thi_bich.pdf',
+      status: 'interview',
+    });
+
+    console.log('Additional application statuses seeded!');
+  }
+
+  // 5. Seed Admin Notifications
+  console.log('Seeding admin notifications...');
+  const notificationModel = connection.model('Notification');
+  const existingNotifsCount = await notificationModel.countDocuments({}).exec();
+  if (existingNotifsCount === 0) {
+    await notificationModel.create([
+      {
+        title: 'Ứng viên mới đăng ký',
+        message: 'Ứng viên mới đăng ký: Nguyễn Văn X',
+        type: 'info',
+        read: true,
+      },
+      {
+        title: 'Tin tuyển dụng mới cần duyệt',
+        message: 'Tin tuyển dụng mới cần duyệt: UI/UX Designer',
+        type: 'info',
+        read: false,
+      },
+      {
+        title: 'CV được chấm điểm',
+        message: 'CV được chấm điểm: 91/100 (Xuất sắc)',
+        type: 'success',
+        read: false,
+      },
+      {
+        title: 'Tin đăng bị báo cáo',
+        message: 'Tin đăng bị báo cáo: "Nhân viên Marketing"',
+        type: 'warning',
+        read: false,
+      },
+      {
+        title: 'NTD mới cần xác minh',
+        message: 'NTD mới cần xác minh: Startup ABC',
+        type: 'info',
+        read: true,
+      },
+    ]);
+    console.log('Admin notifications seeded!');
   }
 
   console.log('--- Seeding Completed Successfully! ---');

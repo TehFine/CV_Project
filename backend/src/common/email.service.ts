@@ -19,15 +19,20 @@ export class EmailService {
       return;
     }
 
+    // Parse env vars — ConfigService returns strings from .env, not boolean/number
+    const smtpPort = Number(this.configService.get<string>('SMTP_PORT', '587'));
+    const smtpSecure = this.configService.get<string>('SMTP_SECURE', 'false') === 'true';
+
     this.transporter = nodemailer.createTransport({
       host,
-      port: this.configService.get<number>('SMTP_PORT', 587),
-      secure: this.configService.get<boolean>('SMTP_SECURE', false),
+      port: smtpPort,
+      secure: smtpSecure,
+      family: 4,  // force IPv4 — IPv6 not available on this network
       auth: {
         user: this.configService.get<string>('SMTP_USER'),
         pass: this.configService.get<string>('SMTP_PASS'),
       },
-    });
+    } as any);
 
     // Verify SMTP connection on startup
     this.transporter

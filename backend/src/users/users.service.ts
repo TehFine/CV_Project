@@ -22,7 +22,7 @@ export class UsersService {
 
   async update(id: string, updateData: any): Promise<UserDocument | null> {
     return this.userModel
-      .findByIdAndUpdate(id, updateData, { new: true })
+      .findByIdAndUpdate(id, updateData, { returnDocument: 'after' })
       .exec();
   }
 }
