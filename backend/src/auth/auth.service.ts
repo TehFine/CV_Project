@@ -165,10 +165,10 @@ export class AuthService {
         email,
         action: 'forgot_password',
       });
-      // Vẫn trả về message chung để không lộ danh sách email
       return {
+        found: false,
         message:
-          'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.',
+          'Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại hoặc tạo tài khoản mới.',
       };
     }
 
@@ -199,17 +199,22 @@ export class AuthService {
         resetToken,
         userName,
       );
+      this.logger.success('Email reset mật khẩu đã gửi', {
+        email,
+        action: 'forgot_password',
+      });
     } catch (e) {
       this.logger.error('Gửi email reset mật khẩu thất bại', e, {
         email,
         action: 'forgot_password',
       });
-      // Không throw lỗi ra ngoài — vẫn trả về message chung để bảo mật
     }
 
     return {
+      found: true,
+      sent: true,
       message:
-        'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.',
+        'Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư (và thư mục Spam).',
       ...(process.env.NODE_ENV !== 'production' && { resetToken }),
     };
   }
