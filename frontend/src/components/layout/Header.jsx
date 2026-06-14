@@ -156,7 +156,7 @@ export default function Header() {
             : "bg-transparent border-b border-transparent shadow-none"
         )}
       >
-        <div className="container-app max-w-7xl mx-auto px-6 h-16 flex items-center gap-5">
+        <div className="container-app max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-5">
 
           {/* Logo */}
           <Logo
@@ -228,15 +228,20 @@ export default function Header() {
                 <div className="p-5 border-b">
                   <Logo iconBg="bg-[#1549B8]" textColor="text-[#0F172A]" cvColor="text-violet-600" />
                   {isAuthenticated && (
-                    <div className="flex items-center gap-2.5 mt-3 p-2.5 bg-slate-50 rounded-lg">
-                      <div className="w-9 h-9 rounded-full bg-[#1549B8] flex items-center justify-center text-[13px] font-bold text-white shrink-0">
-                        {getInitials(user?.name)}
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-slate-900">{user?.name}</div>
-                        <div className="text-xs text-slate-400">Ứng viên</div>
-                      </div>
-                    </div>
+                    <SheetClose asChild>
+                      <Link
+                        to="/profile"
+                        className="flex items-center gap-2.5 mt-3 p-2.5 bg-slate-50 rounded-lg no-underline hover:bg-slate-100 transition-colors"
+                      >
+                        <div className="w-9 h-9 rounded-full bg-[#1549B8] flex items-center justify-center text-[13px] font-bold text-white shrink-0">
+                          {getInitials(user?.name)}
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">{user?.name}</div>
+                          <div className="text-xs text-slate-400">Ứng viên</div>
+                        </div>
+                      </Link>
+                    </SheetClose>
                   )}
                 </div>
 

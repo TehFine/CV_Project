@@ -16,26 +16,25 @@ export function FeaturesSection() {
   return (
     <section className="section">
       <div className="container-app">
-        <div style={{ textAlign: "center", marginBottom: 32 }} className="md:mb-10">
-          <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }} className="md:text-[28px]">
+        <div className="text-center mb-8 md:mb-10">
+          <h2 className="text-2xl font-extrabold text-slate-900 mb-2 md:text-[28px]">
             Tất cả công cụ bạn cần
           </h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: 15 }}>
+          <p className="text-slate-500 text-[15px]">
             Giải pháp tuyển dụng toàn diện cho doanh nghiệp mọi quy mô
           </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
           {FEATURES.map((feat) => (
-            <Card key={feat.title} style={{ border: "1.5px solid var(--border)", borderRadius: 12, transition: "all 0.25s" }}
-              onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 20px rgba(21,73,184,0.1)")}
-              onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}>
-              <CardContent style={{ padding: "20px", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#1549B8" }}>
+            <Card key={feat.title} className="border-2 border-slate-200 rounded-xl transition-all duration-250 hover:shadow-lg hover:shadow-blue-600/5"
+            >
+              <CardContent className="p-5 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-[#EEF2FF] flex items-center justify-center shrink-0 text-[#1549B8]">
                   <feat.icon size={22} />
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>{feat.title}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{feat.desc}</div>
+                  <div className="font-semibold text-sm text-slate-900 mb-1">{feat.title}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{feat.desc}</div>
                 </div>
               </CardContent>
             </Card>

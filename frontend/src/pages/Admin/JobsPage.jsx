@@ -8,13 +8,14 @@ import {
   DollarSign, BarChart3, FolderOpen, Briefcase, AlertTriangle, X
 } from 'lucide-react'
 import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonPage } from '@/components/ui/Skeleton'
 
 /* ── Configs ───────────────────────────────────────────────────────────────── */
 const STATUS_CONFIG = {
-  active:   { label: 'Đang tuyển', color: '#10B981', bg: '#D1FAE5' },
-  pending:  { label: 'Chờ duyệt',  color: '#D97706', bg: '#FEF3C7' },
-  reported: { label: 'Bị báo cáo', color: '#EF4444', bg: '#FEE2E2' },
-  closed:   { label: 'Đã đóng',    color: '#94A3B8', bg: '#F1F5F9' },
+  active:   { label: 'Đang tuyển', cls: 'text-emerald-600 bg-emerald-100 border-emerald-200' },
+  pending:  { label: 'Chờ duyệt',  cls: 'text-amber-600 bg-amber-100 border-amber-200' },
+  reported: { label: 'Bị báo cáo', cls: 'text-red-600 bg-red-100 border-red-200' },
+  closed:   { label: 'Đã đóng',    cls: 'text-slate-400 bg-slate-100 border-slate-200' },
 }
 
 const TABS = [
@@ -46,40 +47,37 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
   ]
 
   return (
-    <div style={{
-      background: 'white', borderRadius: 14, border: '1.5px solid #E2E8F0',
-      padding: 20, transition: 'box-shadow 0.2s',
-      opacity: actionLoading ? 0.6 : 1,
-    }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.07)'}
-      onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+    <div
+      className={`bg-white rounded-xl border border-slate-200 p-5 transition-shadow ${actionLoading ? 'opacity-60' : ''}`}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.07)' }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="flex justify-between items-start gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
           {/* Title + status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>{job.title}</h3>
-            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20, backgroundColor: cfg.bg, color: cfg.color }}>
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <h3 className="text-[15px] font-bold text-slate-900 m-0">{job.title}</h3>
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${cfg.cls}`}>
               {cfg.label}
             </span>
             {job.featured && (
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20, backgroundColor: '#FEF3C7', color: '#D97706', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 inline-flex items-center gap-1">
                 <Star size={12} fill="#D97706" /> Nổi bật
               </span>
             )}
           </div>
 
           {/* Company + meta */}
-          <p style={{ fontSize: 13, color: '#475569', fontWeight: 500, marginBottom: 8, margin: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Building2 size={14} style={{ color: '#94A3B8' }} /> {job.company} <span style={{ color: '#94A3B8', marginLeft: 4 }}>· {job.location}</span>
+          <p className="text-[13px] text-slate-600 font-medium mb-2 flex items-center gap-1">
+            <Building2 size={14} className="text-slate-400 shrink-0" /> {job.company} <span className="text-slate-400 ml-1">· {job.location}</span>
           </p>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+          <div className="flex flex-wrap gap-3 mb-2">
             {JOB_INFO_ICONS.map(item => {
               const ItemIcon = item.icon
               return (
-                <span key={item.text} style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <ItemIcon size={14} style={{ color: '#94A3B8' }} /> {item.text}
+                <span key={item.text} className="text-xs text-slate-500 flex items-center gap-1">
+                  <ItemIcon size={14} className="text-slate-400 shrink-0" /> {item.text}
                 </span>
               )
             })}
@@ -87,9 +85,9 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
 
           {/* Tags */}
           {job.tags?.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <div className="flex flex-wrap gap-1.5">
               {job.tags.map(tag => (
-                <span key={tag} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, backgroundColor: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', fontWeight: 500 }}>
+                <span key={tag} className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 border border-blue-200 font-medium">
                   {tag}
                 </span>
               ))}
@@ -98,7 +96,7 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
 
           {/* Report warning */}
           {job.reportCount > 0 && (
-            <div style={{ marginTop: 8, padding: '8px 12px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, fontSize: 12, color: '#DC2626', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="mt-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600 flex items-center gap-1.5">
               <AlertTriangle size={14} className="shrink-0" />
               <span><strong>{job.reportCount} lượt báo cáo</strong> từ người dùng</span>
             </div>
@@ -106,25 +104,25 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
         </div>
 
         {/* Stats + Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 900, color: '#0F172A' }}>{job.applied}</div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>Ứng tuyển</div>
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="text-center">
+            <div className="text-lg font-black text-slate-900">{job.applied}</div>
+            <div className="text-[11px] text-slate-400">Ứng tuyển</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 900, color: '#0F172A' }}>{job.views}</div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>Lượt xem</div>
+          <div className="text-center">
+            <div className="text-lg font-black text-slate-900">{job.views}</div>
+            <div className="text-[11px] text-slate-400">Lượt xem</div>
           </div>
 
           {/* Action menu */}
-          <div style={{ position: 'relative' }}>
+          <div className="relative">
             <button
               onClick={() => setMenuOpen(o => !o)}
-              style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 8, width: 36, height: 36, cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              className="bg-slate-50 border border-slate-200 rounded-lg w-9 h-9 cursor-pointer text-lg flex items-center justify-center hover:bg-slate-100 transition-colors"
             >⋯</button>
             {menuOpen && (
               <div
-                style={{ position: 'absolute', right: 0, top: 44, zIndex: 50, background: 'white', borderRadius: 10, border: '1.5px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 200, overflow: 'hidden' }}
+                className="absolute right-0 top-11 z-50 bg-white rounded-xl border border-slate-200 shadow-xl min-w-50 overflow-hidden"
                 onMouseLeave={() => setMenuOpen(false)}
               >
                 {job.status === 'pending' && (
@@ -147,7 +145,7 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
                   label={job.featured ? 'Bỏ nổi bật' : 'Đánh dấu nổi bật'}
                   onClick={() => handleAction(onToggleFeatured, job.id, !job.featured)}
                 />
-                <div style={{ borderTop: '1px solid #F1F5F9' }} />
+                <div className="border-t border-slate-100" />
                 <MenuBtn icon={<Trash2 size={14} />} label="Xóa vĩnh viễn" danger onClick={() => {
                   if (confirm(`Xóa vĩnh viễn tin "${job.title}"?`)) handleAction(onDelete, job.id)
                 }} />
@@ -158,14 +156,14 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid #F1F5F9', marginTop: 14, paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-        <span style={{ fontSize: 12, color: '#94A3B8' }}>
+      <div className="border-t border-slate-100 mt-3.5 pt-3 flex justify-between items-center flex-wrap gap-2">
+        <span className="text-xs text-slate-400">
           Đăng {new Date(job.postedAt).toLocaleDateString('vi-VN')}
           {job.deadline && ` · Hạn ${new Date(job.deadline).toLocaleDateString('vi-VN')}`}
         </span>
         <button
           onClick={() => navigate(`/admin/jobs/${job.id}`)}
-          style={{ fontSize: 12, fontWeight: 700, color: '#3B82F6', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+          className="text-xs font-bold text-blue-500 bg-transparent border-none cursor-pointer font-[inherit] hover:text-blue-700 transition-colors"
         >
           Chi tiết →
         </button>
@@ -177,17 +175,11 @@ function AdminJobCard({ job, onStatusChange, onDelete, onToggleFeatured }) {
 /* ── Reusable menu button ──────────────────────────────────────────────────── */
 function MenuBtn({ icon, label, onClick, danger }) {
   return (
-    <button onClick={onClick} style={{
-      width: '100%', padding: '10px 16px', background: 'none', border: 'none',
-      cursor: 'pointer', fontSize: 13, fontWeight: 500, textAlign: 'left',
-      color: danger ? '#EF4444' : '#0F172A',
-      display: 'flex', alignItems: 'center', gap: 10,
-      fontFamily: 'inherit', transition: 'background 0.15s',
-    }}
-      onMouseEnter={e => e.currentTarget.style.background = danger ? '#FEF2F2' : '#F8FAFC'}
-      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+    <button
+      onClick={onClick}
+      className={`w-full px-4 py-2.5 bg-transparent border-none cursor-pointer text-[13px] font-medium text-left flex items-center gap-2.5 font-[inherit] transition-colors duration-150 ${danger ? 'text-red-500 hover:bg-red-50' : 'text-slate-900 hover:bg-slate-50'}`}
     >
-      <span style={{ width: 16, display: 'inline-flex', justifyContent: 'center', color: danger ? '#EF4444' : '#94A3B8' }}>{icon}</span>
+      <span className={`w-4 inline-flex justify-center shrink-0 ${danger ? 'text-red-500' : 'text-slate-400'}`}>{icon}</span>
       {label}
     </button>
   )
@@ -266,67 +258,59 @@ export default function AdminJobsPage() {
   const reportedCount = jobs.filter(j => j.status === 'reported').length
 
   return (
-    <div style={{ padding: 24, maxWidth: 960, margin: '0 auto' }}>
+    <div className="p-6 max-w-240 mx-auto">
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>Quản lý tin tuyển dụng</h1>
-        <p style={{ fontSize: 13, color: '#64748B', margin: 0 }}>
+      <div className="mb-6">
+        <h1 className="text-2xl font-black text-slate-900 mb-1">Quản lý tin tuyển dụng</h1>
+        <p className="text-[13px] text-slate-500 m-0">
           Duyệt, quản lý và kiểm soát chất lượng tin đăng từ nhà tuyển dụng
         </p>
       </div>
 
       {/* Quick stats */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="flex gap-3 mb-5 flex-wrap">
         {[
-          { label: 'Tổng tin', value: jobs.length, color: '#1549B8', bg: '#EEF2FF' },
-          { label: 'Chờ duyệt', value: pendingCount, color: '#D97706', bg: '#FEF3C7' },
-          { label: 'Bị báo cáo', value: reportedCount, color: '#EF4444', bg: '#FEE2E2' },
+          { label: 'Tổng tin', value: jobs.length, cls: 'text-[#1549B8] bg-[#EEF2FF]' },
+          { label: 'Chờ duyệt', value: pendingCount, cls: 'text-amber-600 bg-amber-100' },
+          { label: 'Bị báo cáo', value: reportedCount, cls: 'text-red-600 bg-red-100' },
         ].map(s => (
-          <div key={s.label} style={{ flex: 1, minWidth: 120, background: 'white', borderRadius: 12, border: '1.5px solid #E2E8F0', padding: 14, textAlign: 'center' }}>
-            <div style={{ fontSize: 22, fontWeight: 900, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: '#64748B', fontWeight: 500 }}>{s.label}</div>
+          <div key={s.label} className="flex-1 min-w-30 bg-white rounded-xl border border-slate-200 p-3.5 text-center">
+            <div className={`text-[22px] font-black ${s.cls}`}>{s.value}</div>
+            <div className="text-xs text-slate-500 font-medium">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Search */}
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <div style={{ flex: 1, position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+      <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+        <div className="flex-1 relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Tìm theo tên tin hoặc công ty..."
-            style={{
-              width: '100%', padding: '9px 14px 9px 36px', borderRadius: 10, border: '1.5px solid #E2E8F0',
-              fontSize: 13, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
-            }}
-            onFocus={e => e.target.style.borderColor = '#3B82F6'}
-            onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+            className="w-full py-2 pl-9 pr-3.5 rounded-xl border-2 border-slate-200 text-[13px] font-[inherit] outline-none box-border focus:border-blue-500 transition-colors"
           />
         </div>
-        <button type="submit" style={{
-          padding: '9px 18px', borderRadius: 10, border: 'none',
-          background: '#1549B8', color: 'white', fontWeight: 700, fontSize: 13,
-          cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
-        }}>
+        <button type="submit" className="px-4.5 py-2 rounded-xl border-none bg-[#1549B8] text-white font-bold text-[13px] cursor-pointer font-[inherit] flex items-center gap-1.5 hover:bg-[#1240A0] transition-colors">
           <Search size={14} /> Tìm
         </button>
       </form>
 
       {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="flex gap-2 mb-5 flex-wrap">
         {TABS.map(tab => {
           const TabIcon = tab.icon
+          const isActive = activeTab === tab.key
           return (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-              padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-              border: '1.5px solid', cursor: 'pointer', fontFamily: 'inherit',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              borderColor: activeTab === tab.key ? '#3B82F6' : '#E2E8F0',
-              backgroundColor: activeTab === tab.key ? '#EFF6FF' : 'white',
-              color: activeTab === tab.key ? '#2563EB' : '#64748B',
-              transition: 'all 0.15s',
-            }}>
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-4 py-1.5 rounded-full text-[13px] font-semibold border-2 cursor-pointer font-[inherit] inline-flex items-center gap-1.5 transition-all ${
+                isActive
+                  ? 'border-blue-500 bg-blue-50 text-blue-600'
+                  : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'
+              }`}
+            >
               {TabIcon && <TabIcon size={14} />}
               {tab.label}
             </button>
@@ -336,13 +320,11 @@ export default function AdminJobsPage() {
 
       {/* Toast */}
       {toast && (
-        <div style={{
-          marginBottom: 16, padding: '10px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600,
-          border: '1.5px solid', display: 'flex', alignItems: 'center', gap: 8,
-          background: toast.type === 'error' ? '#FEF2F2' : '#F0FDF4',
-          borderColor: toast.type === 'error' ? '#FECACA' : '#BBF7D0',
-          color: toast.type === 'error' ? '#DC2626' : '#16A34A',
-        }}>
+        <div className={`mb-4 px-4 py-2.5 rounded-xl text-[13px] font-semibold border-2 flex items-center gap-2 ${
+          toast.type === 'error'
+            ? 'bg-red-50 border-red-200 text-red-600'
+            : 'bg-green-50 border-green-200 text-green-600'
+        }`}>
           {toast.type === 'error' ? <X size={14} /> : <CheckCircle2 size={14} />}
           <span>{toast.msg}</span>
         </div>
@@ -350,20 +332,16 @@ export default function AdminJobsPage() {
 
       {/* Job list */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>
-          <div style={{ width: 32, height: 32, border: '4px solid #E2E8F0', borderTopColor: '#1549B8', borderRadius: '50%', margin: '0 auto 12px', animation: 'spin 1s linear infinite' }} />
-          Đang tải...
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
+        <SkeletonPage cards={4} cardType="job-card" />
       ) : jobs.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
           title="Không có tin tuyển dụng nào"
           description={activeTab === 'pending' ? 'Không có tin nào chờ duyệt' : 'Chưa có tin nào trong danh mục này'}
-          className="rounded-2xl border border-[#E2E8F0]"
+          className="rounded-2xl border border-slate-200"
         />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-3.5">
           {jobs.map(job => (
             <AdminJobCard
               key={job.id}

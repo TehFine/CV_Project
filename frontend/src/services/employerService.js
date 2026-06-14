@@ -469,4 +469,39 @@ export const employerService = {
     }
     return api.post('/employer/applications/bulk-delete', { ids });
   },
+
+  // ── Candidate Profile ──
+  async getCandidateProfile(candidateId) {
+    if (USE_MOCK) {
+      await delay(400);
+      // Try to find matching application for realistic data
+      const app = mockApplications.find(a => a.seeker_id === candidateId);
+      if (app) {
+        return {
+          data: {
+            full_name: app.seeker.full_name,
+            email: app.seeker.email,
+            phone: '0901 234 567',
+            location: 'TP. Hồ Chí Minh',
+            title: 'Frontend Developer',
+            bio: 'Có kinh nghiệm phát triển web với các công nghệ hiện đại. Luôn tìm kiếm cơ hội để học hỏi và phát triển.',
+            skills: ['React', 'JavaScript', 'TypeScript', 'CSS', 'HTML'],
+          }
+        };
+      }
+      // Fallback: return a mock profile for any ID
+      return {
+        data: {
+          full_name: 'Nguyễn Văn An',
+          email: 'nvan@email.com',
+          phone: '0901 234 567',
+          location: 'TP. Hồ Chí Minh',
+          title: 'Frontend Developer',
+          bio: 'Có 3 năm kinh nghiệm phát triển web với React và TypeScript. Đam mê xây dựng giao diện người dùng tối ưu và responsive.',
+          skills: ['React', 'TypeScript', 'TailwindCSS', 'Next.js', 'REST API', 'Git'],
+        }
+      };
+    }
+    return api.get(`/employer/candidates/${candidateId}/profile`);
+  },
 };

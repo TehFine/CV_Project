@@ -66,4 +66,9 @@ export class EmployerController {
   bulkDeleteApplications(@Body() bulkDeleteDto: BulkDeleteApplicationsDto) {
     return this.employerService.bulkDeleteApplications(bulkDeleteDto.ids);
   }
+
+  @Get('candidates/:id/profile')
+  getCandidateProfile(@Param('id') id: string) {
+    return this.employerService.getCandidateProfile(id);
+  }
 }

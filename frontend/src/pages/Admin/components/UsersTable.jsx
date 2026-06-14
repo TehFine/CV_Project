@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useState } from 'react'
+import { SkeletonCard } from '@/components/ui/Skeleton'
 
 const STATUS_STYLE = {
   active:  { label: 'Hoạt động', bg: '#ECFDF5', text: '#059669', border: '#A7F3D0', icon: CircleCheck },
@@ -335,17 +336,7 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-3">
       {[1, 2, 3, 4, 5].map(i => (
-        <div key={i} className="bg-white rounded-2xl border border-slate-200 p-4">
-          <div className="flex items-start gap-4">
-            <div className="w-11 h-11 rounded-xl bg-slate-100 animate-pulse" />
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-slate-100 rounded w-48 animate-pulse" />
-              <div className="h-3 bg-slate-100 rounded w-64 animate-pulse" />
-              <div className="h-3 bg-slate-100 rounded w-32 animate-pulse" />
-            </div>
-            <div className="w-20 h-8 bg-slate-100 rounded-xl animate-pulse" />
-          </div>
-        </div>
+        <SkeletonCard key={i} lines={3} avatar badge />
       ))}
     </div>
   )

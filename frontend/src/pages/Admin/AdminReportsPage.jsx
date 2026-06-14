@@ -12,6 +12,7 @@ import {
   BarChart, Bar, PieChart, Cell, Pie, Legend
 } from 'recharts'
 import { Button } from '@/components/ui/button'
+import Skeleton from '@/components/ui/Skeleton'
 import {
   Select,
   SelectContent,
@@ -113,7 +114,33 @@ export default function AdminReportsPage() {
     return cleanup
   }, [fetchData, period])
 
-  if (loading) return <div className="p-12 text-center text-slate-400">Đang tải dữ liệu báo cáo...</div>
+  if (loading) return (
+    <div className="p-8 max-w-[1400px] mx-auto space-y-8">
+      <div className="flex justify-between">
+        <div className="space-y-2">
+          <Skeleton variant="title" className="w-64" />
+          <Skeleton variant="subtitle" className="w-80" />
+        </div>
+        <div className="flex gap-3">
+          <Skeleton variant="button" className="w-40" />
+          <Skeleton variant="button" className="w-36" />
+        </div>
+      </div>
+      <div className="grid grid-cols-4 gap-6">
+        {[1,2,3,4].map(i => <Skeleton key={i} variant="chart" className="h-32" />)}
+      </div>
+      <div className="grid grid-cols-3 gap-8">
+        <div className="col-span-2">
+          <Skeleton variant="chart" className="h-[400px]" />
+        </div>
+        <Skeleton variant="chart" className="h-[400px]" />
+      </div>
+      <div className="grid grid-cols-2 gap-8">
+        <Skeleton variant="chart" className="h-[350px]" />
+        <Skeleton variant="chart" className="h-[350px]" />
+      </div>
+    </div>
+  )
 
   return (
     <div className="p-8 max-w-[1400px] mx-auto">

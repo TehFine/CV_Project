@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MapPin, Briefcase, BarChart3, DollarSign, Edit3, Users, CheckCircle2, PauseCircle, Trash2, Inbox, MoreHorizontal, Plus } from 'lucide-react'
 import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonPage } from '@/components/ui/Skeleton'
 import { employerService } from '../../services/employerService'
 
 const STATUS_CONFIG = {
-  active:  { label: 'Đang tuyển', color: '#10B981', bg: '#D1FAE5' },
-  pending: { label: 'Chờ duyệt',  color: '#D97706', bg: '#FEF3C7' },
-  draft:   { label: 'Bản nháp',   color: '#64748B', bg: '#F1F5F9' },
-  expired: { label: 'Hết hạn',    color: '#EF4444', bg: '#FEE2E2' },
-  closed:  { label: 'Đã đóng',    color: '#94A3B8', bg: '#F8FAFC' },
+  active:  { label: 'Đang tuyển', cls: 'text-emerald-600 bg-emerald-100 border-emerald-200' },
+  pending: { label: 'Chờ duyệt',  cls: 'text-amber-600 bg-amber-100 border-amber-200' },
+  draft:   { label: 'Bản nháp',   cls: 'text-slate-500 bg-slate-100 border-slate-200' },
+  expired: { label: 'Hết hạn',    cls: 'text-red-500 bg-red-100 border-red-200' },
+  closed:  { label: 'Đã đóng',    cls: 'text-slate-400 bg-slate-50 border-slate-200' },
 }
 
 const JOB_TYPE_LABEL = {
@@ -34,8 +35,34 @@ function formatSalary(min, max) {
 function JobCard({ job, onDelete, onStatusChange }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const menuRef = useRef(null)
   const cfg = STATUS_CONFIG[job.status] || STATUS_CONFIG.draft
   const navigate = useNavigate()
+
+  // Auto-close dropdown when clicking outside, scrolling, or pressing Escape
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+    const handleScroll = () => setMenuOpen(false)
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('scroll', handleScroll, true)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('scroll', handleScroll, true)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [menuOpen])
 
   const handleDelete = async () => {
     if (!confirm(`Xóa tin "${job.title}"?`)) return
@@ -44,70 +71,65 @@ function JobCard({ job, onDelete, onStatusChange }) {
   }
 
   return (
-    <div style={{
-      background: 'white', borderRadius: 14, border: '1.5px solid #E2E8F0',
-      padding: 20, transition: 'box-shadow 0.2s',
-      opacity: deleting ? 0.5 : 1,
-    }}
-      onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.07)'}
-      onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+    <div
+      className={`bg-white rounded-xl border border-slate-200 p-5 transition-shadow hover:shadow-md ${deleting ? 'opacity-50' : ''}`}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: 0 }}>{job.title}</h3>
-            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 20, backgroundColor: cfg.bg, color: cfg.color }}>
+      <div className="flex justify-between items-start gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <h3 className="text-[15px] font-bold text-slate-900 m-0">{job.title}</h3>
+            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${cfg.cls}`}>
               {cfg.label}
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 10 }}>
+          <div className="flex flex-wrap gap-3 mb-2.5">
             {[
-              { icon: <MapPin size={14} />, text: job.location },
-              { icon: <Briefcase size={14} />, text: JOB_TYPE_LABEL[job.job_type] },
-              { icon: <BarChart3 size={14} />, text: LEVEL_LABEL[job.level] },
-              { icon: <DollarSign size={14} />, text: formatSalary(job.salary_min, job.salary_max) },
+              { icon: <MapPin size={14} className="text-slate-400 shrink-0" />, text: job.location },
+              { icon: <Briefcase size={14} className="text-slate-400 shrink-0" />, text: JOB_TYPE_LABEL[job.job_type] },
+              { icon: <BarChart3 size={14} className="text-slate-400 shrink-0" />, text: LEVEL_LABEL[job.level] },
+              { icon: <DollarSign size={14} className="text-slate-400 shrink-0" />, text: formatSalary(job.salary_min, job.salary_max) },
             ].map(item => (
-              <span key={item.text} style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span key={item.text} className="text-xs text-slate-500 flex items-center gap-1">
                 {item.icon} {item.text}
               </span>
             ))}
           </div>
 
           {job.required_skills?.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <div className="flex flex-wrap gap-1.5">
               {job.required_skills.slice(0, 5).map(skill => (
-                <span key={skill} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, backgroundColor: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', fontWeight: 500 }}>
+                <span key={skill} className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 border border-blue-200 font-medium">
                   {skill}
                 </span>
               ))}
               {job.required_skills.length > 5 && (
-                <span style={{ fontSize: 11, color: '#94A3B8' }}>+{job.required_skills.length - 5}</span>
+                <span className="text-[11px] text-slate-400">+{job.required_skills.length - 5}</span>
               )}
             </div>
           )}
         </div>
 
         {/* Stats + menu */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 900, color: '#0F172A' }}>{job.application_count}</div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>Ứng tuyển</div>
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="text-center">
+            <div className="text-lg font-black text-slate-900">{job.application_count}</div>
+            <div className="text-[11px] text-slate-400">Ứng tuyển</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 900, color: '#0F172A' }}>{job.view_count}</div>
-            <div style={{ fontSize: 11, color: '#94A3B8' }}>Lượt xem</div>
+          <div className="text-center">
+            <div className="text-lg font-black text-slate-900">{job.view_count}</div>
+            <div className="text-[11px] text-slate-400">Lượt xem</div>
           </div>
 
           {/* Action menu */}
-          <div style={{ position: 'relative' }}>
+          <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(o => !o)}
-              style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 8, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            ><MoreHorizontal size={16} /></button>
+              className="bg-slate-50 border border-slate-200 rounded-lg w-9 h-9 cursor-pointer flex items-center justify-center hover:bg-slate-100 transition-colors"
+            ><MoreHorizontal size={16} className="text-slate-500" /></button>
             {menuOpen && (
               <div
-                style={{ position: 'absolute', right: 0, top: 44, zIndex: 50, background: 'white', borderRadius: 10, border: '1.5px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 180, overflow: 'hidden' }}
+                className="absolute right-0 top-11 z-50 bg-white rounded-xl border border-slate-200 shadow-xl min-w-45 overflow-hidden"
                 onMouseLeave={() => setMenuOpen(false)}
               >
                 {[
@@ -120,18 +142,15 @@ function JobCard({ job, onDelete, onStatusChange }) {
                     : { icon: <PauseCircle size={14} />, label: 'Tạm đóng', action: () => { onStatusChange(job.id, 'closed'); setMenuOpen(false) } },
                   { icon: <Trash2 size={14} />, label: 'Xóa tin', action: handleDelete, danger: true },
                 ].filter(Boolean).map(item => (
-                  <button key={item.label} onClick={() => { item.action(); setMenuOpen(false) }} style={{
-                    width: '100%', padding: '10px 16px', background: 'none', border: 'none',
-                    cursor: 'pointer', fontSize: 13, fontWeight: 500, textAlign: 'left',
-                    color: item.danger ? '#EF4444' : '#0F172A',
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    fontFamily: 'inherit',
-                    transition: 'background 0.15s',
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.background = item.danger ? '#FEF2F2' : '#F8FAFC'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  <button
+                    key={item.label}
+                    onClick={() => { item.action(); setMenuOpen(false) }}
+                    className={`w-full px-4 py-2.5 bg-transparent border-none cursor-pointer text-[13px] font-medium text-left flex items-center gap-2.5 font-inherit transition-colors duration-150 ${
+                      item.danger ? 'text-red-500 hover:bg-red-50' : 'text-slate-900 hover:bg-slate-50'
+                    }`}
                   >
-                    {item.icon} {item.label}
+                    <span className={`w-4 inline-flex justify-center shrink-0 ${item.danger ? 'text-red-500' : 'text-slate-400'}`}>{item.icon}</span>
+                    {item.label}
                   </button>
                 ))}
               </div>
@@ -141,14 +160,14 @@ function JobCard({ job, onDelete, onStatusChange }) {
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: '1px solid #F1F5F9', marginTop: 14, paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-        <span style={{ fontSize: 12, color: '#94A3B8' }}>
+      <div className="border-t border-slate-100 mt-3.5 pt-3 flex justify-between items-center flex-wrap gap-2">
+        <span className="text-xs text-slate-400">
           Đăng {new Date(job.created_at).toLocaleDateString('vi-VN')}
           {job.expired_at && ` • Hết hạn ${new Date(job.expired_at).toLocaleDateString('vi-VN')}`}
         </span>
         <Link
           to={`/employer/jobs/${job.id}/applicants`}
-          style={{ fontSize: 12, fontWeight: 700, color: '#3B82F6', textDecoration: 'none' }}
+          className="text-xs font-bold text-blue-500 no-underline hover:text-blue-700 transition-colors"
         >
           Xem {job.application_count} ứng viên →
         </Link>
@@ -185,24 +204,20 @@ export default function EmployerJobsPage() {
   const filtered = filterStatus === 'all' ? jobs : jobs.filter(j => j.status === filterStatus)
 
   return (
-    <div style={{ padding: '32px 0', maxWidth: 960, margin: '0 auto' }}>
+    <div className="px-4 sm:px-6 py-8 max-w-[960px] mx-auto">
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>Tin tuyển dụng</h1>
-          <p style={{ fontSize: 13, color: '#64748B' }}>{jobs.length} tin đã đăng</p>
+          <h1 className="text-2xl font-black text-slate-900 mb-1">Tin tuyển dụng</h1>
+          <p className="text-sm text-slate-500">{jobs.length} tin đã đăng</p>
         </div>
-        <Link to="/employer/jobs/new" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-          background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', color: 'white',
-          borderRadius: 10, textDecoration: 'none', fontWeight: 700, fontSize: 14,
-          boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
-        }}>            <Plus size={16} /> Đăng tin mới
+        <Link to="/employer/jobs/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/30 hover:opacity-90 transition-opacity no-underline">
+          <Plus size={16} /> Đăng tin mới
         </Link>
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+      {/* Filter tabs - scrollable on mobile */}
+      <div className="flex gap-2 mb-5 -mx-4 px-4 overflow-x-auto pb-1 scrollbar-hide">
         {[
           { key: 'all', label: 'Tất cả', count: jobs.length },
           { key: 'pending', label: 'Chờ duyệt', count: jobs.filter(j => j.status === 'pending').length },
@@ -211,21 +226,19 @@ export default function EmployerJobsPage() {
           { key: 'expired', label: 'Hết hạn', count: jobs.filter(j => j.status === 'expired').length },
           { key: 'closed', label: 'Đã đóng', count: jobs.filter(j => j.status === 'closed').length },
         ].map(tab => (
-          <button key={tab.key} onClick={() => setFilterStatus(tab.key)} style={{
-            padding: '7px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-            border: '1.5px solid', cursor: 'pointer', fontFamily: 'inherit',
-            borderColor: filterStatus === tab.key ? '#3B82F6' : '#E2E8F0',
-            backgroundColor: filterStatus === tab.key ? '#EFF6FF' : 'white',
-            color: filterStatus === tab.key ? '#2563EB' : '#64748B',
-            transition: 'all 0.15s',
-          }}>
-            {tab.label} {tab.count > 0 && <span style={{ fontWeight: 800 }}>({tab.count})</span>}
+          <button key={tab.key} onClick={() => setFilterStatus(tab.key)}
+            className={`shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold border transition-all whitespace-nowrap ${
+              filterStatus === tab.key
+                ? 'border-blue-500 bg-blue-50 text-blue-600'
+                : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+            }`}>
+            {tab.label} {tab.count > 0 && <span className="font-extrabold">({tab.count})</span>}
           </button>
         ))}
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>Đang tải...</div>
+        <SkeletonPage cards={3} cardType="job-card" />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Inbox}
@@ -238,7 +251,7 @@ export default function EmployerJobsPage() {
           }
         />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="flex flex-col gap-3.5">
           {filtered.map(job => (
             <JobCard key={job.id} job={job} onDelete={handleDelete} onStatusChange={handleStatusChange} />
           ))}

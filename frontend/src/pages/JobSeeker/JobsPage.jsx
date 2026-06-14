@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { Search, Filter, X, Sparkles, SlidersHorizontal } from 'lucide-react'
+import { SkeletonJobCard } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,14 +27,24 @@ function Sidebar({ filters, onChange, mobile, onClose }) {
         const val    = typeof item === 'string' ? item : item.name
         const active = filters[fkey] === val
         return (
-          <label 
-            key={val} 
+          <label
+            key={val}
+            htmlFor={"filter-" + fkey + "-" + val.replace(/\s+/g, '-')}
             className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-[#F1F5F9] cursor-pointer transition-colors group"
             onClick={(e) => {
               e.preventDefault(); // Prevent radio default behavior
               toggle(fkey, val);
             }}
           >
+            <input
+              id={"filter-" + fkey + "-" + val.replace(/\s+/g, '-')}
+              type="radio"
+              name={"filter-" + fkey}
+              checked={active}
+              onChange={() => toggle(fkey, val)}
+              className="sr-only"
+              aria-label={val}
+            />
             <div className={cn(
               "w-4 h-4 rounded-full border flex items-center justify-center transition-all",
               active ? "border-[#1549B8] bg-[#1549B8]" : "border-[#CBD5E1] bg-white group-hover:border-[#1549B8]"
@@ -178,7 +189,7 @@ export default function JobsPage() {
 
             {loading ? (
               <div className="grid md:grid-cols-2 gap-4">
-                {[1,2,3,4].map(i => <div key={i} className="h-52 shimmer-bg" />)}
+                {[1,2,3,4].map(i => <SkeletonJobCard key={i} />)}
               </div>
             ) : jobs.length === 0 ? (
               <EmptyState

@@ -47,9 +47,7 @@ function ScoreResult({ result, onReset }) {
               </div>
             </div>
           </div>
-        </Card>
-
-        <div className="flex flex-col gap-3">
+        </Card>            <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
           <Button variant="outline" size="lg" onClick={onReset} className="w-full gap-2 justify-center">
             <Upload className="h-4 w-4" />Upload CV khác
           </Button>
@@ -174,8 +172,8 @@ export default function CVUploadPage() {
   return (
     <div className="min-h-screen bg-muted/30 pb-16">
       {/* Hero */}
-      <div className="bg-linear-to-br from-slate-900 via-indigo-950 to-violet-900 pt-12 pb-10 mb-8">
-        <div className="max-w-[1400px] mx-auto px-6 text-center">
+      <div className="bg-linear-to-br from-slate-900 via-indigo-950 to-violet-900 pt-10 pb-8 mb-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 text-center">
           <Badge variant="ai" className="mb-4 gap-1.5 text-white"><Sparkles className="h-3.5 w-3.5 " />AI-Powered Analysis</Badge>
           <h1 className="text-4xl font-black text-white mb-3">
             {jobId ? 'Xem mức độ phù hợp' : 'Phân tích CV bằng AI'}
@@ -194,7 +192,7 @@ export default function CVUploadPage() {
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-6">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
         {status === 'result' ? (
           <ScoreResult result={result} onReset={reset} />
         ) : (

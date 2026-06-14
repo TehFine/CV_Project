@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Edit3, FileText, Wrench, Save, Loader2, CheckCircle2, Rocket, XCircle, Plus, AlertCircle } from 'lucide-react'
 import { employerService } from '../../services/employerService'
 import { useAuth } from '../../context/AuthContext'
+import { SkeletonPage } from '@/components/ui/Skeleton'
 
 const SKILL_SUGGESTIONS = [
   'React', 'Vue', 'Angular', 'Next.js', 'TypeScript', 'JavaScript',
@@ -13,22 +14,17 @@ const SKILL_SUGGESTIONS = [
 
 function Field({ label, required, hint, children }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#0F172A', marginBottom: 6 }}>
-        {label} {required && <span style={{ color: '#EF4444' }}>*</span>}
-        {hint && <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 400, marginLeft: 6 }}>{hint}</span>}
+    <div className="mb-5">
+      <label className="block text-sm font-semibold text-slate-900 mb-1.5">
+        {label} {required && <span className="text-red-500">*</span>}
+        {hint && <span className="text-xs text-slate-400 font-normal ml-1.5">{hint}</span>}
       </label>
       {children}
     </div>
   )
 }
 
-const inputStyle = {
-  width: '100%', padding: '10px 14px', border: '1.5px solid #E2E8F0', borderRadius: 10,
-  fontSize: 14, fontFamily: 'inherit', color: '#0F172A', boxSizing: 'border-box',
-  outline: 'none', transition: 'border-color 0.2s',
-  backgroundColor: 'white',
-}
+const inputStyle = "w-full px-3.5 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-inherit text-slate-900 box-border outline-none transition-all bg-white focus:border-blue-500"
 
 export default function EmployerJobFormPage() {
   const { id } = useParams()
@@ -144,36 +140,28 @@ export default function EmployerJobFormPage() {
     }
   }
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 60, color: '#94A3B8' }}>Đang tải...</div>
+  if (loading) return <div className="max-w-2xl mx-auto py-8"><SkeletonPage cards={3} /></div>
 
   return (
-    <div style={{ padding: '32px 16px', maxWidth: 760, margin: '0 auto' }}>
+    <div className="px-4 py-8 max-w-[760px] mx-auto">
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <button onClick={() => navigate('/employer/jobs')} style={{
-          background: 'none', border: 'none', cursor: 'pointer', color: '#64748B',
-          fontSize: 13, fontFamily: 'inherit', fontWeight: 600, padding: 0, marginBottom: 12,
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}>
+      <div className="mb-7">
+        <button onClick={() => navigate('/employer/jobs')}
+          className="bg-transparent border-none cursor-pointer text-slate-500 text-[13px] font-inherit font-semibold p-0 mb-3 flex items-center gap-1.5 hover:text-slate-900 transition-colors">
           ← Quay lại danh sách
         </button>
-        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
           {isEdit ? <><Edit3 className="h-5 w-5" /> Chỉnh sửa tin tuyển dụng</> : 'Đăng tin tuyển dụng mới'}
         </h1>
       </div>
 
-      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 20 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 mb-5">
+        <h2 className="text-[15px] font-extrabold text-slate-900 mb-5 pb-3 border-b-2 border-slate-100 flex items-center gap-1.5">
           <FileText className="h-4 w-4" /> Thông tin cơ bản
         </h2>
 
         {errorMsg && (
-          <div style={{
-            padding: '12px 16px', borderRadius: 10, marginBottom: 20,
-            backgroundColor: '#FEF2F2', border: '1.5px solid #FECACA',
-            color: '#DC2626', fontSize: 13, fontWeight: 600,
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}>
+          <div className="px-4 py-3 rounded-xl mb-5 bg-red-50 border-2 border-red-200 text-red-600 text-[13px] font-semibold flex items-center gap-1.5">
             <XCircle className="h-4 w-4 shrink-0" />{errorMsg}
           </div>
         )}
@@ -181,25 +169,21 @@ export default function EmployerJobFormPage() {
         <Field label="Tiêu đề vị trí" required>
           <input value={form.title} onChange={e => set('title', e.target.value)}
             placeholder="VD: Senior Frontend Developer (React)"
-            style={{ ...inputStyle, borderColor: errors.title ? '#EF4444' : '#E2E8F0' }}
-            onFocus={e => e.target.style.borderColor = '#3B82F6'}
-            onBlur={e => e.target.style.borderColor = errors.title ? '#EF4444' : '#E2E8F0'}
+            className={`${inputStyle} ${errors.title ? '!border-red-500' : ''}`}
           />
-          {errors.title && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={11} />{errors.title}</p>}
+          {errors.title && <p className="text-xs text-red-500 mt-1 flex items-center gap-0.5"><AlertCircle size={11} />{errors.title}</p>}
         </Field>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
           <Field label="Tên công ty" required>
             <input value={form.companyName} onChange={e => set('companyName', e.target.value)}
               placeholder="VD: VNG Corporation"
-              style={{ ...inputStyle, borderColor: errors.companyName ? '#EF4444' : '#E2E8F0' }}
-              onFocus={e => e.target.style.borderColor = '#3B82F6'}
-              onBlur={e => e.target.style.borderColor = errors.companyName ? '#EF4444' : '#E2E8F0'}
+              className={`${inputStyle} ${errors.companyName ? '!border-red-500' : ''}`}
             />
-            {errors.companyName && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={11} />{errors.companyName}</p>}
+            {errors.companyName && <p className="text-xs text-red-500 mt-1 flex items-center gap-0.5"><AlertCircle size={11} />{errors.companyName}</p>}
           </Field>
           <Field label="Ngành nghề" required>
-            <select value={form.category} onChange={e => set('category', e.target.value)} style={{ ...inputStyle }}>
+            <select value={form.category} onChange={e => set('category', e.target.value)} className={inputStyle}>
               <option value="Công nghệ thông tin">Công nghệ thông tin</option>
               <option value="Dữ liệu & AI">Dữ liệu & AI</option>
               <option value="Thiết kế">Thiết kế</option>
@@ -213,9 +197,9 @@ export default function EmployerJobFormPage() {
           </Field>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
           <Field label="Hình thức làm việc" required>
-            <select value={form.job_type} onChange={e => set('job_type', e.target.value)} style={{ ...inputStyle }}>
+            <select value={form.job_type} onChange={e => set('job_type', e.target.value)} className={inputStyle}>
               <option value="full-time">Toàn thời gian</option>
               <option value="part-time">Bán thời gian</option>
               <option value="remote">Remote</option>
@@ -223,7 +207,7 @@ export default function EmployerJobFormPage() {
             </select>
           </Field>
           <Field label="Cấp độ" required>
-            <select value={form.level} onChange={e => set('level', e.target.value)} style={{ ...inputStyle }}>
+            <select value={form.level} onChange={e => set('level', e.target.value)} className={inputStyle}>
               <option value="intern">Intern</option>
               <option value="fresher">Fresher</option>
               <option value="junior">Junior</option>
@@ -236,14 +220,12 @@ export default function EmployerJobFormPage() {
         <Field label="Địa điểm làm việc" required>
           <input value={form.location} onChange={e => set('location', e.target.value)}
             placeholder="VD: TP. Hồ Chí Minh, Hà Nội, Remote..."
-            style={{ ...inputStyle, borderColor: errors.location ? '#EF4444' : '#E2E8F0' }}
-            onFocus={e => e.target.style.borderColor = '#3B82F6'}
-            onBlur={e => e.target.style.borderColor = errors.location ? '#EF4444' : '#E2E8F0'}
+            className={`${inputStyle} ${errors.location ? '!border-red-500' : ''}`}
           />
-          {errors.location && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={11} />{errors.location}</p>}
+          {errors.location && <p className="text-xs text-red-500 mt-1 flex items-center gap-0.5"><AlertCircle size={11} />{errors.location}</p>}
         </Field>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
           <Field label="Lương tối thiểu" hint="(VNĐ, để trống = thỏa thuận)">
             <input type="number" min="0" value={form.salary_min} onChange={e => {
               const v = e.target.value
@@ -252,9 +234,7 @@ export default function EmployerJobFormPage() {
               if (!isNaN(n)) set('salary_min', Math.max(0, n).toString())
             }}
               placeholder="VD: 15000000"
-              style={{ ...inputStyle, borderColor: errors.salary_min ? '#EF4444' : '#E2E8F0' }}
-              onFocus={e => e.target.style.borderColor = '#3B82F6'}
-              onBlur={e => e.target.style.borderColor = errors.salary_min ? '#EF4444' : '#E2E8F0'}
+              className={`${inputStyle} ${errors.salary_min ? '!border-red-500' : ''}`}
             />
           </Field>
           <Field label="Lương tối đa" hint="(VNĐ)">
@@ -265,112 +245,92 @@ export default function EmployerJobFormPage() {
               if (!isNaN(n)) set('salary_max', Math.max(0, n).toString())
             }}
               placeholder="VD: 25000000"
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = '#3B82F6'}
-              onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+              className={inputStyle}
             />
           </Field>
-          {errors.salary_min && <p style={{ fontSize: 12, color: '#EF4444', gridColumn: '1/-1', marginTop: -12 }}>{errors.salary_min}</p>}
+          {errors.salary_min && <p className="text-xs text-red-500 col-span-full -mt-3">{errors.salary_min}</p>}
         </div>
 
         <Field label="Hạn nộp hồ sơ">
           <input type="date" value={form.expired_at} onChange={e => set('expired_at', e.target.value)}
             min={new Date().toISOString().slice(0, 10)}
-            style={inputStyle}
-            onFocus={e => e.target.style.borderColor = '#3B82F6'}
-            onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+            className={inputStyle}
           />
         </Field>
       </div>
 
       {/* Description & Details */}
-      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 20 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 20, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 mb-5">
+        <h2 className="text-[15px] font-extrabold text-slate-900 mb-5 pb-3 border-b-2 border-slate-100 flex items-center gap-1.5">
           <FileText className="h-4 w-4" /> Chi tiết tin đăng
         </h2>
-        
+
         <Field label="Mô tả công việc" required>
           <textarea value={form.description} onChange={e => set('description', e.target.value)}
             rows={6} placeholder="Nhập mô tả chung về công việc..."
-            style={{ ...inputStyle, resize: 'vertical', minHeight: 120, borderColor: errors.description ? '#EF4444' : '#E2E8F0' }}
-            onFocus={e => e.target.style.borderColor = '#3B82F6'}
-            onBlur={e => e.target.style.borderColor = errors.description ? '#EF4444' : '#E2E8F0'}
+            className={`${inputStyle} resize-y min-h-[120px] ${errors.description ? '!border-red-500' : ''}`}
           />
-          {errors.description && <p style={{ fontSize: 12, color: '#EF4444', marginTop: 4, display: 'flex', alignItems: 'center', gap: 3 }}><AlertCircle size={11} />{errors.description}</p>}
+          {errors.description && <p className="text-xs text-red-500 mt-1 flex items-center gap-0.5"><AlertCircle size={11} />{errors.description}</p>}
         </Field>
 
         <Field label="Yêu cầu ứng viên" hint="Kỹ năng, kinh nghiệm, bằng cấp...">
           <textarea value={form.requirements} onChange={e => set('requirements', e.target.value)}
             rows={5} placeholder="Nhập các yêu cầu đối với ứng viên..."
-            style={{ ...inputStyle, resize: 'vertical', minHeight: 100 }}
-            onFocus={e => e.target.style.borderColor = '#3B82F6'}
-            onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+            className={`${inputStyle} resize-y min-h-[100px]`}
           />
         </Field>
 
         <Field label="Quyền lợi" hint="Lương thưởng, bảo hiểm, chế độ đãi ngộ...">
           <textarea value={form.benefits} onChange={e => set('benefits', e.target.value)}
             rows={5} placeholder="Nhập các quyền lợi ứng viên sẽ được hưởng..."
-            style={{ ...inputStyle, resize: 'vertical', minHeight: 100 }}
-            onFocus={e => e.target.style.borderColor = '#3B82F6'}
-            onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+            className={`${inputStyle} resize-y min-h-[100px]`}
           />
         </Field>
       </div>
 
       {/* Skills */}
-      <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #E2E8F0', padding: '20px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', marginBottom: 8, paddingBottom: 12, borderBottom: '1.5px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Wrench className="h-4 w-4" /> Kỹ năng yêu cầu <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 400 }}>(AI dùng để so khớp CV)</span>
+      <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 mb-6">
+        <h2 className="text-[15px] font-extrabold text-slate-900 mb-2 pb-3 border-b-2 border-slate-100 flex items-center gap-1.5">
+          <Wrench className="h-4 w-4" /> Kỹ năng yêu cầu <span className="text-xs text-slate-400 font-normal">(AI dùng để so khớp CV)</span>
         </h2>
 
         {/* Selected skills */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12, minHeight: 36 }}>
+        <div className="flex flex-wrap gap-2 mb-3 min-h-[36px]">
           {form.required_skills.map(skill => (
-            <span key={skill} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-              backgroundColor: '#EFF6FF', color: '#2563EB', border: '1.5px solid #BFDBFE',
-            }}>
+            <span key={skill} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-semibold bg-blue-50 text-blue-600 border-2 border-blue-200">
               {skill}
-              <button onClick={() => removeSkill(skill)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#93C5FD', fontSize: 16, padding: 0, lineHeight: 1 }}>×</button>
+              <button onClick={() => removeSkill(skill)} className="bg-transparent border-none cursor-pointer text-blue-300 hover:text-blue-500 text-base p-0 leading-none">×</button>
             </span>
           ))}
           {form.required_skills.length === 0 && (
-            <span style={{ fontSize: 13, color: '#94A3B8', fontStyle: 'italic' }}>Chưa có kỹ năng nào</span>
+            <span className="text-[13px] text-slate-400 italic">Chưa có kỹ năng nào</span>
           )}
         </div>
 
         {/* Skill input */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <div className="flex gap-2 mb-3">
           <input value={skillInput} onChange={e => setSkillInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(skillInput) } }}
             placeholder="Nhập kỹ năng và nhấn Enter..."
-            style={{ ...inputStyle, flex: 1 }}
-            onFocus={e => e.target.style.borderColor = '#3B82F6'}
-            onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+            className={`${inputStyle} flex-1`}
           />
-          <button onClick={() => addSkill(skillInput)} disabled={!skillInput.trim()} style={{
-            padding: '10px 18px', borderRadius: 10, border: 'none', background: '#3B82F6',
-            color: 'white', fontWeight: 700, cursor: skillInput.trim() ? 'pointer' : 'not-allowed',
-            opacity: skillInput.trim() ? 1 : 0.5, fontFamily: 'inherit', fontSize: 13,
-          }}>
+          <button onClick={() => addSkill(skillInput)} disabled={!skillInput.trim()}
+            className={`px-4.5 py-2.5 rounded-xl border-none font-bold font-inherit text-[13px] inline-flex items-center gap-1 transition-all ${
+              skillInput.trim()
+                ? 'bg-blue-500 text-white cursor-pointer hover:bg-blue-600'
+                : 'bg-blue-500/50 text-white/70 cursor-not-allowed'
+            }`}>
             <Plus className="h-4 w-4" /> Thêm
           </button>
         </div>
 
         {/* Suggestions */}
         <div>
-          <p style={{ fontSize: 12, color: '#94A3B8', marginBottom: 8 }}>Gợi ý nhanh:</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <p className="text-xs text-slate-400 mb-2">Gợi ý nhanh:</p>
+          <div className="flex flex-wrap gap-1.5">
             {SKILL_SUGGESTIONS.filter(s => !form.required_skills.includes(s)).slice(0, 12).map(skill => (
-              <button key={skill} onClick={() => addSkill(skill)} style={{
-                padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 500,
-                border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#64748B',
-                cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#3B82F6'; e.currentTarget.style.color = '#2563EB' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.color = '#64748B' }}
+              <button key={skill} onClick={() => addSkill(skill)}
+                className="px-2.5 py-0.5 rounded-full text-xs font-medium border border-slate-200 bg-slate-50 text-slate-500 cursor-pointer font-inherit hover:border-blue-500 hover:text-blue-600 transition-all"
               >
                 + {skill}
               </button>
@@ -380,32 +340,23 @@ export default function EmployerJobFormPage() {
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', flexDirection: 'row' }}>
-        <button onClick={() => navigate('/employer/jobs')} style={{
-          padding: '12px 24px', borderRadius: 10, border: '1.5px solid #E2E8F0',
-          background: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 600,
-          fontFamily: 'inherit', color: '#64748B',
-        }}>
+      <div className="flex gap-3 flex-wrap flex-row">
+        <button onClick={() => navigate('/employer/jobs')}
+          className="px-6 py-3 rounded-xl border-2 border-slate-200 bg-white cursor-pointer text-sm font-semibold font-inherit text-slate-500 hover:bg-slate-50 transition-colors">
           Hủy
         </button>
-        <button onClick={() => handleSave(false)} disabled={saving} style={{
-          padding: '12px 24px', borderRadius: 10, border: '1.5px solid #E2E8F0',
-          background: 'white', cursor: saving ? 'not-allowed' : 'pointer',
-          fontSize: 14, fontWeight: 600, fontFamily: 'inherit', color: '#0F172A',
-          opacity: saving ? 0.6 : 1,
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}>
+        <button onClick={() => handleSave(false)} disabled={saving}
+          className={`px-6 py-3 rounded-xl border-2 border-slate-200 bg-white text-sm font-semibold font-inherit text-slate-900 inline-flex items-center gap-1.5 transition-all ${
+            saving ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-50'
+          }`}>
           <Save className="h-4 w-4" /> Lưu nháp
         </button>
-        <button onClick={() => handleSave(true)} disabled={saving} style={{
-          padding: '12px 28px', borderRadius: 10, border: 'none',
-          background: saving ? '#93C5FD' : 'linear-gradient(135deg, #1E40AF, #3B82F6)',
-          color: 'white', cursor: saving ? 'not-allowed' : 'pointer',
-          fontSize: 14, fontWeight: 800, fontFamily: 'inherit',
-          boxShadow: saving ? 'none' : '0 4px 12px rgba(59,130,246,0.35)',
-          transition: 'all 0.2s', flex: 1,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-        }}>
+        <button onClick={() => handleSave(true)} disabled={saving}
+          className={`px-7 py-3 rounded-xl border-none text-white text-sm font-extrabold font-inherit flex-1 inline-flex items-center justify-center gap-1.5 transition-all ${
+            saving
+              ? 'bg-blue-300 cursor-not-allowed shadow-none'
+              : 'bg-gradient-to-r from-blue-700 to-blue-500 cursor-pointer shadow-lg shadow-blue-500/35 hover:shadow-xl hover:shadow-blue-500/45'
+          }`}>
           {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Đang lưu...</> : isEdit ? <><CheckCircle2 className="h-4 w-4" /> Cập nhật & Gửi duyệt</> : <><Rocket className="h-4 w-4" /> Đăng tin (Chờ duyệt)</>}
         </button>
       </div>

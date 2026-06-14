@@ -160,7 +160,7 @@ export default function CVScoreModal({ open, onClose, result, onReset }) {
                 </div>
               )}
             </div>
-            <div className="shrink-0 flex flex-row md:flex-col gap-2 w-full md:w-auto mt-4 md:mt-0">
+            <div className="shrink-0 flex flex-col sm:flex-row md:flex-col gap-2 w-full sm:w-auto mt-4 md:mt-0">
               {onReset && (
                 <Button variant="outline" size="sm" onClick={() => { onReset(); onClose(); }} className="flex-1 md:flex-none justify-center gap-1.5 border-white/20 bg-white/5 text-white hover:bg-white/20 hover:text-white transition-colors">
                   <Upload className="h-4 w-4" />Upload CV khác

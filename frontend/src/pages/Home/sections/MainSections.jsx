@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, MapPin, Sparkles, ArrowRight, FileText, Briefcase, Building2, Star, Monitor, Palette, Megaphone, Wallet, Users, TrendingUp, Bot, FolderKanban, Settings, HeartPulse, Newspaper, BookOpen, Ship, Folder } from "lucide-react";
 import EmptyState from '@/components/ui/EmptyState'
+import { SkeletonJobCard } from '@/components/ui/Skeleton'
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -162,7 +163,7 @@ export function FeaturedJobsSection({ jobs, loading }) {
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {loading ? (
-            [1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-40 rounded-xl bg-slate-100 animate-pulse" />)
+            [1, 2, 3, 4, 5, 6].map(i => <SkeletonJobCard key={i} />)
           ) : jobs.length === 0 ? (
             <EmptyState
               icon={Briefcase}

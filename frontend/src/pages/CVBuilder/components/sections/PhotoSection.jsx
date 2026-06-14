@@ -23,8 +23,7 @@ export function PhotoSection({ photo, onChange }) {
       <div className="flex items-center gap-4">
         {/* Preview */}
         <div
-          className="w-20 h-20 rounded-full border-2 border-dashed border-[#CBD5E1] bg-[#F8FAFC] flex items-center justify-center shrink-0 overflow-hidden"
-          style={{ minWidth: 80 }}
+          className="w-20 h-20 rounded-full border-2 border-dashed border-[#CBD5E1] bg-[#F8FAFC] flex items-center justify-center shrink-0 overflow-hidden min-w-20"
         >
           {photo ? (
             <img

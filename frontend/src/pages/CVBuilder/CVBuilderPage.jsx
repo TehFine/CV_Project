@@ -176,8 +176,7 @@ export default function CVBuilderPage() {
 
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 border-[#E2E8F0] text-xs">
-              <Save className="h-3.5 w-3.5" />
-              {saving ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang lưu...</> : saved ? <><CheckCircle2 className="h-3.5 w-3.5" /> Đã lưu</> : <><Save className="h-3.5 w-3.5" />{isAuthenticated ? 'Lưu' : 'Lưu'}</>}
+              {saving ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang lưu...</> : saved ? <><CheckCircle2 className="h-3.5 w-3.5" /> Đã lưu</> : <><Save className="h-3.5 w-3.5" />Lưu</>}
             </Button>
 
             {/* Export button — always re-checks current cv state */}
@@ -230,11 +229,11 @@ export default function CVBuilderPage() {
 
         {/* Split view (default) */}
         {view === 'split' && (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(300px,650px)] gap-5 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_500px] gap-5 items-start">
             <div className="space-y-0 overflow-y-auto max-h-[calc(100vh-12rem)] lg:max-h-[calc(100vh-9rem)] pr-1">
               <EditorPanel cv={cv} onChange={handleCvChange} />
             </div>
-            <div className="lg:sticky lg:top-[7rem] overflow-auto max-h-none lg:max-h-[calc(100vh-9rem)] rounded-xl shadow-xl ring-1 ring-[#E2E8F0]">
+            <div className="hidden lg:block lg:sticky lg:top-28 overflow-auto max-h-none lg:max-h-[calc(100vh-9rem)] rounded-xl shadow-xl ring-1 ring-[#E2E8F0]">
               <CVPreview cv={cv} />
             </div>
           </div>
@@ -247,7 +246,7 @@ export default function CVBuilderPage() {
         )}
 
         {view === 'preview' && (
-          <div className="max-w-full lg:max-w-[780px] mx-auto shadow-xl rounded-xl overflow-hidden ring-1 ring-[#E2E8F0]">
+          <div className="max-w-full lg:max-w-195 mx-auto shadow-xl rounded-xl overflow-hidden ring-1 ring-[#E2E8F0]">
             <CVPreview cv={cv} />
           </div>
         )}

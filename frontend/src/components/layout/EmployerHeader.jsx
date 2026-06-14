@@ -116,7 +116,7 @@ export default function EmployerHeader() {
             : "bg-transparent border-b border-transparent shadow-none"
         )}
       >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-6">
 
           {/* Logo */}
           <Logo
