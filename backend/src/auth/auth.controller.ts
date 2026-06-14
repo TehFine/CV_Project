@@ -6,7 +6,6 @@ import {
   UseGuards,
   Request,
   Patch,
-  Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto, UpdateProfileDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto';
