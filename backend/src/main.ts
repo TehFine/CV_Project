@@ -3,8 +3,12 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LogInterceptor } from './common/log.interceptor';
+import * as dns from 'dns';
 
 async function bootstrap() {
+  // Override DNS resolvers to bypass local ISP router DNS issues with MongoDB Atlas SRV
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+  
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 

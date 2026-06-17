@@ -653,6 +653,62 @@ export const SKILL_WEIGHTS: Record<string, Record<string, number>> = {
 };
 
 // ─────────────────────────────────────────────
+// 3.5. INDUSTRY WEIGHT CONFIG
+// ─────────────────────────────────────────────
+
+export const INDUSTRY_WEIGHT_CONFIG: Record<string, {
+  priority: string[];
+  secondary: string[];
+  description: string;
+}> = {
+  backend: {
+    priority: ['database design', 'API design', 'scalability', 'system architecture', 'microservices', 'caching', 'security'],
+    secondary: ['CSS', 'UI/UX', 'frontend styling'],
+    description: 'Cực kỳ coi trọng thiết kế cơ sở dữ liệu (database design), thiết kế API, khả năng mở rộng hệ thống (scalability), kiến trúc microservices và bảo mật hơn là giao diện hoặc CSS.',
+  },
+  frontend: {
+    priority: ['UX/UI', 'web performance', 'accessibility (WCAG)', 'state management', 'responsive design', 'single page application'],
+    secondary: ['DevOps', 'CI/CD', 'backend databases'],
+    description: 'Coi trọng trải nghiệm người dùng (UX), tối ưu hiệu năng front-end (web performance), khả năng tiếp cận (accessibility), responsive design hơn là hạ tầng DevOps hoặc thiết kế cơ sở dữ liệu.',
+  },
+  data: {
+    priority: ['math/statistics background', 'Python', 'model deployment', 'machine learning', 'deep learning', 'data engineering', 'NLP/LLM', 'RAG'],
+    secondary: ['UI design', 'CSS styling', 'frontend framework'],
+    description: 'Cực kỳ coi trọng nền tảng toán học/thống kê, kỹ năng Python, huấn luyện và triển khai mô hình (model deployment), kỹ năng xử lý dữ liệu lớn hơn là thiết kế giao diện UI/CSS.',
+  },
+  devops: {
+    priority: ['CI/CD pipelines', 'containerization (Docker/Kubernetes)', 'monitoring & logging', 'infrastructure as code (IaC)', 'cloud security'],
+    secondary: ['frontend programming', 'UI/UX layout', 'web development framework'],
+    description: 'Tập trung cao độ vào quy trình CI/CD, đóng gói containerization (Docker/Kubernetes), giám sát hệ thống (monitoring & logging), hạ tầng dạng mã (IaC) hơn là lập trình front-end hoặc thiết kế UI.',
+  },
+  mobile: {
+    priority: ['mobile performance', 'state management', 'offline storage/sync', 'push notifications', 'native bridge', 'app store deployment'],
+    secondary: ['DevOps pipelines', 'backend architecture'],
+    description: 'Coi trọng hiệu năng ứng dụng di động, quản lý trạng thái, lưu trữ offline/đồng bộ hóa dữ liệu, thông báo đẩy và triển khai lên App Store/Google Play hơn là hạ tầng DevOps.',
+  },
+  tester: {
+    priority: ['test planning/strategy', 'automation test framework', 'API testing', 'bug reporting', 'performance/load testing', 'QA/QC processes'],
+    secondary: ['UI layout design', 'complex database design'],
+    description: 'Coi trọng lập kế hoạch kiểm thử, phát triển framework kiểm thử tự động, kiểm thử API và quy trình đảm bảo chất lượng phần mềm (QA/QC) hơn là thiết kế UI hoặc thiết kế database phức tạp.',
+  },
+  design: {
+    priority: ['Figma prototyping', 'design systems', 'user research', 'wireframing', 'UX flow optimization', 'UI visual details'],
+    secondary: ['CI/CD pipelines', 'server configuration'],
+    description: 'Tập trung cao độ vào công cụ thiết kế (Figma), xây dựng Design System, nghiên cứu người dùng, luồng UX và chi tiết giao diện trực quan hơn là lập trình hoặc cấu hình máy chủ.',
+  },
+  management: {
+    priority: ['Agile/Scrum processes', 'product roadmap', 'requirement gathering (BA)', 'stakeholder management', 'sprint planning', 'risk management'],
+    secondary: ['writing code', 'database optimization'],
+    description: 'Coi trọng quản trị dự án theo Agile/Scrum, hoạch định lộ trình sản phẩm, phân tích yêu cầu (BA) và quản lý các bên liên quan hơn là trực tiếp lập trình hoặc tối ưu hóa cơ sở dữ liệu.',
+  },
+  marketing: {
+    priority: ['SEO/SEM optimization', 'data analytics (GA4/Mixpanel)', 'campaign strategy', 'content copywriting', 'conversion rate optimization (CRO)'],
+    secondary: ['software programming', 'system administration'],
+    description: 'Coi trọng tối ưu hóa tìm kiếm SEO/SEM, phân tích số liệu chiến dịch (GA4), chiến lược nội dung và tối ưu tỷ lệ chuyển đổi hơn là lập trình phần mềm hay quản trị hệ thống.',
+  },
+};
+
+// ─────────────────────────────────────────────
 // 4. EXPERIENCE LEVEL PATTERNS
 // ─────────────────────────────────────────────
 

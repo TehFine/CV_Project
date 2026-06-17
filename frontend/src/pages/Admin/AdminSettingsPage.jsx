@@ -89,11 +89,9 @@ export default function AdminSettingsPage() {
         return // Don't show success toast if any section failed
       }
 
-      // Refresh local state from backend response (first success result)
-      const firstOk = results.find(r => r.status === 'fulfilled')
-      if (firstOk?.value) {
-        setSettings(firstOk.value)
-      }
+      // Fetch lại từ DB thay vì dùng response của section đầu tiên
+      const freshSettings = await adminService.getSettings()
+      setSettings(freshSettings?.data || freshSettings)
 
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
@@ -335,7 +333,7 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Dung lượng file tối đa (MB)</Label>
-                    <Input type="number" value={settings.ai.maxFileSizeMB} onChange={e => updateSetting('ai', 'maxFileSizeMB', e.target.value)}
+                    <Input type="number" value={settings.ai.maxFileSizeMB} onChange={e => updateSetting('ai', 'maxFileSizeMB', parseInt(e.target.value, 10) || 1)}
                       className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('ai.maxFileSizeMB') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
                     {settingsErrors['ai.maxFileSizeMB'] && (
                       <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
@@ -345,7 +343,7 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Giới hạn chấm điểm / ngày</Label>
-                    <Input type="number" value={settings.ai.dailyScoreLimit} onChange={e => updateSetting('ai', 'dailyScoreLimit', e.target.value)}
+                    <Input type="number" value={settings.ai.dailyScoreLimit} onChange={e => updateSetting('ai', 'dailyScoreLimit', parseInt(e.target.value, 10) || 1)}
                       className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('ai.dailyScoreLimit') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
                     {settingsErrors['ai.dailyScoreLimit'] && (
                       <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
@@ -373,7 +371,7 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Số tin tối đa / Nhà tuyển dụng</Label>
-                    <Input type="number" value={settings.jobs.maxJobsPerEmployer} onChange={e => updateSetting('jobs', 'maxJobsPerEmployer', e.target.value)}
+                    <Input type="number" value={settings.jobs.maxJobsPerEmployer} onChange={e => updateSetting('jobs', 'maxJobsPerEmployer', parseInt(e.target.value, 10) || 1)}
                       className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('jobs.maxJobsPerEmployer') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
                     {settingsErrors['jobs.maxJobsPerEmployer'] && (
                       <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
@@ -383,7 +381,7 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Thời gian hiển thị tin (Ngày)</Label>
-                    <Input type="number" value={settings.jobs.jobExpiryDays} onChange={e => updateSetting('jobs', 'jobExpiryDays', e.target.value)}
+                    <Input type="number" value={settings.jobs.jobExpiryDays} onChange={e => updateSetting('jobs', 'jobExpiryDays', parseInt(e.target.value, 10) || 1)}
                       className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('jobs.jobExpiryDays') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
                     {settingsErrors['jobs.jobExpiryDays'] && (
                       <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
@@ -418,7 +416,7 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Số CV đã lưu tối đa / Ứng viên</Label>
-                    <Input type="number" value={settings.users.maxSavedJobs} onChange={e => updateSetting('users', 'maxSavedJobs', +e.target.value)}
+                    <Input type="number" value={settings.users.maxSavedJobs} onChange={e => updateSetting('users', 'maxSavedJobs', parseInt(e.target.value, 10) || 1)}
                       className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('users.maxSavedJobs') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
                     {settingsErrors['users.maxSavedJobs'] && (
                       <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
@@ -439,7 +437,7 @@ export default function AdminSettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Độ dài mật khẩu tối thiểu</Label>
-                    <Input type="number" value={settings.security?.passwordMinLength ?? 6} onChange={e => updateSetting('security', 'passwordMinLength', +e.target.value)}
+                    <Input type="number" value={settings.security?.passwordMinLength ?? 6} onChange={e => updateSetting('security', 'passwordMinLength', parseInt(e.target.value, 10) || 1)}
                       className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('security.passwordMinLength') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
                     {settingsErrors['security.passwordMinLength'] && (
                       <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
@@ -449,7 +447,7 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Số lần đăng nhập sai tối đa</Label>
-                    <Input type="number" value={settings.security?.maxLoginAttempts ?? 5} onChange={e => updateSetting('security', 'maxLoginAttempts', +e.target.value)}
+                    <Input type="number" value={settings.security?.maxLoginAttempts ?? 5} onChange={e => updateSetting('security', 'maxLoginAttempts', parseInt(e.target.value, 10) || 1)}
                       className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('security.maxLoginAttempts') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
                     {settingsErrors['security.maxLoginAttempts'] && (
                       <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">
@@ -459,7 +457,7 @@ export default function AdminSettingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-bold text-slate-700 ml-1">Thời gian hết phiên (Phút)</Label>
-                    <Input type="number" value={settings.security?.sessionTimeoutMin ?? 60} onChange={e => updateSetting('security', 'sessionTimeoutMin', +e.target.value)}
+                    <Input type="number" value={settings.security?.sessionTimeoutMin ?? 60} onChange={e => updateSetting('security', 'sessionTimeoutMin', parseInt(e.target.value, 10) || 1)}
                       className={`rounded-2xl h-12 bg-slate-50 border-none px-5 ${hasError('security.sessionTimeoutMin') ? 'ring-2 ring-red-300 bg-red-50' : ''}`} />
                     {settingsErrors['security.sessionTimeoutMin'] && (
                       <p className="flex items-center gap-1 text-[11px] font-semibold text-red-500 mt-1 ml-1">

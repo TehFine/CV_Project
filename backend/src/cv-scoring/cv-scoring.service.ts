@@ -7,6 +7,9 @@ import { JobDocument } from '../jobs/schemas/job.schema';
 import { CvScore, CvScoreDocument } from './schemas/cv-score.schema';
 import {
   ROLE_MAPPING,
+  ROLE_KNOWLEDGE_BASE,
+  SKILL_WEIGHTS,
+  INDUSTRY_WEIGHT_CONFIG,
   analyzeCVLocal,
   CVAnalysisResult,
 } from './constants/knowledge-base';
@@ -307,11 +310,80 @@ export class CvScoringService {
     return Math.max(1, Math.min(10, Math.round(rawScore)));
   }
 
+  private detectRole(cvText: string, jobContext?: JobDocument, targetPosition?: string): string {
+    const textToSearch = `${jobContext?.title || ''} ${targetPosition || ''} ${jobContext?.description || ''}`.toLowerCase();
+    
+    // First, look for matches in the job context or target position
+    for (const [key, mappedVal] of Object.entries(ROLE_MAPPING)) {
+      if (textToSearch.includes(key)) {
+        return Array.isArray(mappedVal) ? mappedVal[0] : mappedVal;
+      }
+    }
+
+    // If not found, scan the CV text
+    const cvLower = cvText.toLowerCase();
+    const roleCounts: Record<string, number> = {};
+
+    for (const [key, mappedVal] of Object.entries(ROLE_MAPPING)) {
+      const roles = Array.isArray(mappedVal) ? mappedVal : [mappedVal];
+      // Count frequency of this role term in CV
+      const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const matches = cvLower.match(new RegExp(`\\b${escapedKey}\\b`, 'gi'));
+      if (matches) {
+        for (const role of roles) {
+          roleCounts[role] = (roleCounts[role] || 0) + matches.length;
+        }
+      }
+    }
+
+    // Find highest frequency role
+    let bestRole = 'backend'; // default fallback
+    let maxCount = 0;
+    for (const [role, count] of Object.entries(roleCounts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        bestRole = role;
+      }
+    }
+    return bestRole;
+  }
+
+  private getTopKeywords(role: string): string[] {
+    const keywords = ROLE_KNOWLEDGE_BASE[role] || [];
+    const weights = SKILL_WEIGHTS[role] || {};
+    
+    // Sort keywords: higher weight first, fallback to 1 if not in weights
+    const sorted = [...keywords].sort((a, b) => {
+      const weightA = weights[a] || 1;
+      const weightB = weights[b] || 1;
+      return weightB - weightA;
+    });
+
+    return sorted.slice(0, 10);
+  }
+
+  buildIndustryWeightedPrompt(
+    cvText: string,
+    role: string,
+    jobContext?: JobDocument,
+  ): string {
+    const config = INDUSTRY_WEIGHT_CONFIG[role];
+    if (!config) return '';
+
+    return `
+### TIÊU CHÍ ƯU TIÊN THEO NGÀNH NGHỀ (${role.toUpperCase()}):
+- ${config.description}
+- Kỹ năng/Công nghệ/Kế hoạch được ĐÁNH GIÁ CAO (Trọng số cao): ${config.priority.join(', ')}
+- Kỹ năng/Công nghệ được xem là THỨ YẾU/PHỤ TRỢ (Trọng số thấp): ${config.secondary.join(', ')}
+- Hãy đặc biệt lưu ý: đánh giá mức độ thành thạo thực sự dựa trên sự xuất hiện và mô tả các kỹ năng trọng yếu trong các dự án thực tế, không chỉ dựa trên danh sách liệt kê.
+`;
+  }
+
   async scoreCV(
     pdfBuffer: Buffer,
     job: JobDocument,
     candidateId?: string,
-  ): Promise<{ score: number; review: string; reused?: boolean }> {
+  ): Promise<any> {
     const fileName = 'uploaded_cv.pdf'; // Default or from file if available
 
     // 1. Check for existing score from candidate for this job
@@ -329,7 +401,7 @@ export class CvScoringService {
         });
 
         // Generate contextual evaluation based on existing analysis
-        const employerReview = await this.generateEmployerContext(
+        const employerContext = await this.generateEmployerContext(
           existing.analysis,
           job,
         );
@@ -337,8 +409,9 @@ export class CvScoringService {
         // Save generated recruiter review back into the score model
         existing.analysis = {
           ...(existing.analysis || {}),
-          review: employerReview,
-          feedback: employerReview,
+          review: employerContext.evaluation || existing.analysis.review || 'Đã duyệt qua hồ sơ',
+          feedback: employerContext.evaluation || existing.analysis.feedback || 'Đã duyệt qua hồ sơ',
+          employer_insight: employerContext.employer_insight,
         };
         existing.markModified('analysis');
         existing.type = 'employer_match';
@@ -351,8 +424,9 @@ export class CvScoringService {
         );
 
         return {
+          ...existing.analysis,
           score: existing.score || 0,
-          review: employerReview,
+          review: existing.analysis.review,
           reused: true,
         };
       }
@@ -365,71 +439,140 @@ export class CvScoringService {
 
     // Step 2: Use Gemini for deep analysis
     if (this.geminiApiKey) {
+      const detectedRole = this.detectRole(cvText, job);
+      const topKeywords = this.getTopKeywords(detectedRole);
+      const industryWeightedPrompt = this.buildIndustryWeightedPrompt(cvText, detectedRole, job);
+
       const prompt = `
-Bạn là một chuyên gia tuyển dụng nhân sự.Hãy đánh giá CV của ứng viên so với yêu cầu công việc.
+Bạn là một Head of Talent Acquisition với 10 năm kinh nghiệm tuyển dụng IT. Hãy đánh giá CV của ứng viên so với yêu cầu công việc cụ thể dành cho NHÀ TUYỂN DỤNG dưới góc độ TRI THỨC chuyên ngành.
 
-Mô tả công việc: ${job.description || 'N/A'}
-Nội dung CV: ${cvText}
+---
+### BỐI CẢNH & THÔNG TIN TUYỂN DỤNG:
+- Vị trí tuyển dụng: ${job.title}
+- Mô tả công việc (JD): ${job.description || 'N/A'}
+${job.requirements && job.requirements.length > 0 ? `- Yêu cầu công việc:\n  + ${job.requirements.join('\n  + ')}` : ''}
+${job.tags && job.tags.length > 0 ? `- Từ khóa cốt lõi của JD: ${job.tags.join(', ')}` : ''}
 
-Trả về JSON theo cấu trúc sau:
-        {
-          "score": (số từ 1 - 10),
-          "review": "đoạn văn tiếng Việt nhận xét ngắn gọn"
-        }
-        `;
+---
+### NGUYÊN TẮC SUY LUẬN TRI THỨC (BẮT BUỘC):
+1. **Kiểm tra tính hợp lệ của CV (Spam Check)**: Kiểm tra xem văn bản dưới đây có THỰC SỰ là một bản Sơ yếu lý lịch (CV/Resume) hay không. Nếu văn bản là rác, bài báo, tài liệu linh tinh, hãy trả về JSON với "isValidCv": false và nêu rõ lý do tại "spamReason".
+2. **Kỹ năng thực dùng vs. Chỉ liệt kê**: 
+   - Kỹ năng CÓ DÙNG THẬT: xuất hiện trực tiếp trong phần mô tả công việc, dự án cụ thể, có vai trò, đóng góp hoặc kết quả rõ ràng.
+   - Kỹ năng CHỈ LIỆT KÊ: Chỉ ghi ở phần "Kỹ năng/Skills" mà không được nhắc đến hay chứng minh trong bất kỳ dự án hoặc kinh nghiệm thực tế nào.
+   - Hãy phân tích và phân loại rõ ràng trong trường "skill_analysis".
+3. **Suy ra LEVEL thực tế (Intern / Fresher / Junior / Middle / Senior / Lead)**: 
+   - Đánh giá dựa trên độ phức tạp của công việc đã làm, kiến trúc hệ thống, mức độ tự chủ trong công việc và các quyết định kỹ thuật đã đưa ra, CHỨ KHÔNG DỰA VÀO số năm kinh nghiệm ghi trong CV.
+   - Nêu rõ lý do xác định level này trong phần "level_assessment_reason".
+4. **Nhận xét chất lượng dự án (Project Quality)**: Đánh giá quy mô dự án (lượng user, traffic, database size, complexity), công nghệ sử dụng, vai trò của ứng viên (lead, key member, support) và các đóng góp có rõ ràng, đo lường được bằng số liệu không.
+5. **Đề xuất 3 vị trí phù hợp nhất**: Đề xuất 3 vị trí IT phù hợp nhất với năng lực hiện tại của ứng viên.
+6. **Insight cho nhà tuyển dụng (employer_insight)**:
+   - "hire_recommendation": Trả về một trong ba giá trị: "Nên mời phỏng vấn", "Cân nhắc", hoặc "Không phù hợp".
+   - "interview_focus": Đưa ra danh sách 2-4 câu hỏi/chủ đề kỹ thuật cần tập trung xoáy sâu khi phỏng vấn ứng viên này (ví dụ: hỏi về những điểm nghi vấn trong CV, hoặc kiểm tra sâu kỹ năng thế mạnh/kỹ năng chỉ liệt kê).
+   - "onboarding_risk": Nêu rõ rủi ro/khó khăn có thể gặp phải nếu tuyển dụng ứng viên này (ví dụ: thiếu kinh nghiệm thực tế với cloud, thiếu tư duy thiết kế hệ thống, cần training thêm mảng bảo mật...).
+
+---
+### TIÊU CHÍ ĐÁNH GIÁ ƯU TIÊN VỊ TRÍ ${detectedRole.toUpperCase()}:
+Với vị trí này, các kỹ năng cốt lõi cần đánh giá ưu tiên là: ${topKeywords.join(', ')}. Hãy chú trọng đánh giá mức độ thành thạo thực sự của ứng viên với các kỹ năng này.
+${industryWeightedPrompt}
+
+---
+### NỘI DUNG VĂN BẢN CV CỦA ỨNG VIÊN:
+${cvText}
+
+---
+### YÊU CẦU OUTPUT:
+Hãy phân tích và trả về kết quả dưới dạng JSON duy nhất, khớp chính xác cấu trúc sau. Nhận xét và phản hồi phải bằng tiếng Việt.
+
+{
+  "isValidCv": true,
+  "spamReason": "",
+  "overall": (số từ 1-100 đại diện cho điểm tổng quan phù hợp với JD hoặc vị trí ứng tuyển),
+  "grade": "A/B/C/D",
+  "gradeLabel": "Tốt/Khá/Trung bình/Yếu",
+  "level_assessment": "Intern / Fresher / Junior / Middle / Senior / Lead",
+  "level_assessment_reason": "Lý do xác định level dựa trên độ phức tạp công việc đã làm",
+  "recommended_roles": ["Vị trí phù hợp nhất 1", "Vị trí phù hợp nhất 2", "Vị trí phù hợp nhất 3"],
+  "project_quality": "Nhận xét chất lượng dự án: quy mô, công nghệ, vai trò đóng góp có rõ ràng không",
+  "skill_analysis": {
+    "used_in_projects": ["kỹ năng/công nghệ có dùng thực sự trong dự án/mô tả công việc"],
+    "listed_only": ["kỹ năng/công nghệ chỉ liệt kê ở phần kỹ năng mà không thấy dùng trong dự án"]
+  },
+  "strengths": ["điểm mạnh thực tế 1", "điểm mạnh thực tế 2"],
+  "improvements": ["điểm cần cải thiện/học thêm 1", "điểm cần cải thiện/học thêm 2"],
+  "review": "Bản nhận xét tổng quan ngắn gọn về CV dưới góc nhìn nhà tuyển dụng (tiếng Việt, từ 3-5 câu)",
+  "categories": [
+    {
+      "key": "skills_match",
+      "label": "Kỹ năng phù hợp",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi chi tiết về sự phù hợp kỹ năng",
+      "suggestions": ["Gợi ý cải thiện kỹ năng 1", "Gợi ý 2"]
+    },
+    {
+      "key": "experience",
+      "label": "Kinh nghiệm làm việc",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi chi tiết về kinh nghiệm và độ phức tạp công việc đã làm",
+      "suggestions": ["Gợi ý cải thiện kinh nghiệm 1", "Gợi ý 2"]
+    },
+    {
+      "key": "education",
+      "label": "Học vấn & Chứng chỉ",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi chi tiết về học vấn, ngành học và chứng chỉ chuyên môn",
+      "suggestions": ["Gợi ý học tập/lấy chứng chỉ 1"]
+    },
+    {
+      "key": "format",
+      "label": "Định dạng & Trình bày",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi chi tiết về bố cục, ngữ pháp, độ dài CV",
+      "suggestions": ["Gợi ý trình bày 1"]
+    },
+    {
+      "key": "keywords",
+      "label": "Từ khóa & ATS",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi về mức độ bao phủ từ khóa so với vị trí/JD",
+      "suggestions": ["Gợi ý bổ sung từ khóa cốt lõi 1"]
+    }
+  ],
+  "employer_insight": {
+    "hire_recommendation": "Nên mời phỏng vấn / Cân nhắc / Không phù hợp",
+    "interview_focus": ["Điểm cần hỏi sâu khi phỏng vấn 1", "Điểm 2"],
+    "onboarding_risk": "Rủi ro nếu tuyển: ứng viên có thể thiếu gì"
+  }
+}
+`;
       const responseText = await this.callGemini(prompt);
       if (responseText) {
         try {
           const cleaned = responseText
-            .replace(/^```json\s * /i, '')
-            .replace(/\s * ```$/i, '');
+            .replace(/^```json\s*/i, '')
+            .replace(/\s*```$/i, '');
           const parsed = JSON.parse(cleaned);
-          const aiScore = parsed.score ? Number(parsed.score) : localScore;
 
+          if (parsed.isValidCv === false) {
+            throw new Error(
+              `SPAM_CV:${parsed.spamReason || 'Tài liệu tải lên không giống một bản CV hợp lệ. Vui lòng kiểm tra lại.'}`,
+            );
+          }
+
+          const aiScore = parsed.overall ? parsed.overall / 10 : localScore;
           const finalScore = Math.max(1, Math.min(10, Math.round(aiScore)));
           const review = parsed.review || 'Không có nhận xét chi tiết từ AI.';
 
-          if (candidateId) {
-            const overall = finalScore * 10;
-            const mockAnalysis = {
-              overall,
-              grade:
-                overall >= 85
-                  ? 'A'
-                  : overall >= 70
-                    ? 'B'
-                    : overall >= 55
-                      ? 'C'
-                      : 'D',
-              gradeLabel:
-                overall >= 85
-                  ? 'Tốt'
-                  : overall >= 70
-                    ? 'Khá'
-                    : overall >= 55
-                      ? 'Trung bình'
-                      : 'Yếu',
-              strengths: [
-                'Đáp ứng tốt yêu cầu kỹ năng công việc',
-                'Có kinh nghiệm chuyên môn tương đương',
-              ],
-              improvements: [
-                'Cần rà soát và bổ sung chi tiết theo yêu cầu tuyển dụng',
-              ],
-              review,
-              feedback: review,
-              categories: [
-                { key: 'skills_match', label: 'Kỹ năng', score: overall },
-                { key: 'experience', label: 'Kinh nghiệm', score: overall },
-                { key: 'education', label: 'Học vấn', score: overall },
-                { key: 'format', label: 'Trình bày', score: overall },
-                { key: 'keywords', label: 'Từ khóa ATS', score: overall },
-              ],
-            };
+          const finalResult = {
+            id: 'cv_score_' + Date.now(),
+            fileName,
+            scoredAt: new Date().toISOString(),
+            ...parsed,
+          };
 
+          if (candidateId) {
             const saved = await this.saveScore(
               candidateId,
-              mockAnalysis,
+              finalResult,
               'employer_match',
               (job as any)._id.toString(),
               'employer_uploaded.pdf',
@@ -443,14 +586,19 @@ Trả về JSON theo cấu trúc sau:
               },
               { aiScoreId: saved._id, cvId: saved._id.toString() },
             );
+            finalResult.id = saved._id.toString();
           }
 
           return {
             score: finalScore,
             review,
+            ...finalResult,
           };
         } catch (parseError) {
-          this.logger.fail('Parse JSON từ Gemini thất bại', {
+          if (parseError.message && parseError.message.startsWith('SPAM_CV:')) {
+            throw new Error(parseError.message.replace('SPAM_CV:', ''));
+          }
+          this.logger.fail('Parse JSON từ Gemini thất bại (employer)', {
             action: 'score_cv',
             error: parseError.message,
           });
@@ -465,38 +613,42 @@ Trả về JSON theo cấu trúc sau:
     const matchPercentage = Math.round((localScore / 10) * 100);
     const fallbackReview = `Đánh giá tự động: CV của ứng viên khớp khoảng ${matchPercentage}% từ khóa yêu cầu của công việc.`;
 
-    if (candidateId) {
-      const overall = localScore * 10;
-      const mockAnalysis = {
-        overall,
-        grade:
-          overall >= 85 ? 'A' : overall >= 70 ? 'B' : overall >= 55 ? 'C' : 'D',
-        gradeLabel:
-          overall >= 85
-            ? 'Tốt'
-            : overall >= 70
-              ? 'Khá'
-              : overall >= 55
-                ? 'Trung bình'
-                : 'Yếu',
-        strengths: ['Khớp từ khóa tốt'],
-        improvements: [
-          'Cần rà soát và bổ sung chi tiết theo yêu cầu tuyển dụng',
-        ],
-        review: fallbackReview,
-        feedback: fallbackReview,
-        categories: [
-          { key: 'skills_match', label: 'Kỹ năng', score: overall },
-          { key: 'experience', label: 'Kinh nghiệm', score: overall },
-          { key: 'education', label: 'Học vấn', score: overall },
-          { key: 'format', label: 'Trình bày', score: overall },
-          { key: 'keywords', label: 'Từ khóa ATS', score: overall },
-        ],
-      };
+    const overall = localScore * 10;
+    const fallbackResult = {
+      isValidCv: true,
+      spamReason: '',
+      overall,
+      grade: overall >= 85 ? 'A' : overall >= 70 ? 'B' : overall >= 55 ? 'C' : 'D',
+      gradeLabel: overall >= 85 ? 'Tốt' : overall >= 70 ? 'Khá' : overall >= 55 ? 'Trung bình' : 'Yếu',
+      level_assessment: 'Junior',
+      level_assessment_reason: 'Xác định tự động qua từ khóa cục bộ',
+      recommended_roles: [job.title],
+      project_quality: 'Chưa thể đánh giá chi tiết qua fallback cục bộ',
+      skill_analysis: {
+        used_in_projects: [],
+        listed_only: []
+      },
+      strengths: ['Khớp từ khóa tốt'],
+      improvements: ['Cần rà soát và bổ sung chi tiết theo yêu cầu tuyển dụng'],
+      review: fallbackReview,
+      categories: [
+        { key: 'skills_match', label: 'Kỹ năng', score: overall },
+        { key: 'experience', label: 'Kinh nghiệm', score: overall },
+        { key: 'education', label: 'Học vấn', score: overall },
+        { key: 'format', label: 'Trình bày', score: overall },
+        { key: 'keywords', label: 'Từ khóa ATS', score: overall },
+      ],
+      employer_insight: {
+        hire_recommendation: overall >= 70 ? 'Cân nhắc' : 'Không phù hợp',
+        interview_focus: ['Kiểm tra các kỹ năng thực tế dự án'],
+        onboarding_risk: 'Cần đánh giá kỹ lưỡng hơn do dùng hệ thống tự động fallback'
+      }
+    };
 
+    if (candidateId) {
       const saved = await this.saveScore(
         candidateId,
-        mockAnalysis,
+        fallbackResult,
         'employer_match',
         (job as any)._id.toString(),
         'employer_uploaded.pdf',
@@ -518,41 +670,67 @@ Trả về JSON theo cấu trúc sau:
   async generateEmployerContext(
     existingAnalysis: any,
     job: JobDocument,
-  ): Promise<string> {
+  ): Promise<any> {
     if (!existingAnalysis) {
-      return 'Không có dữ liệu phân tích trước đó cho ứng viên này. Tiến hành chấm điểm mới...';
+      return {
+        evaluation: 'Không có dữ liệu phân tích trước đó cho ứng viên này. Tiến hành chấm điểm mới...',
+        employer_insight: {
+          hire_recommendation: 'Cân nhắc',
+          interview_focus: ['Kiểm tra các dự án thực tế'],
+          onboarding_risk: 'Thiếu thông tin chi tiết'
+        }
+      };
     }
     const prompt = `
-Bạn là một chuyên gia tuyển dụng.Dưới đây là kết quả phân tích CV của một ứng viên cho vị trí: ${job.title}.
+Bạn là một Head of Talent Acquisition với 10 năm kinh nghiệm tuyển dụng IT. Dưới đây là kết quả phân tích CV của một ứng viên cho vị trí: ${job.title}.
 
 Dữ liệu phân tích hiện có:
-        - Điểm tổng quát: ${existingAnalysis.overall || existingAnalysis.score}/100
-          - Điểm mạnh: ${existingAnalysis.strengths?.join(', ') || 'Không có dữ liệu'}
-        - Cần cải thiện: ${existingAnalysis.improvements?.join(', ') || 'Không có dữ liệu'}
-        - Nhận xét chi tiết: ${existingAnalysis.categories?.map((c) => c.feedback).join('; ') || 'Không có dữ liệu'}
+- Điểm tổng quát: ${existingAnalysis.overall || existingAnalysis.score}/100
+- Điểm mạnh: ${existingAnalysis.strengths?.join(', ') || 'Không có dữ liệu'}
+- Cần cải thiện: ${existingAnalysis.improvements?.join(', ') || 'Không có dữ liệu'}
+- Nhận xét chi tiết: ${existingAnalysis.categories?.map((c) => c.feedback).join('; ') || 'Không có dữ liệu'}
 
-Hãy viết một bản đánh giá ngắn gọn(khoảng 3 - 4 câu, tiếng Việt) dành riêng cho Nhà tuyển dụng. 
-Tập trung vào việc: Tại sao ứng viên này phù hợp(hoặc không phù hợp) với vị trí này và điều gì nhà tuyển dụng nên lưu ý khi phỏng vấn.
-
-Hãy trả về JSON theo định dạng chính xác sau:
-        {
-          "evaluation": "nội dung đánh giá cụ thể"
-        }
-        `;
+Hãy viết một bản đánh giá và phân tích dành riêng cho Nhà tuyển dụng.
+Trả về JSON theo định dạng chính xác sau (vui lòng phản hồi bằng tiếng Việt):
+{
+  "evaluation": "nội dung đánh giá cụ thể (khoảng 3-4 câu, tiếng Việt)",
+  "employer_insight": {
+    "hire_recommendation": "Nên mời phỏng vấn / Cân nhắc / Không phù hợp",
+    "interview_focus": ["Điểm cần hỏi sâu khi phỏng vấn 1", "Điểm 2"],
+    "onboarding_risk": "Rủi ro nếu tuyển: ứng viên có thể thiếu gì"
+  }
+}
+`;
     const result = await this.callGemini(prompt);
     if (result) {
       try {
         const cleaned = result
-          .replace(/^```json\s * /i, '')
-          .replace(/\s * ```$/i, '');
+          .replace(/^```json\s*/i, '')
+          .replace(/\s*```$/i, '');
         const parsed = JSON.parse(cleaned);
-        return parsed.evaluation || parsed.review || parsed.text || cleaned;
+        return {
+          evaluation: parsed.evaluation || parsed.review || parsed.text || 'Nhận xét tự động từ AI.',
+          employer_insight: parsed.employer_insight || {
+            hire_recommendation: 'Cân nhắc',
+            interview_focus: ['Kiểm tra các dự án thực tế trong CV', 'Xác minh các kỹ năng chuyên môn'],
+            onboarding_risk: 'Cần đánh giá thêm trong quá trình thử việc'
+          }
+        };
       } catch (err) {
         this.logger.error('Failed to parse employer context JSON', err);
-        return result;
       }
     }
-    return 'Không thể tạo đánh giá ngữ cảnh. Vui lòng xem xét điểm số gốc của ứng viên.';
+    
+    // Fallback if callGemini fails
+    const scoreVal = existingAnalysis.overall || existingAnalysis.score || 50;
+    return {
+      evaluation: 'Tái sử dụng phân tích hiện tại của ứng viên. Vui lòng xem chi tiết điểm số.',
+      employer_insight: {
+        hire_recommendation: scoreVal >= 80 ? 'Nên mời phỏng vấn' : scoreVal >= 60 ? 'Cân nhắc' : 'Không phù hợp',
+        interview_focus: ['Kiểm tra các dự án thực tế trong CV', 'Kiểm tra mức độ thành thạo kỹ năng cốt lõi'],
+        onboarding_risk: 'Cần xác minh kinh nghiệm thực tế'
+      }
+    };
   }
 
   private evaluateCandidateLocalScore(
@@ -791,38 +969,102 @@ Hãy trả về JSON theo định dạng chính xác sau:
     const cvText = await this.parsePdf(pdfBuffer);
 
     if (this.geminiApiKey) {
+      const detectedRole = this.detectRole(cvText, jobContext, targetPosition);
+      const topKeywords = this.getTopKeywords(detectedRole);
+      const industryWeightedPrompt = this.buildIndustryWeightedPrompt(cvText, detectedRole, jobContext);
+
       const prompt = `
-Bạn là một hệ thống ATS chuyên nghiệp. Trước tiên, hãy kiểm tra xem nội dung văn bản dưới đây có THỰC SỰ là một bản Sơ yếu lý lịch (CV/Resume) hay không.
-Nếu nội dung là rác, spam, sách, báo, bài viết ngẫu nhiên, hoặc tài liệu không liên quan đến xin việc:
-- Hãy trả về JSON có trường "isValidCv": false, "spamReason": "Lý do ngắn gọn". Không cần chấm điểm các trường khác.
+Bạn là một Head of Talent Acquisition với 10 năm kinh nghiệm tuyển dụng IT. Hãy phân tích CV của ứng viên một cách cực kỳ chi tiết, khách quan và chuyên sâu dưới góc độ TRI THỨC chuyên ngành.
 
-Nếu nội dung là CV/Resume hợp lệ, hãy phân tích mức độ phù hợp của CV đó.
-Vị trí: ${jobContext ? jobContext.title : targetPosition}
-${jobContext ? `Mô tả công việc (JD): ${jobContext.description}` : ''}
-${jobContext && jobContext.requirements && jobContext.requirements.length > 0 ? `Yêu cầu công việc:\\n- ${jobContext.requirements.join('\\n- ')}` : ''}
-${jobContext && jobContext.tags && jobContext.tags.length > 0 ? `Từ khóa/Kỹ năng yêu cầu: ${jobContext.tags.join(', ')}` : ''}
+---
+### BỐI CẢNH & THÔNG TIN TUYỂN DỤNG:
+- Vị trí ứng tuyển: ${jobContext ? jobContext.title : targetPosition}
+${jobContext ? `- Mô tả công việc (JD): ${jobContext.description}` : ''}
+${jobContext && jobContext.requirements && jobContext.requirements.length > 0 ? `- Yêu cầu công việc:\n  + ${jobContext.requirements.join('\n  + ')}` : ''}
+${jobContext && jobContext.tags && jobContext.tags.length > 0 ? `- Từ khóa cốt lõi của JD: ${jobContext.tags.join(', ')}` : ''}
 
-Nội dung CV ứng viên:
+---
+### NGUYÊN TẮC SUY LUẬN TRI THỨC (BẮT BUỘC):
+1. **Kiểm tra tính hợp lệ của CV (Spam Check)**: Trước tiên, kiểm tra xem văn bản dưới đây có THỰC SỰ là một bản Sơ yếu lý lịch (CV/Resume) hay không. Nếu văn bản là rác, bài báo, tài liệu linh tinh, hãy trả về JSON với "isValidCv": false và nêu rõ lý do tại "spamReason".
+2. **Kỹ năng thực dùng vs. Chỉ liệt kê**: 
+   - Kỹ năng CÓ DÙNG THẬT: xuất hiện trực tiếp trong phần mô tả công việc, dự án cụ thể, có vai trò, đóng góp hoặc kết quả rõ ràng.
+   - Kỹ năng CHỈ LIỆT KÊ: Chỉ ghi ở phần "Kỹ năng/Skills" mà không được nhắc đến hay chứng minh trong bất kỳ dự án hoặc kinh nghiệm thực tế nào.
+   - Hãy phân tích và phân loại rõ ràng trong trường "skill_analysis".
+3. **Suy ra LEVEL thực tế (Intern / Fresher / Junior / Middle / Senior / Lead)**: 
+   - Đánh giá dựa trên độ phức tạp của công việc đã làm, kiến trúc hệ thống, mức độ tự chủ trong công việc và các quyết định kỹ thuật đã đưa ra, CHỨ KHÔNG DỰA VÀO số năm kinh nghiệm ghi trong CV.
+   - Nêu rõ lý do suy ra level này trong phần "level_assessment_reason".
+4. **Nhận xét chất lượng dự án (Project Quality)**: Đánh giá quy mô dự án (lượng user, traffic, database size, complexity), công nghệ sử dụng, vai trò của ứng viên (lead, key member, support) và các đóng góp có rõ ràng, đo lường được bằng số liệu không.
+5. **Đề xuất 3 vị trí phù hợp nhất**: Đề xuất 3 vị trí IT (job positions) phù hợp nhất với năng lực hiện tại của ứng viên.
+
+---
+### TIÊU CHÍ ĐÁNH GIÁ ƯU TIÊN VỊ TRÍ ${detectedRole.toUpperCase()}:
+Với vị trí này, các kỹ năng cốt lõi cần đánh giá ưu tiên là: ${topKeywords.join(', ')}. Hãy chú trọng đánh giá mức độ thành thạo thực sự của ứng viên với các kỹ năng này.
+${industryWeightedPrompt}
+
+---
+### NỘI DUNG VĂN BẢN CV CỦA ỨNG VIÊN:
 ${cvText}
 
-Hãy trả về JSON theo định dạng sau:
+---
+### YÊU CẦU OUTPUT:
+Hãy phân tích và trả về kết quả dưới dạng JSON duy nhất, khớp chính xác cấu trúc sau. Nhận xét và phản hồi phải bằng tiếng Việt.
+
 {
-  "isValidCv": true/false,
-  "spamReason": "Lý do nếu không phải CV (có thể rỗng)",
-  "overall": (số 1-100),
+  "isValidCv": true,
+  "spamReason": "",
+  "overall": (số từ 1-100 đại diện cho điểm tổng quan phù hợp với JD hoặc vị trí ứng tuyển),
   "grade": "A/B/C/D",
   "gradeLabel": "Tốt/Khá/Trung bình/Yếu",
-  "strengths": ["điểm mạnh 1", "điểm mạnh 2"],
-  "improvements": ["điểm cần sửa 1", "điểm cần sửa 2"],
+  "level_assessment": "Intern / Fresher / Junior / Middle / Senior / Lead",
+  "level_assessment_reason": "Lý do xác định level dựa trên độ phức tạp công việc đã làm",
+  "recommended_roles": ["Vị trí phù hợp nhất 1", "Vị trí phù hợp nhất 2", "Vị trí phù hợp nhất 3"],
+  "project_quality": "Nhận xét chất lượng dự án: quy mô, công nghệ, vai trò đóng góp có rõ ràng không",
+  "skill_analysis": {
+    "used_in_projects": ["kỹ năng/công nghệ có dùng thực sự trong dự án/mô tả công việc"],
+    "listed_only": ["kỹ năng/công nghệ chỉ liệt kê ở phần kỹ năng mà không thấy dùng trong dự án"]
+  },
+  "strengths": ["điểm mạnh thực tế 1", "điểm mạnh thực tế 2"],
+  "improvements": ["điểm cần cải thiện/học thêm 1", "điểm cần cải thiện/học thêm 2"],
+  "review": "Bản nhận xét tổng quan ngắn gọn về CV (tiếng Việt, từ 3-5 câu)",
   "categories": [
-    { "key": "skills_match", "label": "Kỹ năng", "score": 80, "feedback": "...", "suggestions": ["..."] },
-    { "key": "experience", "label": "Kinh nghiệm", "score": 70, "feedback": "...", "suggestions": ["..."] },
-    { "key": "education", "label": "Học vấn", "score": 90, "feedback": "...", "suggestions": ["..."] },
-    { "key": "format", "label": "Trình bày", "score": 85, "feedback": "...", "suggestions": ["..."] },
-    { "key": "keywords", "label": "Từ khóa ATS", "score": 75, "feedback": "...", "suggestions": ["..."] }
+    {
+      "key": "skills_match",
+      "label": "Kỹ năng phù hợp",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi chi tiết về sự phù hợp kỹ năng",
+      "suggestions": ["Gợi ý cải thiện kỹ năng 1", "Gợi ý 2"]
+    },
+    {
+      "key": "experience",
+      "label": "Kinh nghiệm làm việc",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi chi tiết về kinh nghiệm và độ phức tạp công việc đã làm",
+      "suggestions": ["Gợi ý cải thiện kinh nghiệm 1", "Gợi ý 2"]
+    },
+    {
+      "key": "education",
+      "label": "Học vấn & Chứng chỉ",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi chi tiết về học vấn, ngành học và chứng chỉ chuyên môn",
+      "suggestions": ["Gợi ý học tập/lấy chứng chỉ 1"]
+    },
+    {
+      "key": "format",
+      "label": "Định dạng & Trình bày",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi chi tiết về bố cục, ngữ pháp, độ dài CV",
+      "suggestions": ["Gợi ý trình bày 1"]
+    },
+    {
+      "key": "keywords",
+      "label": "Từ khóa & ATS",
+      "score": (số từ 0-100),
+      "feedback": "Phản hồi về mức độ bao phủ từ khóa so với vị trí/JD",
+      "suggestions": ["Gợi ý bổ sung từ khóa cốt lõi 1"]
+    }
   ]
 }
-      `;
+`;
       const responseText = await this.callGemini(prompt);
       if (responseText) {
         try {
@@ -874,10 +1116,22 @@ Hãy trả về JSON theo định dạng sau:
       fileName,
       jobContext,
     );
+    const enrichedFallback = {
+      ...fallbackResult,
+      level_assessment: 'Junior',
+      level_assessment_reason: 'Đánh giá tự động qua fallback cục bộ',
+      recommended_roles: [targetPosition || 'Developer'],
+      project_quality: 'Không thể phân tích sâu bằng local fallback',
+      skill_analysis: {
+        used_in_projects: [],
+        listed_only: []
+      }
+    };
+
     if (userId) {
       const savedScore = await this.saveScore(
         userId,
-        fallbackResult,
+        enrichedFallback,
         jobContext ? 'candidate_self_score' : 'general_analysis',
         jobContext ? (jobContext as any)._id.toString() : undefined,
         fileName,

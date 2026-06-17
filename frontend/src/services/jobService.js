@@ -245,7 +245,114 @@ export const jobService = {
     }
     return api.get("/jobs/my-applications");
   },
+
+  /**
+   * Lấy danh sách công việc gợi ý
+   * @param {string[]} roles
+   * @param {number} limit
+   */
+  async getRecommendedJobs(roles = [], limit = 5) {
+    const allJobs = []
+    const seenIds = new Set()
+    const rolesArr = Array.isArray(roles) ? roles : (roles ? [roles] : [])
+    
+    for (const role of rolesArr.slice(0, 3)) {
+      const keyword = normalizeRoleToKeyword(role)
+      if (!keyword) continue
+      
+      try {
+        const res = await this.getJobs({ keyword, limit })
+        for (const job of res.data || []) {
+          const jobId = job.id || job._id
+          if (jobId && !seenIds.has(jobId)) {
+            seenIds.add(jobId)
+            allJobs.push(job)
+          }
+        }
+      } catch {}
+      
+      if (allJobs.length >= limit) break
+    }
+    
+    if (allJobs.length > 0) {
+      return { data: allJobs.slice(0, limit), matched: true }
+    }
+    
+    // Fallback: get any active jobs
+    try {
+      const fallback = await this.getJobs({ limit })
+      return { data: fallback.data || [], matched: false }
+    } catch {
+      return { data: [], matched: false }
+    }
+  },
 };
+
+const ROLE_KEYWORD_MAP = {
+  // Frontend
+  'frontend': 'Frontend',
+  'lập trình viên frontend': 'Frontend',
+  'front-end': 'Frontend',
+  'react developer': 'React',
+  'vue developer': 'Vue',
+  
+  // Backend  
+  'backend': 'Backend',
+  'lập trình viên backend': 'Backend',
+  'back-end': 'Backend',
+  'nodejs': 'Node.js',
+  'node.js developer': 'Node.js',
+  'java developer': 'Java',
+  'python developer': 'Python',
+  
+  // Fullstack
+  'fullstack': 'Fullstack',
+  'full-stack': 'Fullstack',
+  'lập trình viên fullstack': 'Fullstack',
+  
+  // Mobile
+  'mobile': 'Mobile',
+  'lập trình viên mobile': 'Mobile',
+  'react native': 'React Native',
+  'flutter developer': 'Flutter',
+  
+  // DevOps / Cloud
+  'devops': 'DevOps',
+  'kỹ sư devops': 'DevOps',
+  'cloud engineer': 'Cloud',
+  
+  // AI / Data
+  'ai engineer': 'AI',
+  'machine learning': 'AI',
+  'data scientist': 'Data',
+  'kỹ sư ai': 'AI',
+  
+  // Design
+  'ui/ux': 'UI/UX',
+  'designer': 'Design',
+  'thiết kế': 'Design',
+  
+  // QA
+  'tester': 'Tester',
+  'qa engineer': 'QA',
+  'kiểm thử': 'Tester',
+}
+
+export function normalizeRoleToKeyword(role) {
+  if (!role) return null
+  const lower = role.toLowerCase().trim()
+  
+  // Check exact map
+  if (ROLE_KEYWORD_MAP[lower]) return ROLE_KEYWORD_MAP[lower]
+  
+  // Check partial match
+  for (const [key, value] of Object.entries(ROLE_KEYWORD_MAP)) {
+    if (lower.includes(key) || key.includes(lower)) return value
+  }
+  
+  // Fallback: lấy từ đầu tiên của role làm keyword
+  return role.split(' ')[0]
+}
 
 export const JOB_CATEGORIES = [
   { id: "it", name: "Công nghệ thông tin", icon: "monitor", count: 1240 },
