@@ -70,6 +70,10 @@ export class CreateJobDto {
   @IsOptional()
   @IsDateString()
   deadline?: string;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
 }
 
 export class UpdateJobDto {
@@ -139,4 +143,8 @@ export class UpdateJobDto {
   @IsOptional()
   @IsDateString()
   deadline?: string;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
 }
