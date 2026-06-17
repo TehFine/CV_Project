@@ -1155,6 +1155,9 @@ Hãy phân tích và trả về kết quả dưới dạng JSON duy nhất, kh�
         .exec();
 
       if (app) {
+        // 0. Check the Application's own pdfBuffer first (for CVs uploaded during apply without AI scoring)
+        if (app.pdfBuffer) return app.pdfBuffer;
+
         // 1. Try finding by cvId as ObjectId
         try {
           const score = await this.cvScoreModel.findById(app.cvId).exec();

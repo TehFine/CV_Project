@@ -379,6 +379,7 @@ export class JobsService {
 
     let cvId = data.cvId || 'uploaded_cv.pdf';
     let aiScoreId: any = undefined;
+    let pdfBufferForApp: Buffer | undefined = undefined;
 
     if (file) {
       // Normalize Vietnamese filename before validation
@@ -401,20 +402,11 @@ export class JobsService {
       const originalname = Buffer.from(file.originalname, 'latin1').toString(
         'utf8',
       );
-      const newScore = new this.cvScoreModel({
-        userId: candidateId as any,
-        jobId: jobId as any,
-        pdfBuffer: file.buffer,
-        cvUrl: originalname,
-        overall: 0,
-        fileName: originalname,
-        categories: [],
-        strengths: [],
-        improvements: [],
-      });
-      await newScore.save();
-      aiScoreId = newScore._id;
+      // Store the file buffer directly on the Application, NOT as a CvScore record.
+      // CvScore records should only be created when the user explicitly uses the
+      // AI scoring feature (via /cv-scoring/candidate-score or /cv-scoring/score/:jobId).
       cvId = originalname;
+      pdfBufferForApp = file.buffer;
     } else {
       const specificScore = await this.cvScoreModel
         .findOne({
@@ -441,6 +433,7 @@ export class JobsService {
       coverLetter: data.coverLetter,
       cvId,
       aiScoreId,
+      pdfBuffer: pdfBufferForApp,
     });
 
     await application.save();

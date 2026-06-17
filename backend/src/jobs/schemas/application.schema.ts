@@ -28,6 +28,9 @@ export class Application {
 
   @Prop({ default: false })
   isArchivedByEmployer: boolean;
+
+  @Prop({ type: Buffer, required: false })
+  pdfBuffer?: Buffer;
 }
 
 export const ApplicationSchema = SchemaFactory.createForClass(Application);
