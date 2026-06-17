@@ -186,12 +186,15 @@ export class JobsService {
       employerId,
     });
 
-    // Enforce requireApproval: nếu không cần duyệt, auto-approve ngay
-    if (
-      !jobsSettings.requireApproval &&
-      (!newJob.status || newJob.status === 'pending')
-    ) {
-      newJob.status = 'active';
+    // Enforce requireApproval: nếu cần duyệt, set mặc định là pending (hoặc draft nếu được gửi)
+    if (jobsSettings.requireApproval) {
+      if (newJob.status !== 'draft') {
+        newJob.status = 'pending';
+      }
+    } else {
+      if (!newJob.status || newJob.status === 'pending') {
+        newJob.status = 'active';
+      }
     }
 
     const saved = await newJob.save();
@@ -262,6 +265,20 @@ export class JobsService {
         'Bạn không có quyền chỉnh sửa tin tuyển dụng này',
       );
     }
+
+    const jobsSettings = await this.getJobsSettings();
+    if (requesterRole !== 'admin') {
+      if (jobsSettings.requireApproval) {
+        if (jobData.status !== 'draft') {
+          jobData.status = 'pending';
+        }
+      } else {
+        if (jobData.status === 'pending') {
+          jobData.status = 'active';
+        }
+      }
+    }
+
     const updated = await this.jobModel
       .findByIdAndUpdate(id, jobData, { new: true })
       .exec();
