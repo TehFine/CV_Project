@@ -32,13 +32,15 @@ export default function ProfilePage() {
   // ── Đồng bộ tab khi URL thay đổi ─────────────────────────────────────────
   // Khi click Link từ UserDropdown (ví dụ: /profile?tab=saved → /profile?tab=cvs),
   // component không remount vì cùng route. useState chỉ đọc searchParams 1 lần
-  // khi mount, nên activeTab không tự cập nhật. Effect này đảm bảo đồng bộ.
+  // khi mount, nên activeTab không tự cập nhật.
+  // Chỉ lắng nghe searchParams thay đổi, KHÔNG lắng nghe activeTab
+  // để tránh ghi đè khi user click chọn tab khác.
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab')
-    if (tabFromUrl && tabFromUrl !== activeTab) {
+    if (tabFromUrl) {
       setActiveTab(tabFromUrl)
     }
-  }, [searchParams, activeTab])
+  }, [searchParams])
 
   const currentTab = TABS.find(t => t.key === activeTab)
 
@@ -92,7 +94,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-[180px] shrink-0 sticky top-20">
+        <aside className="hidden md:block w-45 shrink-0 sticky top-20">
           <Card>
             <CardContent className="p-2">
               <nav className="flex flex-col gap-0.5">
