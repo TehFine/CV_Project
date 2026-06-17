@@ -146,6 +146,35 @@ export class CvScoringService {
     }
   }
 
+  /**
+   * Clean up Vietnamese text extracted from PDFs.
+   * PDF text extraction often produces garbled Unicode due to font encoding issues.
+   * This function attempts to fix common problems:
+   * - Unicode normalization (NFD → NFC) to fix decomposed Vietnamese characters
+   * - Removing excessive replacement characters (\uFFFD)
+   * - Normalizing whitespace
+   */
+  private cleanupVietnameseText(text: string): string {
+    if (!text || text.length === 0) return text;
+
+    let cleaned = text;
+
+    // 1. Normalize Unicode to composed form (NFC)
+    // Many PDFs store Vietnamese as NFD (decomposed) which causes regex issues
+    cleaned = cleaned.normalize('NFC');
+
+    // 2. Remove Unicode replacement characters (common in broken font encoding)
+    cleaned = cleaned.replace(/\uFFFD/g, '');
+
+    // 3. Collapse multiple spaces and trim
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+    // 4. Fix line breaks - ensure proper line separation
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
+    return cleaned;
+  }
+
   async parsePdf(
     buffer: Buffer,
     fileName: string = 'uploaded_cv.pdf',
@@ -154,7 +183,7 @@ export class CvScoringService {
       const lowerName = fileName.toLowerCase();
       if (lowerName.endsWith('.docx') || lowerName.endsWith('.doc')) {
         const result = await mammoth.extractRawText({ buffer });
-        return result.value;
+        return this.cleanupVietnameseText(result.value);
       }
 
       // Use pdfjs-dist (v5+) for robust PDF text extraction.
@@ -213,7 +242,8 @@ export class CvScoringService {
         pages.push(pageText);
       }
 
-      return pages.join('\n\n');
+      const rawText = pages.join('\n\n');
+      return this.cleanupVietnameseText(rawText);
     } catch (error) {
       this.logger.error('Failed to parse document', error);
       throw new Error(

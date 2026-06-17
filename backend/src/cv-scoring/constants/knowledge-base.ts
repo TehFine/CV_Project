@@ -653,7 +653,145 @@ export const SKILL_WEIGHTS: Record<string, Record<string, number>> = {
 };
 
 // ─────────────────────────────────────────────
-// 3.5. INDUSTRY WEIGHT CONFIG
+// 3.5. SKILL SYNONYMS (alternate forms for fuzzy matching)
+// ─────────────────────────────────────────────
+
+/**
+ * Map skill keywords to their common alternate forms/abbreviations.
+ * Used by scoreSkills() to match skills even when written differently.
+ */
+export const SKILL_ALT_FORMS: Record<string, string[]> = {
+  'nodejs': ['node', 'node.js', 'node js'],
+  'nestjs': ['nest', 'nest.js'],
+  'react': ['reactjs', 'react.js', 'react js'],
+  'nextjs': ['next', 'next.js', 'next js'],
+  'nuxtjs': ['nuxt', 'nuxt.js', 'nuxt js'],
+  'vue': ['vuejs', 'vue.js', 'vue js'],
+  'typescript': ['ts'],
+  'javascript': ['js', 'ecmascript', 'es6', 'es2015'],
+  'postgresql': ['postgres', 'psql'],
+  'mongodb': ['mongo'],
+  'kubernetes': ['k8s', 'kube'],
+  'machine learning': ['ml'],
+  'deep learning': ['dl'],
+  'c#': ['c sharp', 'csharp'],
+  '.net': ['dotnet', '.net core', 'dotnet core'],
+  'express': ['expressjs', 'express.js'],
+  'docker compose': ['docker-compose'],
+  'ui/ux': ['ui ux', 'ux design', 'ui design', 'ui/ux design'],
+  'react native': ['reactnative', 'rn'],
+  'objective-c': ['objective c', 'objc'],
+  'terraform': ['tf'],
+  'github actions': ['githubactions', 'actions'],
+  'ci/cd': ['cicd', 'ci cd'],
+  'elasticsearch': ['es'],
+  'go': ['golang'],
+  'typeorm': ['type orm'],
+  'prisma': ['prisma orm'],
+  'spring boot': ['springboot'],
+  'scikit-learn': ['sklearn'],
+  'power bi': ['powerbi', 'power bi'],
+  'react query': ['reactquery', 'tanstack query'],
+  'testing library': ['react testing library', 'rtl'],
+  'cassandra': ['cassandra db'],
+  'microservices': ['micro service', 'micro service architecture'],
+  'message queue': ['message broker', 'mq'],
+  'rabbitmq': ['rabbit mq'],
+  'authentication': ['authn'],
+  'authorization': ['authz'],
+  'materialize': ['materialized view'],
+  'jetpack compose': ['jetpackcompose', 'compose'],
+  'google cloud': ['gcp'],
+};
+
+// ─────────────────────────────────────────────
+// 3.6. COMPANY TIERS
+// ─────────────────────────────────────────────
+
+/**
+ * Known companies with recognition scores.
+ * Working at these companies gives extra experience score.
+ */
+export const COMPANY_TIERS: { pattern: RegExp; score: number; label: string }[] = [
+  // Global Big Tech
+  { pattern: /\bgoogle\b/i, score: 5, label: 'Google' },
+  { pattern: /\b(meta|facebook)\b/i, score: 5, label: 'Meta/Facebook' },
+  { pattern: /\bamazon\b/i, score: 5, label: 'Amazon' },
+  { pattern: /\bapple\s+(inc|computer)?\b/i, score: 5, label: 'Apple' },
+  { pattern: /\bmicrosoft\b/i, score: 5, label: 'Microsoft' },
+  { pattern: /\bnetflix\b/i, score: 5, label: 'Netflix' },
+  { pattern: /\b(openai|anthropic)\b/i, score: 5, label: 'AI Lab' },
+  { pattern: /\bstripe\b/i, score: 5, label: 'Stripe' },
+  { pattern: /\bspotify\b/i, score: 5, label: 'Spotify' },
+  { pattern: /\blinkedin\b/i, score: 5, label: 'LinkedIn' },
+  { pattern: /\btwitter|x\.com\b/i, score: 4, label: 'Twitter/X' },
+  { pattern: /\bshopee\b/i, score: 4, label: 'Shopee' },
+  { pattern: /\bgrab\b/i, score: 4, label: 'Grab' },
+  { pattern: /\blazada\b/i, score: 4, label: 'Lazada' },
+
+  // Top Vietnamese Tech
+  { pattern: /\bvng\b/i, score: 4, label: 'VNG' },
+  { pattern: /\bfpt\s*(software|digital|smart)?\b/i, score: 4, label: 'FPT' },
+  { pattern: /\bvccorp\b/i, score: 3, label: 'VCCorp' },
+  { pattern: /\bviettel\b/i, score: 3, label: 'Viettel' },
+  { pattern: /\bvnpt\b/i, score: 3, label: 'VNPT' },
+  { pattern: /\bmomo\b/i, score: 4, label: 'MoMo' },
+  { pattern: /\bsendo\b/i, score: 3, label: 'Sendo' },
+  { pattern: /\btiki\b/i, score: 3, label: 'Tiki' },
+
+  // Banks & Finance (VN)
+  { pattern: /\b(techcombank|vpbank|mbbank|acb|vcb|bidv|vietinbank)\b/i, score: 2, label: 'Major Vietnamese Bank' },
+
+  // Consulting & Outsourcing
+  { pattern: /\bmckinsey\b/i, score: 4, label: 'McKinsey' },
+  { pattern: /\bbcg\b/i, score: 4, label: 'BCG' },
+  { pattern: /\bbain\b/i, score: 4, label: 'Bain' },
+  { pattern: /\bcapgemini\b/i, score: 3, label: 'Capgemini' },
+  { pattern: /\b(accenture|avaloq|thoughtworks)\b/i, score: 3, label: 'Tech Consulting' },
+];
+
+// ─────────────────────────────────────────────
+// 3.7. UNIVERSITY TIERS
+// ─────────────────────────────────────────────
+
+/**
+ * University recognition for education scoring bonus.
+ */
+export const UNIVERSITY_TIERS: { pattern: RegExp; score: number; label: string }[] = [
+  // Top Global
+  { pattern: /\b(harvard|mit|stanford|oxford|cambridge|berkeley|cmu|caltech|princeton|yale)\b/i, score: 4, label: 'Top Global University' },
+  // Top Asian
+  { pattern: /\b(nus|ntu|tokyo|seoul national|tsinghua|peking)\b/i, score: 3, label: 'Top Asian University' },
+
+  // Top Vietnamese Universities
+  { pattern: /\b(đại học bách khoa|hcmut|hust|bách khoa hà nội|bách khoa tp|bách khoa hcm)\b/i, score: 3, label: 'Đại học Bách Khoa' },
+  { pattern: /\b(đại học công nghệ|vnu|vnu hcm|đại học quốc gia|hcmus|vnu hcmus|university of science)\b/i, score: 3, label: 'Đại học Quốc gia' },
+  { pattern: /\b(đại học fpt|fpt university)\b/i, score: 2, label: 'Đại học FPT' },
+  { pattern: /\b(học viện công nghệ|post and telecommunications|ptit)\b/i, score: 2, label: 'PTIT' },
+  { pattern: /\brmit\b/i, score: 3, label: 'RMIT Vietnam' },
+  { pattern: /\b(đại học ngoại thương|ftu)\b/i, score: 2, label: 'Đại học Ngoại thương' },
+  { pattern: /\b(đại học kinh tế|ueh|học viện tài chính|hvnh|ngân hàng)\b/i, score: 2, label: 'Đại học Kinh tế' },
+  { pattern: /\b(đại học sư phạm|hcmue|học viện kỹ thuật|mta)\b/i, score: 1, label: 'Other University' },
+];
+
+// ─────────────────────────────────────────────
+// 3.8. MAJOR/FIELD OF STUDY PATTERNS
+// ─────────────────────────────────────────────
+
+export const MAJOR_PATTERNS: { pattern: RegExp; label: string }[] = [
+  { pattern: /\b(cs|computer science|công nghệ thông tin|khoa học máy tính|cntt|information technology|it)\b/i, label: 'Computer Science/IT' },
+  { pattern: /\b(software engineering|công nghệ phần mềm|kỹ thuật phần mềm)\b/i, label: 'Software Engineering' },
+  { pattern: /\b(data science|khoa học dữ liệu|data engineering)\b/i, label: 'Data Science/Engineering' },
+  { pattern: /\b(information systems|hệ thống thông tin|management information systems|mis)\b/i, label: 'Information Systems' },
+  { pattern: /\b(electrical engineering|điện tử viễn thông|kỹ thuật điện|electronics)\b/i, label: 'Electrical/Electronics Engineering' },
+  { pattern: /\b(artificial intelligence|ai|trí tuệ nhân tạo|machine learning)\b/i, label: 'AI/Machine Learning' },
+  { pattern: /\b(mathematics|toán|applied math|toán tin)\b/i, label: 'Mathematics' },
+  { pattern: /\b(physics|vật lý)\b/i, label: 'Physics' },
+  { pattern: /\b(business administration|quản trị kinh doanh|mba)\b/i, label: 'Business Administration' },
+];
+
+// ─────────────────────────────────────────────
+// 3.9. INDUSTRY WEIGHT CONFIG
 // ─────────────────────────────────────────────
 
 export const INDUSTRY_WEIGHT_CONFIG: Record<string, {
@@ -737,30 +875,94 @@ export const EXPERIENCE_PATTERNS = {
 // 5. CV SECTION PATTERNS
 // ─────────────────────────────────────────────
 
+/**
+ * Strip Vietnamese diacritics from text for fuzzy matching.
+ * E.g. "kỹ năng" → "ky nang", "trình độ" → "trinh do"
+ */
+export function stripAccents(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFC');
+}
+
+/**
+ * Expanded CV section patterns with more Vietnamese and English variations.
+ * Each section now has multiple patterns for better coverage.
+ */
 export const CV_SECTION_PATTERNS = {
   summary: [
     /\b(summary|objective|profile|about me|career objective|professional summary|giới thiệu|mục tiêu nghề nghiệp|tóm tắt)\b/i,
+    /\b(mục tiêu|sơ yếu lý lịch|giới thiệu bản thân|personal statement|career goal)\b/i,
   ],
   education: [
     /\b(education|academic|university|college|degree|bachelor|master|phd|học vấn|trình độ học vấn|đại học|cao đẳng|bằng cấp)\b/i,
+    /\b(học tập|đào tạo|education background|academic background|học hàm|trình độ chuyên môn|hệ đào tạo)\b/i,
   ],
   experience: [
     /\b(experience|work experience|employment|career|work history|professional experience|kinh nghiệm|kinh nghiệm làm việc|quá trình công tác)\b/i,
+    /\b(kinh nghiệm chuyên môn|dự án|project|projects|quá trình làm việc|employment history|work background)\b/i,
   ],
   skills: [
     /\b(skills|technical skills|competencies|expertise|technologies|kỹ năng|công nghệ|kỹ năng chuyên môn)\b/i,
+    /\b(kỹ thuật|năng lực|technical|chuyên môn|core competencies|tech stack|kỹ năng kỹ thuật)\b/i,
+    /\b(công nghệ sử dụng|ngôn ngữ lập trình|programming languages|frameworks|tools)\b/i,
   ],
   projects: [
     /\b(projects|personal projects|side projects|portfolio|dự án|dự án cá nhân)\b/i,
+    /\b(đồ án|project experience|project highlights)\b/i,
   ],
   certifications: [
     /\b(certifications?|certificates?|licenses?|credentials|chứng chỉ|bằng cấp|chứng nhận)\b/i,
+    /\b(khóa học|course|certified|professional certification)\b/i,
   ],
   awards: [
     /\b(awards?|honors?|achievements?|recognition|giải thưởng|thành tích|khen thưởng)\b/i,
   ],
-  languages: [/\b(languages?|linguistic|ngoại ngữ|ngôn ngữ)\b/i],
+  languages: [
+    /\b(languages?|linguistic|ngoại ngữ|ngôn ngữ)\b/i,
+    /\b(trình độ ngoại ngữ|language skills|foreign language)\b/i,
+  ],
 };
+
+/**
+ * Check if text has strong CV content evidence even without section headers.
+ * Uses heuristics like date patterns, tech skills, action verbs, education keywords.
+ */
+export function hasCvContentEvidence(text: string): boolean {
+  const normalized = normalizeText(text);
+  let evidenceCount = 0;
+
+  // Evidence 1: Has date patterns (work history indication)
+  const hasDates = /\b(19|20)\d{2}\b.*?\b(19|20)\d{2}\b|\b(19|20)\d{2}\s*[-–—to]*\s*(present|nay|current|now|hiện tại|nay)\b/is.test(normalized);
+  if (hasDates) evidenceCount++;
+
+  // Evidence 2: Has programming languages / tech skills
+  const techPattern = /\b(javascript|typescript|python|java|c\+\+|c#|react|vue|angular|node|nodejs|docker|aws|sql|mysql|postgresql|mongodb|html|css|php|ruby|golang|swift|kotlin|flutter|git)\b/i;
+  if (techPattern.test(normalized)) evidenceCount++;
+
+  // Evidence 3: Has job-related action verbs (work experience)
+  const actionVerbPattern = /\b(developed|built|designed|implemented|managed|led|created|maintained|optimized|improved|delivered|deployed|configured|engineered|programmed|architected)\b/i;
+  if (actionVerbPattern.test(normalized)) evidenceCount++;
+
+  // Evidence 4: Has education keywords
+  const eduPattern = /\b(university|college|bachelor|master|degree|đại học|cao đẳng|school|institute|học viện)\b/i;
+  if (eduPattern.test(normalized)) evidenceCount++;
+
+  // Evidence 5: Has contact info (email or phone)
+  const hasContact = /[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(normalized) || /(\+84|0[3-9]\d{8}|\(\d{3}\)\s?\d{3}-\d{4})/.test(normalized);
+  if (hasContact) evidenceCount++;
+
+  // Evidence 6: Has company / job title keywords
+  const jobTitlePattern = /\b(engineer|developer|designer|manager|consultant|specialist|intern|fresher|junior|senior|lead|architect|intern|thực tập|nhân viên|trưởng nhóm)\b/i;
+  if (jobTitlePattern.test(normalized)) evidenceCount++;
+
+  // Evidence 7: Has project-related keywords
+  const projectPattern = /\b(project|team|client|feature|module|system|application|app|web|mobile|api)\b/i;
+  if (projectPattern.test(normalized)) evidenceCount++;
+
+  return evidenceCount >= 3;
+}
 
 // ─────────────────────────────────────────────
 // 6. POSITIVE IMPACT PHRASES (boost score)
@@ -976,6 +1178,115 @@ export function normalizeForMatching(text: string): string {
 }
 
 /**
+ * Extract years of work experience from date ranges found in CV text.
+ * Parses patterns like:
+ * - "2019 - 2023" → 4 years
+ * - "2019 - Present" → (current year - 2019) years
+ * - "Jan 2019 - Dec 2023" → 4 years
+ * - "2019 đến 2023", "2019 đến nay"
+ * - "01/2019 - 12/2023"
+ *
+ * Merges overlapping/adjacent ranges and returns total years.
+ */
+export function extractYearsOfExperience(text: string): number {
+  const normalized = normalizeText(text);
+  const ranges: { start: number; end: number }[] = [];
+  const currentYear = new Date().getFullYear();
+
+  // Pattern 1: "YYYY - YYYY" or "YYYY - Present/nay/now"
+  const rangeRegex1 = /\b(\d{4})\s*[-–—to]+\s*(\d{4}|present|nay|current|now|hiện tại)\b/gi;
+  let match;
+  while ((match = rangeRegex1.exec(normalized)) !== null) {
+    const start = parseInt(match[1]);
+    if (!/^\d{4}$/.test(match[1])) continue;
+    if (start < 1990 || start > currentYear) continue; // Sanity check
+
+    if (/^\d{4}$/.test(match[2])) {
+      const end = parseInt(match[2]);
+      if (end >= start && end <= currentYear + 1) {
+        ranges.push({ start, end });
+      }
+    } else {
+      // "Present" etc.
+      ranges.push({ start, end: currentYear });
+    }
+  }
+
+  // Pattern 2: "YYYY đến YYYY" or "YYYY đến nay"
+  const rangeRegex2 = /\b(\d{4})\s*(?:đến|tới)\s*(\d{4}|nay)\b/gi;
+  while ((match = rangeRegex2.exec(normalized)) !== null) {
+    const start = parseInt(match[1]);
+    if (start < 1990 || start > currentYear) continue;
+    if (/^\d{4}$/.test(match[2])) {
+      const end = parseInt(match[2]);
+      if (end >= start) ranges.push({ start, end });
+    } else {
+      ranges.push({ start, end: currentYear });
+    }
+  }
+
+  // Pattern 3: Month YYYY - Month YYYY (e.g., "January 2020 - March 2023")
+  const months = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|tháng\s*\d+)';
+  const rangeRegex3 = new RegExp(`\\b${months}\\s*(\\d{4})\\s*[-–—to]+\\s*${months}\\s*(\\d{4}|present|nay|now)\\b`, 'gi');
+  while ((match = rangeRegex3.exec(normalized)) !== null) {
+    const start = parseInt(match[1]);
+    if (start < 1990 || start > currentYear) continue;
+    if (/^\d{4}$/.test(match[2])) {
+      const end = parseInt(match[2]);
+      if (end >= start) ranges.push({ start, end });
+    } else {
+      ranges.push({ start, end: currentYear });
+    }
+  }
+
+  if (ranges.length === 0) return 0;
+
+  // Sort by start year
+  ranges.sort((a, b) => a.start - b.start);
+
+  // Merge overlapping/adjacent ranges
+  const merged: { start: number; end: number }[] = [];
+  for (const range of ranges) {
+    if (merged.length === 0) {
+      merged.push(range);
+    } else {
+      const last = merged[merged.length - 1];
+      if (range.start <= last.end) {
+        // Overlap or adjacent - merge
+        last.end = Math.max(last.end, range.end);
+      } else {
+        merged.push(range);
+      }
+    }
+  }
+
+  // Sum up total years
+  const totalYears = merged.reduce((sum, r) => sum + (r.end - r.start), 0);
+  return totalYears;
+}
+
+/**
+ * Extract company recognition score from CV text.
+ * Checks for known company names and returns cumulative score.
+ */
+export function extractCompanyScore(text: string): { score: number; companies: string[] } {
+  const normalized = normalizeText(text);
+  const found = new Set<string>();
+  let score = 0;
+
+  for (const company of COMPANY_TIERS) {
+    if (company.pattern.test(normalized)) {
+      if (!found.has(company.label)) {
+        found.add(company.label);
+        score += company.score;
+      }
+    }
+  }
+
+  return { score, companies: Array.from(found) };
+}
+
+/**
  * Detect which role(s) a CV is targeting
  */
 export function detectRoles(cvText: string): string[] {
@@ -1028,11 +1339,45 @@ export function detectSections(cvText: string): {
   const criticalSections = ['experience', 'skills', 'education'];
   const allSections = Object.keys(CV_SECTION_PATTERNS);
 
-  const found = allSections.filter((section) =>
+  // Strategy 1: Try exact patterns on normalized text
+  let found = allSections.filter((section) =>
     CV_SECTION_PATTERNS[section as keyof typeof CV_SECTION_PATTERNS].some((p) =>
       p.test(normalized),
     ),
   );
+
+  // Strategy 2: If Strategy 1 found < 2 critical sections, try with accent-stripped text
+  // This helps when PDF extraction garbles Vietnamese diacritics
+  const foundCritical = criticalSections.filter((s) => found.includes(s));
+  if (foundCritical.length < 2) {
+    const accentStripped = stripAccents(normalized);
+    const strippedFound = allSections.filter((section) =>
+      CV_SECTION_PATTERNS[section as keyof typeof CV_SECTION_PATTERNS].some((p) =>
+        p.test(accentStripped),
+      ),
+    );
+    // Merge findings, preferring original
+    found = [...new Set([...found, ...strippedFound])];
+  }
+
+  // Strategy 3: Content-based fallback for critical sections
+  // If we still can't find sections via headers, check content evidence
+  const foundCriticalFinal = criticalSections.filter((s) => found.includes(s));
+  if (foundCriticalFinal.length < 2) {
+    // Check if text has strong evidence of being a CV
+    if (hasCvContentEvidence(normalized)) {
+      // Mark missing critical sections as found based on content evidence
+      if (!found.includes('experience') && /\b(19|20)\d{2}\b.*?(company|công ty|team|project|dự án)\b/is.test(normalized)) {
+        found.push('experience');
+      }
+      if (!found.includes('skills') && /\b(javascript|python|java|react|node|docker|sql|html|css|c\+\+|php|ruby|git)\b/i.test(normalized)) {
+        found.push('skills');
+      }
+      if (!found.includes('education') && /\b(university|college|bachelor|master|degree|đại học|cao đẳng)\b/i.test(normalized)) {
+        found.push('education');
+      }
+    }
+  }
 
   const missing = criticalSections.filter((s) => !found.includes(s));
   return { found, missing };
@@ -1041,11 +1386,12 @@ export function detectSections(cvText: string): {
 /**
  * Score skill matches for given roles
  *
- * Uses an exponential scoring curve instead of linear ratio:
- * The first matches are rewarded heavily (like Gemini's semantic understanding),
- * and additional matches give diminishing returns.
+ * Uses multiple matching strategies:
+ * 1. Exact match on normalized text
+ * 2. Fuzzy (normalizeForMatching) for multi-char keywords
+ * 3. Synonym matching via SKILL_ALT_FORMS for abbreviations/variations
  *
- * Also uses fuzzy matching so "node.js", "NodeJS", "node js" all count the same.
+ * Uses an exponential scoring curve for diminishing returns.
  */
 function scoreSkills(
   cvText: string,
@@ -1065,19 +1411,35 @@ function scoreSkills(
     for (const kw of keywords) {
       const weight = weights[kw] ?? 1;
       const normalizedKw = normalizeForMatching(kw);
+      const altForms = SKILL_ALT_FORMS[kw] || [];
 
       // Only count weight >= 2 keywords in the denominator.
       // Weight=1 keywords are treated as bonus (they add to rawScore but not the cap).
       if (weight >= 2) coreMaxRaw += weight;
 
-      // Fuzzy match: try exact first, then normalized (fuzzy) for multi-char keywords
+      // Strategy 1: Exact match on normalized text
       const exactMatch = normalized.includes(kw.toLowerCase());
+
+      // Strategy 2: Fuzzy match (strip dots/dashes/spaces)
       const fuzzyMatch =
         !exactMatch &&
         normalizedKw.length >= 4 &&
         fuzzyNormalized.includes(normalizedKw);
 
-      if (exactMatch || fuzzyMatch) {
+      // Strategy 3: Synonym/alternate form matching
+      const synonymMatch =
+        !exactMatch &&
+        !fuzzyMatch &&
+        altForms.some((alt) => {
+          const altLower = alt.toLowerCase();
+          // Try exact match on alt form first
+          if (normalized.includes(altLower)) return true;
+          // Then try fuzzy match on alt form
+          const fuzzyAlt = normalizeForMatching(altLower);
+          return fuzzyAlt.length >= 3 && fuzzyNormalized.includes(fuzzyAlt);
+        });
+
+      if (exactMatch || fuzzyMatch || synonymMatch) {
         rawScore += weight;
         matched.add(kw);
       } else if (weight === 3) {
@@ -1087,15 +1449,6 @@ function scoreSkills(
   }
 
   // Use exponential scoring curve with coreMaxRaw (weight>=2 keywords only)
-  // as the denominator. This means we compare against only the ~15 most
-  // important keywords per role, not all 50+.
-  //
-  // Lambda = 6 gives a steeper curve:
-  // At 10% core ratio → 45% of max → ~20/45
-  // At 20% core ratio → 70% of max → ~31/45
-  // At 30% core ratio → 83% of max → ~38/45
-  // At 40% core ratio → 91% of max → ~41/45
-  // At 50% core ratio → 95% of max → ~43/45
   let score = 0;
   if (coreMaxRaw > 0) {
     const matchRatio = Math.min(rawScore / coreMaxRaw, 1.0);
@@ -1112,7 +1465,10 @@ function scoreSkills(
 }
 
 /**
- * Score experience section
+ * Score experience section with enhanced logic:
+ * - Date-based year calculation from CV date ranges
+ * - Company recognition bonus
+ * - Explicit years-of-experience mention parsing
  */
 function scoreExperience(
   cvText: string,
@@ -1127,7 +1483,36 @@ function scoreExperience(
   score += baseByLevel[level];
   details.push(`Cấp độ phát hiện: ${level}`);
 
-  // Bonus for impact phrases
+  // --- Date-based experience calculation ---
+  const yearsFromDates = extractYearsOfExperience(cvText);
+  if (yearsFromDates > 0) {
+    // Bonus: up to 8 points for date-based experience
+    // Scale: 1 year → 2 points, 5+ years → 8 points (max)
+    const dateBonus = Math.min(8, Math.round(yearsFromDates * 1.5));
+    score += dateBonus;
+    details.push(`Kinh nghiệm từ mốc thời gian: ${yearsFromDates} năm`);
+  }
+
+  // --- Explicit years-of-experience mention ---
+  const explicitYearsMatch = normalized.match(/\b(\d+)\+?\s*(years?|yrs?|năm)\s*(of\s*)?(experience|exp|kinh nghiệm)\b/i);
+  if (explicitYearsMatch) {
+    const explicitYears = parseInt(explicitYearsMatch[1]);
+    if (explicitYears > 0 && explicitYears <= 50) {
+      const explicitBonus = Math.min(4, Math.round(explicitYears * 0.6));
+      score += explicitBonus;
+      details.push(`Kinh nghiệm khai báo: ${explicitYears} năm`);
+    }
+  }
+
+  // --- Company recognition ---
+  const companyInfo = extractCompanyScore(cvText);
+  if (companyInfo.score > 0) {
+    const companyBonus = Math.min(6, companyInfo.score);
+    score += companyBonus;
+    details.push(`Công ty nổi bật: ${companyInfo.companies.join(', ')}`);
+  }
+
+  // --- Impact phrases (quantified achievements) ---
   let impactCount = 0;
   for (const pattern of POSITIVE_IMPACT_PHRASES) {
     if (pattern.test(normalized)) {
@@ -1137,7 +1522,7 @@ function scoreExperience(
     }
   }
 
-  // Small penalty for vague language
+  // --- Penalty for vague language ---
   let vagueCount = 0;
   for (const pattern of RED_FLAG_PATTERNS) {
     const matches = normalized.match(new RegExp(pattern.source, 'gi'));
@@ -1148,7 +1533,7 @@ function scoreExperience(
     details.push('Ngôn ngữ mô tả còn chung chung');
   }
 
-  // Bonus: open source / github
+  // --- Open source / github bonus ---
   if (/\b(github|gitlab|open[\s-]?source|contributed to)\b/i.test(normalized)) {
     score += SCORING_CONFIG.bonuses.openSource;
     details.push('Có đóng góp mã nguồn mở / GitHub');
@@ -1162,7 +1547,11 @@ function scoreExperience(
 }
 
 /**
- * Score education
+ * Score education with enhanced detection:
+ * - Degree tier (PhD, Master, Bachelor, etc.)
+ * - University tier bonus
+ * - Major/field of study detection
+ * - GPA detection
  */
 function scoreEducation(
   cvText: string,
@@ -1171,6 +1560,7 @@ function scoreEducation(
   let detected = 'Không phát hiện';
   let eduScore = 0;
 
+  // 1. Degree tier (from EDUCATION_TIERS)
   for (const tier of EDUCATION_TIERS) {
     if (tier.pattern.test(normalized)) {
       eduScore = tier.score;
@@ -1179,11 +1569,56 @@ function scoreEducation(
     }
   }
 
-  const score = Math.round((eduScore / 10) * SCORING_CONFIG.weights.education);
+  // 2. University tier bonus (up to +4 bonus)
+  let uniBonus = 0;
+  const foundUnis: string[] = [];
+  for (const uni of UNIVERSITY_TIERS) {
+    if (uni.pattern.test(normalized)) {
+      uniBonus = Math.max(uniBonus, uni.score);
+      foundUnis.push(uni.label);
+    }
+  }
+  if (uniBonus > 0 && foundUnis.length > 0) {
+    detected += ` - ${foundUnis[0]}`;
+  }
+
+  // 3. Major/field of study detection
+  let majorLabel = '';
+  for (const major of MAJOR_PATTERNS) {
+    if (major.pattern.test(normalized)) {
+      majorLabel = major.label;
+      break;
+    }
+  }
+  if (majorLabel) {
+    detected += ` (${majorLabel})`;
+  }
+
+  // 4. GPA detection
+  let gpaText = '';
+  const gpaMatch = normalized.match(/\b(gpa|điểm)\s*:?\s*(\d+\.?\d*)\s*\/?\s*(4|10|100)?\b/i);
+  if (gpaMatch) {
+    const gpa = parseFloat(gpaMatch[2]);
+    const scale = gpaMatch[3] ? parseInt(gpaMatch[3]) : 4;
+    // Normalize to 4.0 scale
+    let normalizedGpa = gpa;
+    if (scale === 10) normalizedGpa = gpa / 2.5;
+    else if (scale === 100) normalizedGpa = gpa / 25;
+    if (normalizedGpa >= 3 && normalizedGpa <= 4) {
+      uniBonus += 1;
+      gpaText = `GPA: ${gpa}/${scale}`;
+    }
+  }
+
+  const finalScore = Math.min(
+    Math.round((eduScore / 10) * SCORING_CONFIG.weights.education) + uniBonus,
+    SCORING_CONFIG.weights.education,
+  );
+
   return {
-    score: Math.min(score, SCORING_CONFIG.weights.education),
+    score: finalScore,
     maxScore: SCORING_CONFIG.weights.education,
-    detected,
+    detected: detected + (gpaText ? ` | ${gpaText}` : ''),
   };
 }
 
@@ -1323,9 +1758,21 @@ function generateFeedback(
     );
   }
 
+  // Experience: company recognition
+  if (breakdown.experience.details.some((d) => d.includes('Công ty nổi bật'))) {
+    strengths.push('Kinh nghiệm làm việc tại các công ty công nghệ nổi bật');
+  }
+
+  // Experience: open source
+  if (breakdown.experience.details.some((d) => d.includes('mã nguồn mở'))) {
+    strengths.push('Có đóng góp mã nguồn mở, thể hiện tinh thần học hỏi và cống hiến');
+  }
+
   // Education
   if (breakdown.education.score >= 6) {
     strengths.push(`Nền tảng học vấn tốt: ${breakdown.education.detected}`);
+  } else if (breakdown.education.detected && !breakdown.education.detected.includes('Không phát hiện')) {
+    strengths.push(`Học vấn: ${breakdown.education.detected}`);
   }
 
   // Certs
@@ -1365,8 +1812,10 @@ function generateFeedback(
 /**
  * Kiểm tra nội dung có phải là CV hợp lệ hay không dựa trên:
  * - Có ít nhất 2/3 section quan trọng (Experience, Skills, Education)
- * - Có thông tin liên hệ (email hoặc số điện thoại)
+ *   với 3 strategy: regex → accent-stripped → content-based heuristic
  * - Có độ dài tối thiểu
+ * - Fallback: content-based evidence (dates, tech skills, education keywords,
+ *   contact info, job titles, project keywords)
  */
 export function isValidCV(cvText: string): { valid: boolean; reason: string } {
   const normalized = normalizeText(cvText);
@@ -1379,14 +1828,21 @@ export function isValidCV(cvText: string): { valid: boolean; reason: string } {
     };
   }
 
-  // Phát hiện các section
+  // Phát hiện các section (sử dụng detectSections đã cải tiến với 3 strategy)
   const sections = detectSections(normalized);
   const criticalSections = ['experience', 'skills', 'education'];
   const foundCritical = criticalSections.filter((s) =>
     sections.found.includes(s),
   );
 
+  // Nếu section detection không đủ 2/3, dùng content-based heuristic làm fallback
   if (foundCritical.length < 2) {
+    // Content-based fallback: kiểm tra bằng chứng nội dung CV
+    if (hasCvContentEvidence(normalized)) {
+      // Nội dung có đủ bằng chứng của một CV hợp lệ → cho phép pass
+      return { valid: true, reason: '' };
+    }
+
     const foundList =
       foundCritical.length === 0
         ? 'không tìm thấy phần nào'
@@ -1397,17 +1853,8 @@ export function isValidCV(cvText: string): { valid: boolean; reason: string } {
     };
   }
 
-  // Kiểm tra thông tin liên hệ
-  const hasContact =
-    /[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(normalized) ||
-    /(\+84|0[3-9]\d{8}|\(\d{3}\)\s?\d{3}-\d{4})/.test(normalized);
-  if (!hasContact) {
-    return {
-      valid: false,
-      reason:
-        'Tài liệu không giống một bản CV hợp lệ (không tìm thấy email hoặc số điện thoại). Vui lòng kiểm tra lại.',
-    };
-  }
+  // Kiểm tra thông tin liên hệ (chỉ bắt buộc khi section detection không tìm thấy đủ)
+  // Nếu đã có đủ section, contact info là bonus, không phải requirement tuyệt đối
 
   return { valid: true, reason: '' };
 }
